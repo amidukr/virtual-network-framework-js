@@ -21,7 +21,7 @@ define([], function(){
                        message: message};
 
           for(var i = 0; i < listeners.length; i++) {
-            listeners[i](level, instance, category, message);
+            listeners[i](event);
           }
 
           if(instance) {

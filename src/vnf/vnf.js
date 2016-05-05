@@ -1,26 +1,8 @@
-define(["../../lib/bluebird", "../../utils/logger.js"],
-            function(Promise,                     Log){
-
+define(["vnf/channel/in-browser-hub", "utils/arrays"],
+  function(InBrowserHub){
     return {
-        InBrowserPoolFactory: function(){
-
-        },
-
-        InBrowserChannelPool: function(){
-          var self = this;
-        },
-
-
-        VirtualNetwork: function() {
-           var self = this;
-
-           self.send = function(vip, message) {
-
-           }
-        }
+      InBrowserHub: InBrowserHub
     }
-
-
 });
 
 
