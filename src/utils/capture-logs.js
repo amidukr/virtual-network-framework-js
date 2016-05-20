@@ -7,6 +7,24 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
   var lastUsed = 0;
   var streamVersion = 0;
 
+  function promiseWithTimeout(timeout, value, callback) {
+      return new Promise(function(r){
+        var timeoutFired = false;
+        var timeoutHandle = window.setTimeout(function(){
+          timeoutFired = true;
+
+          r(value);
+        }, timeout);
+
+        callback(function(v){
+          if(timeoutFired) return;
+          window.clearTimeout(timeoutHandle);
+
+          r(v);
+        })
+      });
+  }
+
   var initializeLogCache = function initializeLogCache() {
       if(logStream != null) return;
 
@@ -42,20 +60,20 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     var logIndex = logStream.length;
     var readerExpectedVersion = streamVersion;
 
-    var getNext = function getNext(callback) {
+    function getNext(callback) {
       if(logStream == null || readerExpectedVersion != streamVersion) {
          throw new Error("Log event cache expired");
       }
       lastUsed = new Date().getTime();
 
-      var isLogEventUnfiltered = function isLogEventUnfiltered(logEvent) {
+      function isLogEventUnfiltered(logEvent) {
         if(instances.indexOf(logEvent.instance) == -1) return false;
         if(categories.indexOf(logEvent.category) == -1) return false;
 
         return true;
       }
 
-      var filterCategory = function filterCategory(logEvent) {
+      function filterCategory(logEvent) {
         if(isLogEventUnfiltered(logEvent)) {
           callback(logEvent);
         }else{
@@ -72,7 +90,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     }
 
     self.waitMessage = function(expectedMessage) {
-      return new Promise(function(r){
+      return promiseWithTimeout(5000, [], function(r){
         var onLogEvent = function onLogEvent(logEvent) {
           if(logEvent.message == expectedMessage) {
              r([logEvent.message]);
@@ -86,7 +104,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     }
 
     self.takeNext = function(amount){
-      return new Promise(function(r){
+      return promiseWithTimeout(5000, [], function(r){
         var resultingMessages = [];
 
         if(amount < 0) {
@@ -117,31 +135,14 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
       var logReader = new LogReader(identifiers, categories);
       var first = true;
 
-      var takeNext = function takeNext(firstMessage, amount) {
-        if(first) {
-          first = false;
-          var resultingMessages = [firstMessage];
-
-          return logReader.waitMessage(firstMessage)
-                 .then(logReader.takeNext.bind(logReader, amount - 1))
-                 .then(function(messages) {
-                    resultingMessages.push.apply(resultingMessages, messages)
-                    return resultingMessages;
-                 })
-        }
-
-        return logReader.takeNext(amount);
-      }
-
       self.assertLog = function assertLog(expected) {
         if(typeof expected == "string") {
           expected = [expected];
         }
 
-        return takeNext(expected[0] ,expected.length)
-           .then(function(actual, message){
-             message = message || "Asserting captured logs"
-             assert.deepEqual(actual, expected, message);
+        return logReader.takeNext(expected.length)
+           .then(function(actual){
+               assert.deepEqual(actual, expected,  "Asserting captured logs");
            });
       };
   }

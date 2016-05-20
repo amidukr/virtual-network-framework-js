@@ -32,6 +32,10 @@ define([], function(){
 
         },
 
+        trace: function(instance, category, message) {
+          self.log("trace", instance, category, message)
+        },
+
         debug: function(instance, category, message) {
           self.log("debug", instance, category, message)
         },
