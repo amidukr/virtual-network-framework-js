@@ -10,6 +10,8 @@ define(["utils/logger"], function(Log) {
       function InBrowserChannel(selfVip) {
          var self = this;
 
+         self.vip = selfVip;
+
          self.onMessage = null;
 
          self.send = function(vip, message) {

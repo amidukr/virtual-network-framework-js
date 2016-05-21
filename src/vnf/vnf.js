@@ -1,7 +1,8 @@
-define(["vnf/channel/in-browser-hub", "utils/arrays"],
-  function(InBrowserHub){
+define(["vnf/channel/in-browser-hub", "vnf/channel/rtc-hub", "utils/arrays"],
+  function(InBrowserHub, RTCHub){
     return {
-      InBrowserHub: InBrowserHub
+      InBrowserHub: InBrowserHub,
+      RTCHub: RTCHub
     }
 });
 

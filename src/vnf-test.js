@@ -7,6 +7,20 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
         }
     }
 
+    function newInstance(Cls) {
+        if(typeof Cls != 'function') throw new Error("Can't apply 'new' operator to non-function argument");
+
+        return new (Function.prototype.bind.apply(Cls, arguments));
+    }
+
+    function classFactoryMethod(Cls) {
+        if(typeof Cls != 'function') throw new Error("Can't create class factory function for non-function argument");
+        var args = [Cls];
+        [].push.apply(args, arguments);
+
+        return newInstance.bind.apply(newInstance, args);
+    }
+
     function testChannelHub(hubName, hubFactory) {
        function hubQUnitTest(testCaseName, testCaseFunction) {
            var testCaseDescription = "[" + hubName + "]: " + testCaseName;
@@ -16,12 +30,32 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
                
                testCaseFunction(assert);
            });
-       }; 
+       };
 
        hubQUnitTest("Channel Send Test", function( assert ) {
+           var done = assert.async(1);
+
+           var channelHub = hubFactory();
+
+           var channel1 = channelHub.openChannel("vip-1");
+           var channel2 = channelHub.openChannel("vip-2");
+
+           channel2.onMessage = function(event) {
+               assert.equal(event.message,   "vip-1 to vip-2 message");
+               assert.equal(event.sourceVIP, "vip-1");
+               assert.equal(event.channel, channel2);
+
+               done();
+           };
+
+           channel1.send("vip-2", "vip-1 to vip-2 message");
+       });
+
+       hubQUnitTest("Multiple Channels Send Test", function( assert ) {
+           
            var done = assert.async(3);
 
-           var channelHub = new VNF.InBrowserHub();
+           var channelHub = hubFactory();
 
            var channel1 = channelHub.openChannel("vip-1");
            var channel2 = channelHub.openChannel("vip-2");
@@ -66,7 +100,7 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
 
             var done = assert.async(3);
 
-            var channelHub = new VNF.InBrowserHub();
+            var channelHub = hubFactory();
 
             var channel1 = channelHub.openChannel("vip-1");
             var channel2 = channelHub.openChannel("vip-2");
@@ -102,7 +136,7 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
 
             var done = assert.async(1);
 
-            var channelHub = new VNF.InBrowserHub();
+            var channelHub = hubFactory();
 
             var channel1 = channelHub.openChannel("vip-1");
             var channel2 = channelHub.openChannel("vip-2");
@@ -117,11 +151,10 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
         });
 
         hubQUnitTest("Channel Big Message Test", function( assert ) {
-            Log.info("test", "Channel Big Message Test");
 
             var done = assert.async(1);
 
-            var channelHub = new VNF.InBrowserHub();
+            var channelHub = hubFactory();
 
             var channel1 = channelHub.openChannel("vip-1");
             var channel2 = channelHub.openChannel("vip-2");
@@ -140,7 +173,8 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
         });
     }
 
-    testChannelHub("InBrowserHub");
+    testChannelHub("InBrowserHub",  classFactoryMethod(VNF.InBrowserHub));
+    testChannelHub("RTCHub",        classFactoryMethod(VNF.RTCHub));
 
     
 })

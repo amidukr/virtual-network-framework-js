@@ -1,6 +1,6 @@
 define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
 
-  var LOG_CAPTURE_TIMEOUT = 10000;
+  var LOG_CAPTURE_TIMEOUT = 1000;
 
   var logStream = null;
   var onLogUpdatedCallbacks = []
@@ -90,7 +90,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     }
 
     self.waitMessage = function(expectedMessage) {
-      return promiseWithTimeout(5000, [], function(r){
+      return promiseWithTimeout(LOG_CAPTURE_TIMEOUT, ["<Log capture timed out>"], function(r){
         var onLogEvent = function onLogEvent(logEvent) {
           if(logEvent.message == expectedMessage) {
              r([logEvent.message]);
@@ -104,7 +104,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     }
 
     self.takeNext = function(amount){
-      return promiseWithTimeout(5000, [], function(r){
+      return promiseWithTimeout(LOG_CAPTURE_TIMEOUT, ["<Log capture timed out>"], function(r){
         var resultingMessages = [];
 
         if(amount < 0) {
