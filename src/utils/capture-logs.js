@@ -1,6 +1,6 @@
 define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
 
-  var LOG_CAPTURE_TIMEOUT = 1000;
+  var LOG_CAPTURE_TIMEOUT = QUnit.config.testTimeout/2;
 
   var logStream = null;
   var onLogUpdatedCallbacks = []
@@ -143,6 +143,17 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
         return logReader.takeNext(expected.length)
            .then(function(actual){
                assert.deepEqual(actual, expected,  "Asserting captured logs");
+           });
+      };
+
+      self.assertLogUnordered = function assertLogUnordered(expected) {
+        if(typeof expected == "string") {
+          expected = [expected];
+        }
+
+        return logReader.takeNext(expected.length)
+           .then(function(actual){
+               assert.deepEqual(actual.sort(), expected.sort(),  "Asserting captured logs");
            });
       };
   }
