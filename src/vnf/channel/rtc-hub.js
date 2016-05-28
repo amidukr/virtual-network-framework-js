@@ -1,4 +1,4 @@
-define(["utils/logger"], function(Log) {
+define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
 
     window.RTCPeerConnection     = window.RTCPeerConnection     || window.mozRTCPeerConnection     || window.webkitRTCPeerConnection;
     window.RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
@@ -10,6 +10,9 @@ define(["utils/logger"], function(Log) {
             {url: "stun:stun.1.google.com:19302"}
         ]
     };
+    
+
+    var PACKET_CHUNK_LENGTH = 64*1024;
 
     function printStatuses(connection){
         return JSON.stringify({
@@ -43,12 +46,15 @@ define(["utils/logger"], function(Log) {
         var channel = null;
         var ice = null;
 
+        var messageFragment = null;
+        var messageLen = null;
+
         self.createDate = new Date().getTime();
 
 
         function onChannelCreated(channelArgument) {
             Log.debug(instanceId, "webrtc-connecting", "onChannelCreated: " + channelArgument);
-            var channel = channelArgument;
+            channel = channelArgument;
 
             channel.onopen = function(event) {
                 Log.debug(instanceId, "webrtc-connecting", "onChannelOpened: " + event);
@@ -62,13 +68,31 @@ define(["utils/logger"], function(Log) {
             }
 
             channel.onmessage = function(e) {
-                rtcChannel.onMessage({message: e.data,
-                                      sourceVIP: targetVip,
-                                      channel: rtcChannel});
+                var message = e.data;
+                
+                if(messageLen == null) {
+                    // First fragment of new message
+                    var lenDigit = message.substr(0, 1) - 0;
+                    messageLen = message.substr(1, lenDigit) - 0;
+
+                    messageFragment = message.substr(1 + lenDigit);
+                } else {
+                    messageFragment += message;
+                }
+
+                if(messageFragment.length == messageLen) {
+                    messageLen = null;
+                    
+                    rtcChannel.onMessage({message: messageFragment,
+                                          sourceVIP: targetVip,
+                                          channel: rtcChannel});
+
+                    messageFragment = null;
+                }
             }
         }
 
-        function acceptIce(ice ) {
+        function acceptIce(ice) {
             connection.setRemoteDescription(new RTCSessionDescription(ice.sdp), logSuccess, logErrorCallback(instanceId));
 
             for(var i = 0; i < ice.candidate.length; i++) {
@@ -90,6 +114,18 @@ define(["utils/logger"], function(Log) {
             ice = {candidate: []};
             self.isReady = false;
 
+            var onIceCandidateTimeout = null;
+
+            var sendCandidates = xTimeout(Timeouts.iceSendTimeout, function sendCandidates() {
+                var message =  {type: "rtc-connection", 
+                                requestForNewConnection: self.isCaller, 
+                                ice: ice,
+                                connectionCreateDate: self.createDate};
+                
+                Log.debug(instanceId, "webrtc-connecting", "send-signal to " + targetVip + ": " + JSON.stringify(message));
+                signalingChannel.send(targetVip, message);
+            });
+
             connection.onsignalingstatechange = function(evt){
                 Log.debug(instanceId, "webrtc-onsignalingstatechange", "\n" + printStatuses(evt.target));
             };
@@ -103,13 +139,10 @@ define(["utils/logger"], function(Log) {
 
                 if(evt.candidate != null) ice.candidate.push(evt.candidate);
 
+                sendCandidates.extend(Timeouts.iceSendTimeout);
+
                 if(evt.candidate == null) {
-                    var message =  {type: "rtc-connection", 
-                                    requestForNewConnection: self.isCaller, 
-                                    ice: ice,
-                                    connectionCreateDate: self.createDate};
-                    Log.debug(instanceId, "webrtc-connecting", "send-signal to " + targetVip + ": " + JSON.stringify(message));
-                    signalingChannel.send(targetVip, message);
+                    sendCandidates.trigger()
                 }
             }
         }
@@ -150,7 +183,24 @@ define(["utils/logger"], function(Log) {
 
             connection.ondatachannel = function(evt){
                 Log.debug(instanceId, "webrtc-connecting", "ondatachannel: " + JSON.stringify(evt));
-                onChannelCreated(event.channel);
+                onChannelCreated(evt.channel);
+            }
+        }
+
+        self.send = function(message) {
+            var msgLen = message.length + "";
+            var lenDigit = msgLen.length + "";
+            if(lenDigit.length > 1) {
+                throw new Error("Message length to big: " + msgLen);
+            }
+
+            var chunkLength = rtcChannel.chunkLength;
+            var position = 0;
+
+            while(position < msgLen) {
+                var msgChunk = message.substr(position, chunkLength);
+                channel.send(position == 0 ? lenDigit + msgLen +  msgChunk : msgChunk);
+                position += msgChunk.length;
             }
         }
     }
@@ -164,6 +214,8 @@ define(["utils/logger"], function(Log) {
        var connectionQueue = {}
 
        self.onMessage = null;
+
+       self.chunkLength = PACKET_CHUNK_LENGTH;
 
        signalingChannel.onMessage = function(event) {
            if(event.message.type == "rtc-connection") {
@@ -187,7 +239,7 @@ define(["utils/logger"], function(Log) {
        }
 
        self.onChannelOpened = function(targetVip, channel) {
-           Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "onChannelOpened: " + connectionQueue[targetVip]);
+           Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "onChannelOpened: messages to send: " + (connectionQueue[targetVip] && connectionQueue[targetVip].length || 0));
            var messageQueue =  connectionQueue[targetVip] || [];
            connectionQueue[targetVip] = [];
 
@@ -226,7 +278,7 @@ define(["utils/logger"], function(Log) {
            }
 
            if(connection.isReady) {
-               connection.channel.send(message);
+               connection.send(message);
            }else{
                connectionQueue[targetVip].push(message);
            }

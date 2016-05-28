@@ -1,7 +1,5 @@
 define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
 
-  var LOG_CAPTURE_TIMEOUT = QUnit.config.testTimeout/2;
-
   var logStream = null;
   var onLogUpdatedCallbacks = []
   var lastUsed = 0;
@@ -37,7 +35,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
   Log.registerListener(function onLogEvent(event) {
     if(logStream == null) return;
 
-    if(new Date().getTime() - lastUsed > LOG_CAPTURE_TIMEOUT) {
+    if(new Date().getTime() - lastUsed > Timeouts.logCaptureTimeout) {
       logStream = null;
       onLogUpdatedCallbacks = [];
       return;
@@ -90,7 +88,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     }
 
     self.waitMessage = function(expectedMessage) {
-      return promiseWithTimeout(LOG_CAPTURE_TIMEOUT, ["<Log capture timed out>"], function(r){
+      return promiseWithTimeout(Timeouts.logCaptureTimeout, ["<Log capture timed out>"], function(r){
         var onLogEvent = function onLogEvent(logEvent) {
           if(logEvent.message == expectedMessage) {
              r([logEvent.message]);
@@ -104,7 +102,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     }
 
     self.takeNext = function(amount){
-      return promiseWithTimeout(LOG_CAPTURE_TIMEOUT, ["<Log capture timed out>"], function(r){
+      return promiseWithTimeout(Timeouts.logCaptureTimeout, ["<Log capture timed out>"], function(r){
         var resultingMessages = [];
 
         if(amount < 0) {

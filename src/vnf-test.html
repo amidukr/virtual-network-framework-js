@@ -13,7 +13,13 @@
 <script data-main="vnf-test.js" src="../lib/require.js"></script>
 
 <script type="text/javascript">
+    Timeouts = {}
+
     QUnit.config.testTimeout = 10000;
+
+    Timeouts.logCaptureTimeout = QUnit.config.testTimeout/2;
+    
+    Timeouts.iceSendTimeout = Math.min(Timeouts.logCaptureTimeout/10, 1000);
 </script>
 
 
