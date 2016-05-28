@@ -197,8 +197,9 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
            channel1.send("vip-2", "message-from-vip1-to-vip2");
            channel1.send("vip-3", "message-from-vip1-to-vip3");
 
-           channel2.send("vip-1", "message-from-vip2-to-vip1");
-           channel2.send("vip-3", "message-from-vip2-to-vip3");
+           channel2.send("vip-1",     "message-from-vip2-to-vip1");
+           channel2.send("vip-3", "1st-message-from-vip2-to-vip3");
+           channel2.send("vip-3", "2nd-message-from-vip2-to-vip3");
 
            channel3.send("vip-1", "message-from-vip3-to-vip1");
            channel3.send("vip-2", "message-from-vip3-to-vip2");
@@ -213,7 +214,8 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
                    .then(done);
 
            capture3.assertLogUnordered(["from vip-1: message-from-vip1-to-vip3",
-                                        "from vip-2: message-from-vip2-to-vip3",
+                                        "from vip-2: 1st-message-from-vip2-to-vip3",
+                                        "from vip-2: 2nd-message-from-vip2-to-vip3",
                                         "from vip-3: message-from-vip3-to-vip3"])
                    .then(done);
         });
