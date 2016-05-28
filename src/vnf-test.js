@@ -256,5 +256,5 @@ requirejs(["vnf/vnf", "utils/capture-logs"],
 
     testChannelHub("InBrowserHub",     classFactoryMethod(VNF.InBrowserHub));
     testChannelHub("RTCHub",           function() {return new VNF.RTCHub(new VNF.InBrowserHub());});
-    //testChannelHub("RTCHub-Recursive", function() {return new VNF.RTCHub(new VNF.RTCHub(new VNF.InBrowserHub()));});
+    testChannelHub("RTCHub-Recursive", function() {return new VNF.RTCHub(new VNF.RTCHub(new VNF.InBrowserHub()));});
 })

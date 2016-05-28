@@ -48,6 +48,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
 
         var messageFragment = null;
         var messageLen = null;
+        var messageType = null;
 
         self.createDate = new Date().getTime();
 
@@ -72,22 +73,26 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                 
                 if(messageLen == null) {
                     // First fragment of new message
-                    var lenDigit = message.substr(0, 1) - 0;
-                    messageLen = message.substr(1, lenDigit) - 0;
+                    messageType = message.substr(0, 1);
+                    var lenDigit = message.substr(1, 1) - 0;
+                    messageLen = message.substr(2, lenDigit) - 0;
 
-                    messageFragment = message.substr(1 + lenDigit);
+                    messageFragment = message.substr(2 + lenDigit);
                 } else {
                     messageFragment += message;
                 }
 
                 if(messageFragment.length == messageLen) {
                     messageLen = null;
+
+                    var message = messageType == "J" ? JSON.parse(messageFragment) : messageFragment;
                     
-                    rtcChannel.onMessage({message: messageFragment,
+                    rtcChannel.onMessage({message: message,
                                           sourceVIP: targetVip,
                                           channel: rtcChannel});
 
                     messageFragment = null;
+                    messageType = null;
                 }
             }
         }
@@ -188,7 +193,18 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
         }
 
         self.send = function(message) {
-            var msgLen = message.length + "";
+            var messageData;
+            var messageType;
+
+            if(typeof message == "string") {
+                messageData = message; 
+                messageType = "S";
+            }else{
+                messageData = JSON.stringify(message);
+                messageType = "J";
+            }
+
+            var msgLen = messageData.length + "";
             var lenDigit = msgLen.length + "";
             if(lenDigit.length > 1) {
                 throw new Error("Message length to big: " + msgLen);
@@ -198,8 +214,9 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
             var position = 0;
 
             while(position < msgLen) {
-                var msgChunk = message.substr(position, chunkLength);
-                channel.send(position == 0 ? lenDigit + msgLen +  msgChunk : msgChunk);
+                var msgChunk = messageData.substr(position, chunkLength);
+                var fragment = position == 0 ? messageType + lenDigit + msgLen +  msgChunk : msgChunk;
+                channel.send(fragment);
                 position += msgChunk.length;
             }
         }
