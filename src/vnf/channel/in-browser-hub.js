@@ -7,7 +7,7 @@ define(["utils/logger"], function(Log) {
 
       var hub = {};
 
-      function InBrowserChannel(selfVip) {
+      function InBrowserEndpoint(selfVip) {
          var self = this;
 
          self.vip = selfVip;
@@ -16,23 +16,23 @@ define(["utils/logger"], function(Log) {
 
          self.send = function(vip, message) {
              window.setTimeout(function inBrowserSend() {
-                 var channel = hub[vip];
-                 var handler = channel && channel.onMessage;
+                 var endpoint = hub[vip];
+                 var handler = endpoint && endpoint.onMessage;
                  if(handler) {
-                    handler({sourceVIP: selfVip, message: message, channel: channel});
+                    handler({sourceVIP: selfVip, message: message, endpoint: endpoint});
                  }
              }, 0)
          }
       };
 
-      self.openChannel = function openChannel(vip) {
-          var channel = hub[vip];
-          if(!channel) {
-              channel = new InBrowserChannel(vip);
-              hub[vip] = channel;
+      self.openEndpoint = function openEndpoint(vip) {
+          var endpoint = hub[vip];
+          if(!endpoint) {
+              endpoint = new InBrowserEndpoint(vip);
+              hub[vip] = endpoint;
           }
 
-          return channel;
+          return endpoint;
       }
    };
 });

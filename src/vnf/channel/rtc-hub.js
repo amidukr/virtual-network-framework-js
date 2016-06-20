@@ -36,11 +36,11 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
 
     var connectionNextId = 0;
 
-    function VNFRTCConnection(rtcChannel, targetVip, signalingChannel) {
+    function VNFRTCConnection(rtcEndpoint, targetVip, signalingEndpoint) {
         var connectionIndex = connectionNextId++;
         
         var self = this;
-        var instanceId = "rtc[connection-" + connectionIndex + ": " + rtcChannel.vip + "->" + targetVip + "]";
+        var instanceId = "rtc[connection-" + connectionIndex + ": " + rtcEndpoint.vip + "->" + targetVip + "]";
 
         var connection = null;
         var channel = null;
@@ -63,8 +63,8 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                 self.channel = channel;
                 self.isReady = true;
 
-                if(rtcChannel.onChannelOpened) {
-                    rtcChannel.onChannelOpened(targetVip, channel);
+                if(rtcEndpoint.onChannelOpened) {
+                    rtcEndpoint.onChannelOpened(targetVip, channel);
                 }
             }
 
@@ -87,9 +87,9 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
 
                     var message = messageType == "J" ? JSON.parse(messageFragment) : messageFragment;
                     
-                    rtcChannel.onMessage({message: message,
+                    rtcEndpoint.onMessage({message: message,
                                           sourceVIP: targetVip,
-                                          channel: rtcChannel});
+                                          endpoint: rtcEndpoint});
 
                     messageFragment = null;
                     messageType = null;
@@ -128,7 +128,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                                 connectionCreateDate: self.createDate};
                 
                 Log.debug(instanceId, "webrtc-connecting", "send-signal to " + targetVip + ": " + JSON.stringify(message));
-                signalingChannel.send(targetVip, message);
+                signalingEndpoint.send(targetVip, message);
             });
 
             connection.onsignalingstatechange = function(evt){
@@ -210,7 +210,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                 throw new Error("Message length to big: " + msgLen);
             }
 
-            var chunkLength = rtcChannel.chunkLength;
+            var chunkLength = rtcEndpoint.chunkLength;
             var position = 0;
 
             while(position < msgLen) {
@@ -222,7 +222,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
         }
     }
 
-    function RTCChannel(selfVip, signalingChannel) {
+    function RTCEndpoint(selfVip, signalingEndpoint) {
        var self = this;
 
        self.vip = selfVip;
@@ -234,7 +234,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
 
        self.chunkLength = PACKET_CHUNK_LENGTH;
 
-       signalingChannel.onMessage = function(event) {
+       signalingEndpoint.onMessage = function(event) {
            if(event.message.type == "rtc-connection") {
                 Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
 
@@ -247,7 +247,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                         return;
                     }
 
-                    connectionSet[targetVip] = new VNFRTCConnection(self, targetVip, signalingChannel);
+                    connectionSet[targetVip] = new VNFRTCConnection(self, targetVip, signalingEndpoint);
                     connectionSet[targetVip].startCallee(message);
                 }else{
                     connectionSet[targetVip].acceptCalleeResponse(event);
@@ -274,7 +274,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                    window.setTimeout(function(){
                        self.onMessage({message: message,
                                        sourceVIP: selfVip,
-                                       channel: self});
+                                       endpoint: self});
                    }, 0);
                    
                    return;
@@ -286,7 +286,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
            if(!connection) {
                Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "new-vnf-rtc-connection: " + targetVip);
 
-               connection = new VNFRTCConnection(self, targetVip, signalingChannel);
+               connection = new VNFRTCConnection(self, targetVip, signalingEndpoint);
 
                connectionQueue[targetVip] = connectionQueue[targetVip] || [];
                connectionSet[targetVip] = connection;
@@ -307,14 +307,14 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
 
         var hub = {};
 
-        self.openChannel = function openChannel(vip) {
-            var channel = hub[vip];
-            if(!channel) {
-                channel = new RTCChannel(vip, signalingHub.openChannel(vip));
-                hub[vip] = channel;
+        self.openEndpoint = function openEndpoint(vip) {
+            var endpoint = hub[vip];
+            if(!endpoint) {
+                endpoint = new RTCEndpoint(vip, signalingHub.openEndpoint(vip));
+                hub[vip] = endpoint;
           }
 
-          return channel;
+          return endpoint;
         }
     };
 });

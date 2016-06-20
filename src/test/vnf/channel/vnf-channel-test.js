@@ -7,7 +7,7 @@ function(  VNF,
 
 
 
-    function testChannelHub(hubName, hubFactory) {
+    function testVNFHub(hubName, hubFactory) {
        function hubQUnitTest(testCaseName, testCaseFunction) {
            var testCaseDescription = "[" + hubName + "]: " + testCaseName;
 
@@ -21,35 +21,35 @@ function(  VNF,
        hubQUnitTest("Channel Send Test", function( assert ) {
            var done = assert.async(1);
 
-           var channelHub = hubFactory();
+           var vnfHub = hubFactory();
 
-           var channel1 = channelHub.openChannel("vip-1");
-           var channel2 = channelHub.openChannel("vip-2");
+           var endpoint1 = vnfHub.openEndpoint("vip-1");
+           var endpoint2 = vnfHub.openEndpoint("vip-2");
 
-           channel2.onMessage = function(event) {
-               Log.info(event.channel.vip, "message-test-handler", JSON.stringify(event));
+           endpoint2.onMessage = function(event) {
+               Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
                assert.equal(event.message,   "vip-1 to vip-2 message");
                assert.equal(event.sourceVIP, "vip-1");
-               assert.equal(event.channel, channel2);
-               assert.equal(event.channel.vip, "vip-2");
+               assert.equal(event.endpoint, endpoint2);
+               assert.equal(event.endpoint.vip, "vip-2");
 
                done();
            };
 
-           channel1.send("vip-2", "vip-1 to vip-2 message");
+           endpoint1.send("vip-2", "vip-1 to vip-2 message");
        });
 
        hubQUnitTest("Channel Send Object Test", function( assert ) {
             var done = assert.async(1);
 
-           var channelHub = hubFactory();
+           var vnfHub = hubFactory();
 
-           var channel1 = channelHub.openChannel("vip-1");
-           var channel2 = channelHub.openChannel("vip-2");
+           var endpoint1 = vnfHub.openEndpoint("vip-1");
+           var endpoint2 = vnfHub.openEndpoint("vip-2");
 
-           channel2.onMessage = function(event) {
-               Log.info(event.channel.vip, "message-test-handler", JSON.stringify(event));
+           endpoint2.onMessage = function(event) {
+               Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
                assert.equal(event.message.value1,       "object-value-1");
                assert.equal(event.message.sub.value2,   "object-sub-value-2");
@@ -57,25 +57,45 @@ function(  VNF,
                done();
            };
 
-           channel1.send("vip-2", {value1: "object-value-1", sub:{value2: "object-sub-value-2"}});
+           endpoint1.send("vip-2", {value1: "object-value-1", sub:{value2: "object-sub-value-2"}});
+       });
+
+       hubQUnitTest("Channel Send Message Sequence Test", function( assert ) {
+           var done = assert.async(1);
+
+           var vnfHub = hubFactory();
+
+           var endpoint1 = vnfHub.openEndpoint("vip-1");
+           var endpoint2 = vnfHub.openEndpoint("vip-2");
+
+           var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
+
+           endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+
+           endpoint1.send("vip-2", "message-sequence-1-from-vip1-to-vip2");
+           
+           capture2.assertLog(["from vip-1: message-sequence-1-from-vip1-to-vip2"])
+              .then(endpoint1.send.bind(null,          "vip-2", "message-2-sequence-1-from-vip1-to-vip2"))
+              .then(capture2.assertLog.bind(null, ["from vip-1: message-2-sequence-1-from-vip1-to-vip2"]))
+           .then(done);
        });
 
        hubQUnitTest("Channel Double Message Send  Test", function( assert ) {
 
             var done = assert.async(1);
 
-            var channelHub = hubFactory();
+            var vnfHub = hubFactory();
 
-            var channel1 = channelHub.openChannel("vip-1");
-            var channel2 = channelHub.openChannel("vip-2");
+            var endpoint1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2 = vnfHub.openEndpoint("vip-2");
 
             var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
 
-            channel2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+            endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
 
 
-            channel1.send("vip-2", "double-message-1-from-vip1-to-vip2");
-            channel1.send("vip-2", "double-message-2-from-vip1-to-vip2");
+            endpoint1.send("vip-2", "double-message-1-from-vip1-to-vip2");
+            endpoint1.send("vip-2", "double-message-2-from-vip1-to-vip2");
 
 
             capture2.assertLog(["from vip-1: double-message-1-from-vip1-to-vip2",
@@ -87,16 +107,16 @@ function(  VNF,
 
             var done = assert.async(3);
 
-            var channelHub = hubFactory();
+            var vnfHub = hubFactory();
 
-            var channel1 = channelHub.openChannel("vip-1");
-            var channel2 = channelHub.openChannel("vip-2");
-            var channel3 = channelHub.openChannel("vip-3");
+            var endpoint1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2 = vnfHub.openEndpoint("vip-2");
+            var endpoint3 = vnfHub.openEndpoint("vip-3");
 
             function newPingPongCallback(instance) {
                 return function onMessage(event) {
                     Log.info(instance, "message-test-handler", "from " + event.sourceVIP + ": " + event.message);
-                    event.channel.send(event.sourceVIP, "pong from " + instance + "[" + event.message + "]");
+                    event.endpoint.send(event.sourceVIP, "pong from " + instance + "[" + event.message + "]");
                 }
             }
 
@@ -104,15 +124,15 @@ function(  VNF,
             var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
             var capture3 = Log.captureLogs(assert, ["vip-3"], ["message-test-handler"]);
 
-            channel1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
-            channel2.onMessage = newPingPongCallback("vip-2");
-            channel3.onMessage = newPingPongCallback("vip-3");
+            endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
+            endpoint2.onMessage = newPingPongCallback("vip-2");
+            endpoint3.onMessage = newPingPongCallback("vip-3");
 
-            channel1.send("vip-2", "message-from-vip1-to-vip2");
-            channel1.send("vip-3", "message-from-vip1-to-vip3");
+            endpoint1.send("vip-2", "message-from-vip1-to-vip2");
+            endpoint1.send("vip-3", "message-from-vip1-to-vip3");
 
-            capture1.assertLog(["from vip-2: pong from vip-2[message-from-vip1-to-vip2]",
-                                "from vip-3: pong from vip-3[message-from-vip1-to-vip3]"])
+            capture1.assertLogUnordered(["from vip-2: pong from vip-2[message-from-vip1-to-vip2]",
+                                         "from vip-3: pong from vip-3[message-from-vip1-to-vip3]"])
                     .then(done);
 
             capture2.assertLog("from vip-1: message-from-vip1-to-vip2").then(done);
@@ -123,19 +143,19 @@ function(  VNF,
 
             var done = assert.async(2);
 
-            var channelHub = hubFactory();
+            var vnfHub = hubFactory();
 
-            var channel1 = channelHub.openChannel("vip-1");
-            var channel2 = channelHub.openChannel("vip-2");
+            var endpoint1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2 = vnfHub.openEndpoint("vip-2");
 
-            channel1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
-            channel2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+            endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
+            endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
 
             var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler"]);
             var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
 
-            channel1.send("vip-2", "concurrent-vip1-to-vip2-message");
-            channel2.send("vip-1", "concurrent-vip2-to-vip1-message");
+            endpoint1.send("vip-2", "concurrent-vip1-to-vip2-message");
+            endpoint2.send("vip-1", "concurrent-vip2-to-vip1-message");
 
             capture1.assertLog("from vip-2: concurrent-vip2-to-vip1-message").then(done);
             capture2.assertLog("from vip-1: concurrent-vip1-to-vip2-message").then(done);
@@ -145,16 +165,16 @@ function(  VNF,
 
             var done = assert.async(1);
 
-            var channelHub = hubFactory();
+            var vnfHub = hubFactory();
 
-            var channel1 = channelHub.openChannel("vip-1");
-            var channel2 = channelHub.openChannel("vip-2");
+            var endpoint1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2 = vnfHub.openEndpoint("vip-2");
 
-            channel1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
+            endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
 
             var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler"]);
 
-            channel1.send("vip-1", "loopback-message-to-vip1");
+            endpoint1.send("vip-1", "loopback-message-to-vip1");
 
             capture1.assertLog("from vip-1: loopback-message-to-vip1").then(done);
         });
@@ -163,33 +183,33 @@ function(  VNF,
 
            var done = assert.async(3);
 
-           var channelHub = hubFactory();
+           var vnfHub = hubFactory();
 
-           var channel1 = channelHub.openChannel("vip-1");
-           var channel2 = channelHub.openChannel("vip-2");
-           var channel3 = channelHub.openChannel("vip-3");
+           var endpoint1 = vnfHub.openEndpoint("vip-1");
+           var endpoint2 = vnfHub.openEndpoint("vip-2");
+           var endpoint3 = vnfHub.openEndpoint("vip-3");
 
 
 
-           channel1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
-           channel2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
-           channel3.onMessage = VNFTestUtils.newPrintCallback("vip-3");
+           endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
+           endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+           endpoint3.onMessage = VNFTestUtils.newPrintCallback("vip-3");
 
            var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler"]);
            var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
            var capture3 = Log.captureLogs(assert, ["vip-3"], ["message-test-handler"]);
 
 
-           channel1.send("vip-2", "message-from-vip1-to-vip2");
-           channel1.send("vip-3", "message-from-vip1-to-vip3");
+           endpoint1.send("vip-2", "message-from-vip1-to-vip2");
+           endpoint1.send("vip-3", "message-from-vip1-to-vip3");
 
-           channel2.send("vip-1",     "message-from-vip2-to-vip1");
-           channel2.send("vip-3", "1st-message-from-vip2-to-vip3");
-           channel2.send("vip-3", "2nd-message-from-vip2-to-vip3");
+           endpoint2.send("vip-1",     "message-from-vip2-to-vip1");
+           endpoint2.send("vip-3", "1st-message-from-vip2-to-vip3");
+           endpoint2.send("vip-3", "2nd-message-from-vip2-to-vip3");
 
-           channel3.send("vip-1", "message-from-vip3-to-vip1");
-           channel3.send("vip-2", "message-from-vip3-to-vip2");
-           channel3.send("vip-3", "message-from-vip3-to-vip3");
+           endpoint3.send("vip-1", "message-from-vip3-to-vip1");
+           endpoint3.send("vip-2", "message-from-vip3-to-vip2");
+           endpoint3.send("vip-3", "message-from-vip3-to-vip3");
 
            capture1.assertLogUnordered(["from vip-2: message-from-vip2-to-vip1",
                                         "from vip-3: message-from-vip3-to-vip1"])
@@ -208,10 +228,10 @@ function(  VNF,
 
         hubQUnitTest("Channel Big Message Test", function( assert ) {
 
-            var channelHub = hubFactory();
+            var vnfHub = hubFactory();
 
-            var channel1 = channelHub.openChannel("vip-1");
-            var channel2 = channelHub.openChannel("vip-2");
+            var endpoint1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2 = vnfHub.openEndpoint("vip-2");
 
             var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
 
@@ -227,7 +247,7 @@ function(  VNF,
 
 
             var index = 0;
-            channel2.onMessage = function(event) {
+            endpoint2.onMessage = function(event) {
                 assert.deepEqual(event.message, bigMessage[index++],  "Asserting captured logs");
 
                 Log.info("vip-2", "message-test-handler", event.message.substr(0, 100) + "\n.......");
@@ -236,13 +256,14 @@ function(  VNF,
             };
 
             for(var i = 0; i < bigMessage.length; i++) {
-                channel1.send("vip-2", bigMessage[i]);
+                endpoint1.send("vip-2", bigMessage[i]);
             }
 
         });
     }
 
-    testChannelHub("InBrowserHub",     VNFTestUtils.classFactoryMethod(VNF.InBrowserHub));
-    testChannelHub("RTCHub",           function() {return new VNF.RTCHub(new VNF.InBrowserHub());});
-    testChannelHub("RTCHub-Recursive", function() {return new VNF.RTCHub(new VNF.RTCHub(new VNF.InBrowserHub()));});
+    testVNFHub("InBrowserHub",     VNFTestUtils.classFactoryMethod(VNF.InBrowserHub));
+    testVNFHub("RTCHub",           function() {return new VNF.RTCHub(new VNF.InBrowserHub());});
+    testVNFHub("RTCHub-Recursive", function() {return new VNF.RTCHub(new VNF.RTCHub(new VNF.InBrowserHub()));});
+    testVNFHub("UnreliableHub",    function() {return new VNF.UnreliableHub(new VNF.InBrowserHub());});
 })

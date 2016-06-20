@@ -58,21 +58,21 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
     var logIndex = logStream.length;
     var readerExpectedVersion = streamVersion;
 
+    function isLogEventInList(logEvent) {
+        if(instances.indexOf(logEvent.instance) == -1) return false;
+        if(categories.indexOf(logEvent.category) == -1) return false;
+
+        return true;
+    }
+
     function getNext(callback) {
       if(logStream == null || readerExpectedVersion != streamVersion) {
          throw new Error("Log event cache expired");
       }
       lastUsed = new Date().getTime();
 
-      function isLogEventUnfiltered(logEvent) {
-        if(instances.indexOf(logEvent.instance) == -1) return false;
-        if(categories.indexOf(logEvent.category) == -1) return false;
-
-        return true;
-      }
-
       function filterCategory(logEvent) {
-        if(isLogEventUnfiltered(logEvent)) {
+        if(isLogEventInList(logEvent)) {
           callback(logEvent);
         }else{
           getNext(callback);
@@ -99,6 +99,18 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
 
         getNext(onLogEvent);
       });
+    }
+
+    self.peekRemain = function() {
+      var result = [];
+
+      for(var i = logIndex; i < logStream.length; i++) {
+        if(!isLogEventInList(logStream[i])) continue;
+
+        result[result.length] = logStream[i].message;
+      }
+
+      return result;
     }
 
     self.takeNext = function(amount){
@@ -154,6 +166,17 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
                assert.deepEqual(actual.sort(), expected.sort(),  "Asserting captured logs");
            });
       };
+
+      self.assertSilence = function(timeout) {
+        return new Promise(function(r){
+          window.setTimeout(function(){
+            var logs = logReader.peekRemain();
+
+            assert.deepEqual(logs, [],  "Captured logs should be empty");
+            r();
+          }, timeout);
+        });
+      }
   }
 
   Log.captureLogs = function captureLog(assert, identifiers, categories) {

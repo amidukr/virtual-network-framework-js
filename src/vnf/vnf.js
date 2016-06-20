@@ -1,8 +1,12 @@
-define(["vnf/channel/in-browser-hub", "vnf/channel/rtc-hub", "utils/arrays"],
-  function(InBrowserHub, RTCHub){
+define(["vnf/channel/in-browser-hub",
+        "vnf/channel/rtc-hub",
+        "vnf/channel/unreliable-hub",
+        "utils/arrays"],
+  function(InBrowserHub, RTCHub, UnreliableHub){
     return {
       InBrowserHub: InBrowserHub,
-      RTCHub: RTCHub
+      UnreliableHub: UnreliableHub,
+      RTCHub: RTCHub,
     }
 });
 
