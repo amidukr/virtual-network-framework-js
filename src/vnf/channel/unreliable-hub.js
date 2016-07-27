@@ -14,6 +14,7 @@ define(["utils/logger"], function(Log) {
             var parentEndpoint = hub.openEndpoint(vip);
             var self = this;
 
+            var destroyed = false;
             self.vip = vip;
 
             parentEndpoint.onMessage = function(event) {
@@ -34,6 +35,20 @@ define(["utils/logger"], function(Log) {
                 parentEndpoint.send(vip, message);
             }
 
+            this.invalidate = function(targetVIP) {
+                if(parentEndpoint) {
+                    parentEndpoint.invalidate(targetVIP);
+                }
+            }
+
+            self.destroy = function() {
+                if(destroyed) return;
+                destroyed = true;
+
+                delete hubMap[vip];
+                parentEndpoint.destroy();
+            }
+
         }
 
         self.blockChannel = function(fromVip1, toVip2) {
@@ -52,10 +67,10 @@ define(["utils/logger"], function(Log) {
 
         self.openEndpoint = function(vip) {
             var endpoint = hubMap[vip];
-                  if(!endpoint) {
-                      endpoint = new ProxyEndpoint(vip);
-                      hubMap[vip] = endpoint;
-                  }
+            if(!endpoint) {
+                endpoint = new ProxyEndpoint(vip);
+                hubMap[vip] = endpoint;
+            }
 
             return endpoint;
         }

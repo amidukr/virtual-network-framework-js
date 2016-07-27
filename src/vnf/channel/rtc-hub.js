@@ -50,6 +50,8 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
         var messageLen = null;
         var messageType = null;
 
+        var destroyed = false;
+
         self.createDate = new Date().getTime();
 
 
@@ -64,7 +66,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                 self.isReady = true;
 
                 if(rtcEndpoint.onChannelOpened) {
-                    rtcEndpoint.onChannelOpened(targetVip, channel);
+                    rtcEndpoint.onChannelOpened(targetVip, self);
                 }
             }
 
@@ -122,6 +124,8 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
             var onIceCandidateTimeout = null;
 
             var sendCandidates = xTimeout(Timeouts.iceSendTimeout, function sendCandidates() {
+                if(destroyed) return;
+                
                 var message =  {type: "rtc-connection", 
                                 requestForNewConnection: self.isCaller, 
                                 ice: ice,
@@ -150,6 +154,10 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                     sendCandidates.trigger()
                 }
             }
+        }
+
+        self.getRTCConnection = function() {
+            return connection;
         }
 
         function onGotDescription(desc) {
@@ -192,6 +200,16 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
             }
         }
 
+        self.destroy = function() {
+            destroyed = true;
+
+            try{
+                connection.close();
+            }catch(e) {
+                Log.warn(instanceId, "web-rtc", ["Unable to destroy RTC endpoint", e]);
+            }
+        }
+
         self.send = function(message) {
             var messageData;
             var messageType;
@@ -222,90 +240,136 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
         }
     }
 
-    function RTCEndpoint(selfVip, signalingEndpoint) {
-       var self = this;
+    return function RTCHub(signalingHub){
+            var self = this;
 
-       self.vip = selfVip;
+            var hub = {};
 
-       var connectionSet = {}
-       var connectionQueue = {}
+        function RTCEndpoint(selfVip, signalingEndpoint) {
+           var self = this;
 
-       self.onMessage = null;
+           self.vip = selfVip;
 
-       self.chunkLength = PACKET_CHUNK_LENGTH;
+           var connectionSet = {}
+           var connectionMessageQueue = {}
 
-       signalingEndpoint.onMessage = function(event) {
-           if(event.message.type == "rtc-connection") {
-                Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
+           self.onMessage = null;
+           var destroyed = false;
 
-                var targetVip = event.sourceVIP;
-                var message = event.message;
+           self.chunkLength = PACKET_CHUNK_LENGTH;
 
-                if(event.message.requestForNewConnection) {
-                    if(connectionSet[targetVip] && event.message.connectionCreateDate < connectionSet[targetVip].createDate) {
-                        Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "ignore-action/connection-expired:" + JSON.stringify(event));
-                        return;
+           signalingEndpoint.onMessage = function(event) {
+               if(event.message.type == "rtc-connection") {
+                    Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
+
+                    var targetVip = event.sourceVIP;
+                    var message = event.message;
+
+                    if(event.message.requestForNewConnection) {
+                        if(connectionSet[targetVip] && event.message.connectionCreateDate < connectionSet[targetVip].createDate) {
+                            Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "ignore-action/connection-expired:" + JSON.stringify(event));
+                            return;
+                        }
+
+                        connectionSet[targetVip] = new VNFRTCConnection(self, targetVip, signalingEndpoint);
+                        connectionSet[targetVip].startCallee(message);
+                    }else{
+                        connectionSet[targetVip].acceptCalleeResponse(event);
                     }
-
-                    connectionSet[targetVip] = new VNFRTCConnection(self, targetVip, signalingEndpoint);
-                    connectionSet[targetVip].startCallee(message);
-                }else{
-                    connectionSet[targetVip].acceptCalleeResponse(event);
-                }
+               }
            }
-       }
 
-       self.onChannelOpened = function(targetVip, channel) {
-           Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "onChannelOpened: messages to send: " + (connectionQueue[targetVip] && connectionQueue[targetVip].length || 0));
-           var messageQueue =  connectionQueue[targetVip] || [];
-           connectionQueue[targetVip] = [];
+           self.onChannelOpened = function(targetVip, connection) {
+               if(destroyed) {
+                   connection.destroy();
 
-           for(var i = 0; i < messageQueue.length; i++) {
-               self.send(targetVip, messageQueue[i]);
-           }
-       }
-
-       self.send = function(targetVip, message) {
-           var connection = connectionSet[targetVip];
-
-           if(targetVip == selfVip) {
-
-               if(self.onMessage){
-                   window.setTimeout(function(){
-                       self.onMessage({message: message,
-                                       sourceVIP: selfVip,
-                                       endpoint: self});
-                   }, 0);
-                   
                    return;
                }
 
-               return;
+               Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "onChannelOpened: messages to send: " + (connectionMessageQueue[targetVip] && connectionMessageQueue[targetVip].length || 0));
+               var messageQueue =  connectionMessageQueue[targetVip] || [];
+               connectionMessageQueue[targetVip] = [];
+
+               for(var i = 0; i < messageQueue.length; i++) {
+                   self.send(targetVip, messageQueue[i]);
+               }
            }
 
-           if(!connection) {
-               Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "new-vnf-rtc-connection: " + targetVip);
-
-               connection = new VNFRTCConnection(self, targetVip, signalingEndpoint);
-
-               connectionQueue[targetVip] = connectionQueue[targetVip] || [];
-               connectionSet[targetVip] = connection;
-
-               connection.startCaller();
+           self.getRTCConnection = function(vip) {
+               return connectionSet[vip].getRTCConnection();
            }
 
-           if(connection.isReady) {
-               connection.send(message);
-           }else{
-               connectionQueue[targetVip].push(message);
+           self.send = function(targetVip, message) {
+               if(destroyed) throw new Error("Endpoint is destroyed");
+
+               var connection = connectionSet[targetVip];
+
+               if(targetVip == selfVip) {
+
+                   if(self.onMessage){
+                       window.setTimeout(function(){
+                           self.onMessage({message: message,
+                                           sourceVIP: selfVip,
+                                           endpoint: self});
+                       }, 0);
+
+                       return;
+                   }
+
+                   return;
+               }
+
+               if(!connection) {
+                   Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "new-vnf-rtc-connection: " + targetVip);
+
+                   connection = new VNFRTCConnection(self, targetVip, signalingEndpoint);
+
+                   connectionMessageQueue[targetVip] = connectionMessageQueue[targetVip] || [];
+                   connectionSet[targetVip] = connection;
+
+                   connection.startCaller();
+               }
+
+               if(connection.isReady) {
+                   try{
+                       connection.send(message);
+                   }catch(e) {
+                       Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send message via RTC", e]);
+                   }
+
+               }else{
+                   connectionMessageQueue[targetVip].push(message);
+               }
            }
-       }
-    };
 
-    return function RTCHub(signalingHub){
-        var self = this;
+           self.invalidate = function(targetVip) {
+               signalingEndpoint.invalidate(targetVip);
 
-        var hub = {};
+               if(connectionSet[targetVip]) {
+                   connectionSet[targetVip].destroy();
+
+                   delete connectionSet[targetVip];
+                   delete connectionMessageQueue[targetVip];
+               }
+           }
+
+           self.destroy = function() {
+               if(destroyed) return;
+               signalingEndpoint.destroy();
+               
+               destroyed = true;
+
+               delete hub[selfVip];
+
+               for(var vip in connectionSet) {
+                   connectionSet[vip].destroy();
+               }
+
+               connectionSet = {};
+           }
+        };
+
+
 
         self.openEndpoint = function openEndpoint(vip) {
             var endpoint = hub[vip];

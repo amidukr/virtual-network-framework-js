@@ -25,9 +25,9 @@ define([], function(){
           }
 
           if(instance) {
-            console[level]("[" + category + "] - [" + instance  + "]: " + message);
+            console[level]("[" + category + "] - [" + instance  + "]: ", message);
           }else{
-            console[level]("[" + category + "]: " + message);
+            console[level]("[" + category + "]: ", message);
           }
 
         },
@@ -42,6 +42,10 @@ define([], function(){
 
         info: function(instance, category, message) {
           self.log("info", instance, category, message)
+        },
+
+        warn: function(instance, category, message) {
+          self.log("warn", instance, category, message)
         },
 
         error: function(instance, category, message) {

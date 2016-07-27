@@ -1,8 +1,19 @@
 define(["utils/logger"], function(Log){
     var VNFTestUtils = {
-        newPrintCallback: function (instance) {
+        newPrintCallback: function (instance, version) {
             return function onMessage(event) {
-                Log.info(instance, "message-test-handler", "from " + event.sourceVIP + ": " + event.message);
+                var message = event.message;
+                if(typeof message == "object") {
+                    message = JSON.stringify(message);
+                }
+
+                description = "";
+                if(version) {
+                    description += version +": ";
+                }
+                description += "from " + event.sourceVIP + ": " + message;
+
+                Log.info(instance, "message-test-handler", description);
             }
         },
 

@@ -7,6 +7,30 @@ define([], function(){
         self.endPointer = 0;
         self.length = 0;
 
+        self.setValue = function(index, value) {
+            if(index >= self.array.length) {
+                if(self.beginPointer != 0) {
+                    self.array = self.toArray();
+                    self.beginPointer = 0;
+                }
+
+                self.array.length = index + 1
+            }
+
+            var arrayLength = self.array.length;
+            var pointerToSet = (index + self.beginPointer) % arrayLength;
+
+            if(index >= self.length) {
+                for(var i = self.length; i < index; i++) {
+                    delete self.array[(i + self.beginPointer) % arrayLength];
+                }
+
+                self.endPointer = pointerToSet+1;
+                self.length = index + 1;
+            }
+
+            self.array[pointerToSet] = value;
+        }
 
         self.push = function(element) {
             if(self.beginPointer != 0) {
