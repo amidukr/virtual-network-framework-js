@@ -12,7 +12,10 @@ function(  VNF,
     }
 
     //TODO: suspend
-    //TODO: RTC
+    //TODO: verify new reliable channel, destroyed previously - this test should fail
+    //        open two endpoints, send couple message, drop one endpoint,
+    //        wait heartbeat, open another endpoint, send message
+    //           onHeartbeat - listener would be helpful
     //
     //TODO: multiple channel - WebRTC vs WebSocket - multiple chanmel it is different hub implementation
     //TODO: generic channel support
