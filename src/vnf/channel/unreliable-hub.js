@@ -1,23 +1,17 @@
-define(["utils/logger"], function(Log) {
+define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHub) {
 
     return function UnreliableHub(hub) {
-        var self = this;
+        var selfHub = this;
 
-        if(!hub) {
-            throw new Error("Unable to create instnce of UnreliableHub, argument 'hub' cannot be null");
-        }
+        ProxyHub.call(selfHub, hub);
 
-        var hubMap = {};
         var blockedChannels = {};
 
-        function ProxyEndpoint(vip) {
-            var parentEndpoint = hub.openEndpoint(vip);
+        selfHub.VNFEndPoint = function UnreliableEndpoint(selfVip) {
             var self = this;
+            selfHub.ProxyEndpoint.call(self, selfVip);
 
-            var destroyed = false;
-            self.vip = vip;
-
-            parentEndpoint.onMessage = function(event) {
+            self.parentEndpoint.onMessage = function(event) {
                 if(self.onMessage) {
                     self.onMessage({
                         message:   event.message,
@@ -32,26 +26,11 @@ define(["utils/logger"], function(Log) {
                     return;
                 }
 
-                parentEndpoint.send(vip, message);
+                self.parentEndpoint.send(vip, message);
             }
-
-            this.invalidate = function(targetVIP) {
-                if(parentEndpoint) {
-                    parentEndpoint.invalidate(targetVIP);
-                }
-            }
-
-            self.destroy = function() {
-                if(destroyed) return;
-                destroyed = true;
-
-                delete hubMap[vip];
-                parentEndpoint.destroy();
-            }
-
         }
 
-        self.blockChannel = function(fromVip1, toVip2) {
+        selfHub.blockChannel = function(fromVip1, toVip2) {
             if(!blockedChannels[fromVip1]){
                 blockedChannels[fromVip1] = {};
             }
@@ -59,20 +38,10 @@ define(["utils/logger"], function(Log) {
             blockedChannels[fromVip1][toVip2] = true;
         }
 
-        self.unblockChannel = function(fromVip1, toVip2) {
+        selfHub.unblockChannel = function(fromVip1, toVip2) {
             if(blockedChannels[fromVip1]){
                 blockedChannels[fromVip1][toVip2] = false;
             }
-        }
-
-        self.openEndpoint = function(vip) {
-            var endpoint = hubMap[vip];
-            if(!endpoint) {
-                endpoint = new ProxyEndpoint(vip);
-                hubMap[vip] = endpoint;
-            }
-
-            return endpoint;
         }
     }
 });
