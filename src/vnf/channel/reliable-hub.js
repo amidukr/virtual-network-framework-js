@@ -1,28 +1,28 @@
-define(["utils/logger", "utils/cycle-buffer"], function(Log, CycleBuffer) {
+define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"], function(Log, CycleBuffer, ProxyHub) {
 
     return function ReliableHub(hub, args) {
-        var self = this;
+        var selfHub = this;
+
+        ProxyHub.call(selfHub, hub);
 
         if(!hub) {
             throw new Error("Unable to create instnce of ReliableHub, argument 'hub' cannot be null");
         }
-
-        var hubMap = {};
 
         args = args || {};
 
         var heartbeatInterval = 300;
         var heartbeatsToInvalidate = args.heartbeatsToInvalidate  || (Math.floor(5000 / heartbeatInterval + 1)); // 5 second by default
 
-        function ReliableEndpoint(vip) {
-            var destroyed = false;
+        selfHub.VNFEndPoint = function ReliableEndpoint(vip) {
+            var self = this;
+            selfHub.ProxyEndpoint.call(self, vip);
+
+            
+            var parentEndpoint = self.parentEndpoint;
+
             var channels = {};
             var activeChannels = [];
-
-            var parentEndpoint = hub.openEndpoint(vip);
-
-            var self = this;
-            self.vip = vip;
 
             function getChannel(targetVIP) {
                 var channel = channels[targetVIP];
@@ -198,7 +198,7 @@ define(["utils/logger", "utils/cycle-buffer"], function(Log, CycleBuffer) {
             }
 
             parentEndpoint.onMessage = function(event) {
-                if(destroyed) {
+                if(self.isDestroyed()) {
                     console.warn("ReliableHub: Unable to handle message, since endpoint destroyed");
                 }
 
@@ -216,7 +216,7 @@ define(["utils/logger", "utils/cycle-buffer"], function(Log, CycleBuffer) {
             }
 
             this.send = function(targetVIP, message) {
-                if(destroyed) throw new Error("Endpoint is destroyed");
+                if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 
                 var channel = getChannel(targetVIP);
 
@@ -228,32 +228,13 @@ define(["utils/logger", "utils/cycle-buffer"], function(Log, CycleBuffer) {
                 resetHeartbeat(channel);
             }
 
-            this.invalidate = function(targetVIP) {
-                if(parentEndpoint) {
-                    parentEndpoint.invalidate(targetVIP);
-                }
-
+            this.onInvalidate(function(targetVIP) {
                 delete channels[targetVIP];
-            }
+            });
 
-            this.destroy = function() {
-                if(destroyed) return;
-
-                destroyed = true;
+            this.onDestroy(function() {
                 activeChannels = [];
-                delete hubMap[vip];
-                parentEndpoint.destroy();
-            }
-        }
-
-        self.openEndpoint = function(vip) {
-            var endpoint = hubMap[vip];
-            if(!endpoint) {
-                endpoint = new ReliableEndpoint(vip);
-                hubMap[vip] = endpoint;
-            }
-
-            return endpoint;
+            });
         }
     }
 });
