@@ -7,7 +7,7 @@ define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHu
 
         var blockedChannels = {};
 
-        selfHub.VNFEndPoint = function UnreliableEndpoint(selfVip) {
+        selfHub.VNFEndpoint = function UnreliableEndpoint(selfVip) {
             var self = this;
             selfHub.ProxyEndpoint.call(self, selfVip);
 

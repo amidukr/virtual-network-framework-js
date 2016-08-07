@@ -14,7 +14,7 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
         var heartbeatInterval = 300;
         var heartbeatsToInvalidate = args.heartbeatsToInvalidate  || (Math.floor(5000 / heartbeatInterval + 1)); // 5 second by default
 
-        selfHub.VNFEndPoint = function ReliableEndpoint(vip) {
+        selfHub.VNFEndpoint = function ReliableEndpoint(vip) {
             var self = this;
             selfHub.ProxyEndpoint.call(self, vip);
 
@@ -101,7 +101,7 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
                 }
             }
 
-            function resetHeartbeat(channel) {
+            function reactivateChannel(channel) {
                 if(channel.suspended) {
                     channel.suspended = false;
                     activeChannels.push(channel);
@@ -154,7 +154,7 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
                     var message = event.message;
                     var channel = getChannel(event.sourceVIP);
 
-                    resetHeartbeat(channel);
+                    reactivateChannel(channel);
 
                     var receivedMessages = channel.receivedMessages;
 
@@ -225,11 +225,13 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
 
                 parentSend(targetVIP, {type:"message", messageNumber: channel.lastSentMessageNumber, message: message})
 
-                resetHeartbeat(channel);
+                reactivateChannel(channel);
             }
 
             this.onInvalidate(function(targetVIP) {
+                var channel = channels[targetVIP];
                 delete channels[targetVIP];
+                activeChannels.removeValue(channel);
             });
 
             this.onDestroy(function() {

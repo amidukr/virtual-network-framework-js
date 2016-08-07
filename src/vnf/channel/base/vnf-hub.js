@@ -41,7 +41,7 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
       self.openEndpoint = function openEndpoint(vip) {
           var endpoint = hub[vip];
           if(!endpoint) {
-              endpoint = new self.VNFEndPoint(vip);
+              endpoint = new self.VNFEndpoint(vip);
               hub[vip] = endpoint;
           }
 

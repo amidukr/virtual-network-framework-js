@@ -1,4 +1,4 @@
-define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
+define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], function(Log, xTimeout, ProxyHub) {
 
     window.RTCPeerConnection     = window.RTCPeerConnection     || window.mozRTCPeerConnection     || window.webkitRTCPeerConnection;
     window.RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
@@ -241,20 +241,17 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
     }
 
     return function RTCHub(signalingHub){
-            var self = this;
+        var selfHub = this;
+        ProxyHub.call(selfHub, signalingHub);
 
-            var hub = {};
-
-        function RTCEndpoint(selfVip, signalingEndpoint) {
+        selfHub.VNFEndpoint = function RTCEndpoint(selfVip) {
            var self = this;
+           selfHub.ProxyEndpoint.call(self, selfVip);
 
-           self.vip = selfVip;
+           var signalingEndpoint = self.parentEndpoint;
 
            var connectionSet = {}
            var connectionMessageQueue = {}
-
-           self.onMessage = null;
-           var destroyed = false;
 
            self.chunkLength = PACKET_CHUNK_LENGTH;
 
@@ -280,7 +277,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
            }
 
            self.onChannelOpened = function(targetVip, connection) {
-               if(destroyed) {
+               if(self.isDestroyed()) {
                    connection.destroy();
 
                    return;
@@ -300,7 +297,7 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
            }
 
            self.send = function(targetVip, message) {
-               if(destroyed) throw new Error("Endpoint is destroyed");
+               if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 
                var connection = connectionSet[targetVip];
 
@@ -342,43 +339,22 @@ define(["utils/logger", "utils/xtimeout.js"], function(Log, xTimeout) {
                }
            }
 
-           self.invalidate = function(targetVip) {
-               signalingEndpoint.invalidate(targetVip);
-
+           self.onInvalidate(function(targetVip) {
                if(connectionSet[targetVip]) {
                    connectionSet[targetVip].destroy();
 
                    delete connectionSet[targetVip];
                    delete connectionMessageQueue[targetVip];
                }
-           }
+           });
 
-           self.destroy = function() {
-               if(destroyed) return;
-               signalingEndpoint.destroy();
-               
-               destroyed = true;
-
-               delete hub[selfVip];
-
+           self.onDestroy(function() {
                for(var vip in connectionSet) {
                    connectionSet[vip].destroy();
                }
 
                connectionSet = {};
-           }
+           });
         };
-
-
-
-        self.openEndpoint = function openEndpoint(vip) {
-            var endpoint = hub[vip];
-            if(!endpoint) {
-                endpoint = new RTCEndpoint(vip, signalingHub.openEndpoint(vip));
-                hub[vip] = endpoint;
-          }
-
-          return endpoint;
-        }
     };
 });
