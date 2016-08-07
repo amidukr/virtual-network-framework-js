@@ -1,4 +1,4 @@
-define(["utils/logger"], function(Log) {
+define(["utils/logger", "utils/observable"], function(Log, Observable) {
 
    return function VNFHub(){
       var self = this;
@@ -7,6 +7,8 @@ define(["utils/logger"], function(Log) {
 
       self.BaseEndPoint = function BaseEndPoint(selfVip) {
          var self = this;
+         var destroyListeners = new Observable();
+         var invalidateListeners = new Observable();
 
          self.vip = selfVip;
 
@@ -17,11 +19,18 @@ define(["utils/logger"], function(Log) {
              return destroyed;
          }
 
+         self.onDestroy = destroyListeners.addListener;
+
+         self.onInvalidate = invalidateListeners.addListener;
+         self.invalidate   = invalidateListeners.fire;
+
          self.destroy = function() {
             if(destroyed) return;
             destroyed = true;
 
             delete hub[selfVip];
+
+            destroyListeners.fire();
          }
       }
 

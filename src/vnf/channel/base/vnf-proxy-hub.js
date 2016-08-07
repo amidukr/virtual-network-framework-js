@@ -14,20 +14,17 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
 
             self.parentEndpoint = parentHub.openEndpoint(selfVip);
 
-            var parentDestroy = self.destroy;
-            self.destroy = function() {
-                parentDestroy();
-
+            self.onDestroy(function(){
                 if(self.parentEndpoint) {
                     self.parentEndpoint.destroy();
                 }
-            }
+            });
 
-            self.invalidate = function(targetVIP) {
+            self.onInvalidate(function(targetVIP) {
                 if(self.parentEndpoint) {
                     self.parentEndpoint.invalidate(targetVIP);
                 }
-            }
+            });
         }
     };
 });
