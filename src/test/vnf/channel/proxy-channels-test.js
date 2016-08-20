@@ -11,45 +11,50 @@ function(  VNF,
     //InBrowserHub: InBrowserHub,
     //UnreliableHub: UnreliableHub,
     //ReliableHub: ReliableHub,
+    
+    function proxyVNFTest(description, callback) {
+        function prepareArguments(hubConstructor) {
+            return function(args) {
+                var rootHub  = args.rootHubFactory();
+                var proxyHub = new hubConstructor(rootHub);
 
-    function testProxyHubMethods(channelName, proxyHubFactory) {
-
-        var inBrowserHub = new VNF.InBrowserHub();
-        var proxyHub = proxyHubFactory(inBrowserHub);
-
-        QUnit.test("["+ channelName +"-Proxy]: testing invalidate", function(assert){
-            var done = assert.async(1);
-
-            var endPointInBrowser = inBrowserHub.openEndpoint("vip-1");
-            var endPointProxy     = proxyHub.openEndpoint("vip-1");
-
-            endPointInBrowser.invalidate = function(targetVip) {
-                assert.equal(targetVip, "target-vip-2");
-
-                endPointProxy.destroy();
-
-                done();
+                return {rootHub: rootHub, proxyHub: proxyHub};
             }
+        }
 
-            endPointProxy.invalidate("target-vip-2");
-        })
+        VNFTestUtils.hubPackTest("[ReliableHub]: Proxy-Testing "   + description, prepareArguments(VNF.ReliableHub),   callback);
+        VNFTestUtils.hubPackTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(VNF.UnreliableHub), callback);
+    };
+    
+    proxyVNFTest("invalidate", function(assert, args){
+        var done = assert.async(1);
 
-        QUnit.test("["+ channelName +"-Proxy]: testing destroy", function(assert){
-            var endPointInBrowser = inBrowserHub.openEndpoint("vip-1");
-            var endPointProxy     = proxyHub.openEndpoint("vip-1");
+        var endPointInBrowser = args.rootHub.openEndpoint("vip-1");
+        var endPointProxy     = args.proxyHub.openEndpoint("vip-1");
 
-            var destroyCalled = false;
+        endPointInBrowser.invalidate = function(targetVip) {
+            assert.equal(targetVip, "target-vip-2");
 
-            endPointInBrowser.destroy = function() {
-                destroyCalled = true;
-            }
-
-            assert.equal(destroyCalled, false, "Verify destroy haven't been executed, before call")
             endPointProxy.destroy();
-            assert.equal(destroyCalled, true, "Verify destroy was executed after call");
-        });
-    }
 
-    testProxyHubMethods("ReliableHub",   function(parentHub){ return new VNF.ReliableHub(parentHub);   });
-    testProxyHubMethods("UnreliableHub", function(parentHub){ return new VNF.UnreliableHub(parentHub); });
+            done();
+        }
+
+        endPointProxy.invalidate("target-vip-2");
+    })
+
+    proxyVNFTest("destroy", function(assert, args){
+        var endPointInBrowser = args.rootHub.openEndpoint("vip-1");
+        var endPointProxy     = args.proxyHub.openEndpoint("vip-1");
+
+        var destroyCalled = false;
+
+        endPointInBrowser.destroy = function() {
+            destroyCalled = true;
+        }
+
+        assert.equal(destroyCalled, false, "Verify destroy haven't been executed, before call")
+        endPointProxy.destroy();
+        assert.equal(destroyCalled, true, "Verify destroy was executed after call");
+    });
 });

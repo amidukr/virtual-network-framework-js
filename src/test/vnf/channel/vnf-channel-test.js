@@ -5,27 +5,17 @@ function(  VNF,
            Log,
            VNFTestUtils){
 
-
-
-
-    function hubQUnitTest(description, hubFactory, callback) {
-
-        if(callback == undefined) {
-           callback = hubFactory;
-
-           hubQUnitTest("[InBrowserHub]: "  + description, function(rootHubFactory) {return rootHubFactory();},                        callback);
-           hubQUnitTest("[RTCHub]: "        + description, function(rootHubFactory) {return new VNF.RTCHub(rootHubFactory());},        callback);
-           hubQUnitTest("[UnreliableHub]: " + description, function(rootHubFactory) {return new VNF.UnreliableHub(rootHubFactory());}, callback);
-           hubQUnitTest("[ReliableHub]: "   + description, function(rootHubFactory) {return new VNF.ReliableHub(rootHubFactory());},   callback);
-
-           return;
+    function hubQUnitTest(description, callback) {
+        function prepareArgs(hubConstructor) {
+            return function(args) {
+                return {hubFactory: function(){return new hubConstructor(args.rootHubFactory())}};
+            }
         }
 
-        VNFTestUtils.vnfTest(description, function(assert, args){
-            args = Object.assign({hubFactory: function() {return hubFactory(args.rootHubFactory)}  }, args);
-
-            callback(assert, args);
-        });
+        VNFTestUtils.hubPackTest("[InBrowserHub]: "  + description, prepareArgs(VNF.InBrowserHub),  callback);
+        VNFTestUtils.hubPackTest("[RTCHub]: "        + description, prepareArgs(VNF.RTCHub),        callback);
+        VNFTestUtils.hubPackTest("[UnreliableHub]: " + description, prepareArgs(VNF.UnreliableHub), callback);
+        VNFTestUtils.hubPackTest("[ReliableHub]: "   + description, prepareArgs(VNF.ReliableHub),   callback);
     };
 
     hubQUnitTest("Channel API Verification", function(assert, arguments) {

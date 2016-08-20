@@ -28,6 +28,12 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
             VNFTestUtils.test("[root:RTC]-"      + description, Object.assign({rootHubFactory: rtcHubFactory},   args), callback);
         },
 
+        hubPackTest: function (description, argumentProcessor, callback) {
+            VNFTestUtils.vnfTest(description, function(assert, args){
+                callback(assert, Object.assign({}, argumentProcessor(args), args));
+            });
+        },
+
         newPrintCallback: function (instance, version) {
             return function onMessage(event) {
                 var message = event.message;
