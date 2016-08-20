@@ -1,5 +1,33 @@
-define(["utils/logger"], function(Log){
+define(["vnf/vnf", "utils/logger"], function(VNF, Log){
     var VNFTestUtils = {
+
+        test: function(description, args, callback) {
+            QUnit.test(description, function(assert){
+                Log.info("test", description);
+
+                if(callback == undefined) {
+                    callback = args;
+                    args = {};
+                }
+
+                callback(assert, args);
+            });
+        },
+
+        vnfTest: function(description, args, callback) {
+
+            if(callback == undefined) {
+                callback = args;
+                args = {};
+            }
+
+            var inMemoryFactory = function() {return new VNF.InBrowserHub();};
+            var rtcHubFactory   = function() {return new VNF.RTCHub(new VNF.InBrowserHub());};
+
+            VNFTestUtils.test("[root:InMemory]-" + description, Object.assign({rootHubFactory: inMemoryFactory}, args), callback);
+            VNFTestUtils.test("[root:RTC]-"      + description, Object.assign({rootHubFactory: rtcHubFactory},   args), callback);
+        },
+
         newPrintCallback: function (instance, version) {
             return function onMessage(event) {
                 var message = event.message;
@@ -7,7 +35,7 @@ define(["utils/logger"], function(Log){
                     message = JSON.stringify(message);
                 }
 
-                description = "";
+                var description = "";
                 if(version) {
                     description += version +": ";
                 }
@@ -15,6 +43,16 @@ define(["utils/logger"], function(Log){
 
                 Log.info(instance, "message-test-handler", description);
             }
+        },
+
+        onHeartbeatPromise: function(reliableEndpoint) {
+            Log.debug(reliableEndpoint.vip, "waiting-info", "Waiting for heartbeat");
+
+            return new Promise(function(r) {
+                reliableEndpoint.onHeartbeat = r;
+            }).then(function(){
+                Log.debug(reliableEndpoint.vip, "waiting-info", "Heartbeat triggered");
+            });
         },
 
         newInstance: function (Cls) {
