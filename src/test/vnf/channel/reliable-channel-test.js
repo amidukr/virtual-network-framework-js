@@ -70,6 +70,44 @@ function(  VNF,
         .then(done);
     });
 
+    QUnit.test("[Reliable Hub]: Heartbeat message - send buffer info", function(assert){
+        Log.info("test", "[Reliable Hub]: Heartbeat message - send buffer info");
+
+        var done = assert.async(1);
+
+        var inBrowserHub = new VNF.InBrowserHub();
+        var reliableHub = new VNF.ReliableHub(inBrowserHub);
+
+        var endpoint1 = reliableHub.openEndpoint("vip-1");
+        var endpoint2 = inBrowserHub.openEndpoint("vip-2");
+
+        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+        var capture1 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
+
+        endpoint1.send("vip-2", "message-1");
+        endpoint1.send("vip-2", "message-2");
+        endpoint1.send("vip-2", "message-3");
+        endpoint1.send("vip-2", "message-4");
+
+        capture1.assertLog(['from vip-1: {"type":"message","messageNumber":0,"message":"message-1"}',
+                            'from vip-1: {"type":"message","messageNumber":1,"message":"message-2"}',
+                            'from vip-1: {"type":"message","messageNumber":2,"message":"message-3"}',
+                            'from vip-1: {"type":"message","messageNumber":3,"message":"message-4"}',
+                            'from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":0,"sendBufferEnd":3}'])
+        .then(endpoint2.send.bind(null, "vip-1", {type:"heartbeat", gapBegin: 1, gapEnd: 2, sendBufferBegin: 0, sendBufferEnd: -1}))
+        .then(capture1.assertLog.bind(null, ['from vip-1: {"type":"message","messageNumber":1,"message":"message-2"}',
+                                             'from vip-1: {"type":"message","messageNumber":2,"message":"message-3"}',
+                                             'from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":1,"sendBufferEnd":3}']))
+        .then(endpoint1.send.bind(null, "vip-2", "message-5"))
+        .then(capture1.assertLog.bind(null, ['from vip-1: {"type":"message","messageNumber":4,"message":"message-5"}',
+                                             'from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":1,"sendBufferEnd":4}']))
+        .then(endpoint2.send.bind(null, "vip-1", {type:"heartbeat", gapBegin: 5, gapEnd: -1, sendBufferBegin: 0, sendBufferEnd: -1}))
+        .then(capture1.assertLog.bind(null, ['from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":5,"sendBufferEnd":4}']))
+        .then(endpoint1.destroy)
+        .then(endpoint2.destroy)
+        .then(done);
+    });
+
     QUnit.test("[Reliable Hub]: Reply with heartbeat and notifying successful delivery", function(assert){
         Log.info("test", "[Reliable Hub]: Reply with heartbeat and notifying successful delivery");
         var done = assert.async(1);
@@ -426,6 +464,67 @@ function(  VNF,
         .then(done);
     });
 
+
+    QUnit.test("[Reliable Hub]: Send message to existing peer", function(assert){
+        var done = assert.async(1);
+
+        var reliableHub = new VNF.ReliableHub(new VNF.InBrowserHub());
+
+        var endpoint1 = reliableHub.openEndpoint("vip-1");
+        var endpoint2 = reliableHub.openEndpoint("vip-2");
+
+        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
+
+        endpoint1.send("vip-2", "send-to-existing-connection-message-1");
+
+        capture2.assertLog(["from vip-1: send-to-existing-connection-message-1"])
+        .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint1))
+        .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint2))
+        .then(function(){
+            endpoint1.destroy();
+
+            endpoint1 = reliableHub.openEndpoint("vip-1");
+
+            endpoint1.send("vip-2", "send-to-existing-connection-message-2");
+        }).then(capture2.assertLog.bind(null, ["from vip-1: send-to-existing-connection-message-2"]))
+        .then(function(){endpoint1.destroy();})
+        .then(endpoint2.destroy)
+        .then(done);
+    });
+
+    QUnit.test("[Reliable Hub]: Receive message from existing peer", function(assert){
+            var done = assert.async(1);
+
+            var reliableHub = new VNF.ReliableHub(new VNF.InBrowserHub());
+
+            var endpoint1V1 = reliableHub.openEndpoint("vip-1");
+            var endpoint1V2;
+            var endpoint2 = reliableHub.openEndpoint("vip-2");
+
+            endpoint1V1.onMessage = VNFTestUtils.newPrintCallback("vip-1-original");
+            var capture1V1 = Log.captureLogs(assert, ["vip-1-original"], ["message-test-handler"]);
+            var capture1V2 = Log.captureLogs(assert, ["vip-1-new"], ["message-test-handler"]);
+
+            endpoint2.send("vip-1", "receive-from-existing-connection-message-1");
+
+            capture1V1.assertLog(["from vip-2: receive-from-existing-connection-message-1"])
+            .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint1V1))
+            .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint2))
+            .then(function(){
+                endpoint1V1.destroy();
+
+                endpoint1V2 = reliableHub.openEndpoint("vip-1");
+
+                endpoint1V2.onMessage = VNFTestUtils.newPrintCallback("vip-1-new");
+
+                endpoint2.send("vip-1", "receive-from-existing-connection-message-2");
+            }).then(capture1V2.assertLog.bind(null, ["from vip-2: receive-from-existing-connection-message-2"]))
+            .then(function(){ endpoint1V2.destroy() })
+            .then(endpoint2.destroy)
+            .then(done);
+    });
+
     QUnit.test("[Reliable Hub]: RTC Connection restore test", function(assert){
         Log.info("test", "[Reliable Hub]: RTC Connection restore test");
 
@@ -472,8 +571,6 @@ function(  VNF,
         .then(done);
 
     });
-
-
 
     /*var unreliableHub = new VNF.UnreliableHub(new VNF.InBrowserHub());
     var reliableHub = new VNF.ReliableHub(unreliableHub);

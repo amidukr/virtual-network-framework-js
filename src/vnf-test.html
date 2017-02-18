@@ -15,9 +15,9 @@
 <script type="text/javascript">
     Timeouts = {}
 
-    QUnit.config.testTimeout = 30000;
+    QUnit.config.testTimeout = 60000;
 
-    Timeouts.logCaptureTimeout = QUnit.config.testTimeout || 20000;
+    Timeouts.logCaptureTimeout = QUnit.config.testTimeout || 60000;
 
     Timeouts.iceSendTimeout = Math.min(Timeouts.logCaptureTimeout/10, 1000);
 </script>

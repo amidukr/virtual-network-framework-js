@@ -115,6 +115,12 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
             var handlers = {
 
                 "heartbeat": function(event) {
+                    try{
+                        self.onHeartbeat && self.onHeartbeat(event);
+                    }catch(error) {
+                        Log.error(self.vip, "reliable-hub", [new Error("onHeartbeat handler thrown error"), error]);
+                    }
+
                     var message = event.message;
                     var channel = getChannel(event.sourceVIP);
 
@@ -144,8 +150,8 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
 
                         if(gapMessage) {
                             parentSend(event.sourceVIP, {type:"message",
-                                                                  messageNumber: i + message.gapBegin,
-                                                                  message: gapMessage});
+                                                         messageNumber: i + message.gapBegin,
+                                                         message: gapMessage});
                         }
                     }
                 },
