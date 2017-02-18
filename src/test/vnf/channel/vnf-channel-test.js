@@ -12,10 +12,10 @@ function(  VNF,
             }
         }
 
-        VNFTestUtils.hubPackTest("[InBrowserHub]: "  + description, prepareArgs(VNF.InBrowserHub),  callback);
-        VNFTestUtils.hubPackTest("[RTCHub]: "        + description, prepareArgs(VNF.RTCHub),        callback);
-        VNFTestUtils.hubPackTest("[UnreliableHub]: " + description, prepareArgs(VNF.UnreliableHub), callback);
-        VNFTestUtils.hubPackTest("[ReliableHub]: "   + description, prepareArgs(VNF.ReliableHub),   callback);
+        VNFTestUtils.vnfTest("[InBrowserHub]: "  + description, prepareArgs(VNF.InBrowserHub),  callback);
+        VNFTestUtils.vnfTest("[RTCHub]: "        + description, prepareArgs(VNF.RTCHub),        callback);
+        VNFTestUtils.vnfTest("[UnreliableHub]: " + description, prepareArgs(VNF.UnreliableHub), callback);
+        VNFTestUtils.vnfTest("[ReliableHub]: "   + description, prepareArgs(VNF.ReliableHub),   callback);
     };
 
     hubQUnitTest("Channel API Verification", function(assert, arguments) {

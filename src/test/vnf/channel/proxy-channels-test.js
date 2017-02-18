@@ -22,8 +22,8 @@ function(  VNF,
             }
         }
 
-        VNFTestUtils.hubPackTest("[ReliableHub]: Proxy-Testing "   + description, prepareArguments(VNF.ReliableHub),   callback);
-        VNFTestUtils.hubPackTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(VNF.UnreliableHub), callback);
+        VNFTestUtils.vnfTest("[ReliableHub]: Proxy-Testing "   + description, prepareArguments(VNF.ReliableHub),   callback);
+        VNFTestUtils.vnfTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(VNF.UnreliableHub), callback);
     };
     
     proxyVNFTest("invalidate", function(assert, args){

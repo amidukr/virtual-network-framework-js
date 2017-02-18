@@ -14,24 +14,22 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
             });
         },
 
-        vnfTest: function(description, args, callback) {
+        vnfTest: function(description, argumentProcessor, callback) {
 
             if(callback == undefined) {
-                callback = args;
-                args = {};
+                callback = argumentProcessor;
+                argumentProcessor = {};
             }
 
             var inMemoryFactory = function() {return new VNF.InBrowserHub();};
             var rtcHubFactory   = function() {return new VNF.RTCHub(new VNF.InBrowserHub());};
 
-            VNFTestUtils.test("[root:InMemory]-" + description, Object.assign({rootHubFactory: inMemoryFactory}, args), callback);
-            VNFTestUtils.test("[root:RTC]-"      + description, Object.assign({rootHubFactory: rtcHubFactory},   args), callback);
-        },
-
-        hubPackTest: function (description, argumentProcessor, callback) {
-            VNFTestUtils.vnfTest(description, function(assert, args){
+            var proxyCallback = function proxyCallback(assert, args) {
                 callback(assert, Object.assign({}, argumentProcessor(args), args));
-            });
+            };
+
+            VNFTestUtils.test("[root:InMemory]-" + description, {rootHubFactory: inMemoryFactory}, proxyCallback);
+            VNFTestUtils.test("[root:RTC]-"      + description, {rootHubFactory: rtcHubFactory}  , proxyCallback);
         },
 
         newPrintCallback: function (instance, version) {
