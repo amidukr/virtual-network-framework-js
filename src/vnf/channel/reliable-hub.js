@@ -1,4 +1,5 @@
-define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"], function(Log, CycleBuffer, ProxyHub) {
+define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub", "utils/random"],
+function(Log, CycleBuffer, ProxyHub, Random) {
 
     return function ReliableHub(hub, args) {
         var selfHub = this;
@@ -23,6 +24,8 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
 
             var channels = {};
             var activeChannels = [];
+            var endpointId = Random.random6();
+
 
             function getChannel(targetVIP) {
                 var channel = channels[targetVIP];
@@ -30,6 +33,11 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
                     channel = {
                         targetVIP: targetVIP,
                         suspended: true,
+
+                        state: 'HANDSHAKING',
+                        sessionIndex: 1,
+                        sessionId: endpointId + "-1",
+                        remoteSessionId: "",
 
                         silenceCycles: 0,
 
@@ -126,10 +134,13 @@ define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub"],
 
                     channel.silenceCycles = 0;
 
-                    var prevHearBeatRequest = channel.lastHeartbeatRequest;
+                    var prevHeartBeatRequest = channel.lastHeartbeatRequest;
                     channel.lastHeartbeatRequest = message.gapBegin;
 
-                    if(message.gapEnd == -1 && prevHearBeatRequest != message.gapBegin) {
+                    // performance optimization- to not flood the network
+                    // to avoid double sending of message, responding to gap only after second heartbeat
+                    // due to network latencies heartbeat can be out-dated, while message is delivered
+                    if(message.gapEnd == -1 && prevHeartBeatRequest != message.gapBegin) {
                         return;
                     }
 
