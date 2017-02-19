@@ -152,7 +152,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
 
         return logReader.takeNext(expected.length)
            .then(function(actual){
-               assert.deepEqual(actual, expected,  "Asserting captured logs");
+               assert.deepEqual(actual, expected,  "Asserting captured logs, expected: " + expected);
            });
       };
 
@@ -163,7 +163,7 @@ define(["utils/logger", "lib/bluebird", "utils/arrays"], function(Log, Promise){
 
         return logReader.takeNext(expected.length)
            .then(function(actual){
-               assert.deepEqual(actual.sort(), expected.sort(),  "Asserting captured logs");
+               assert.deepEqual(actual.sort(), expected.sort(),  "Asserting captured logs, expected: " + expected);
            });
       };
 
