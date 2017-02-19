@@ -14,7 +14,7 @@ function(  VNF,
     
     function proxyVNFTest(description, callback) {
         function prepareArguments(hubConstructor) {
-            return function(args) {
+            return function(assert, args) {
                 var rootHub  = args.rootHubFactory();
                 var proxyHub = new hubConstructor(rootHub);
 
@@ -25,7 +25,8 @@ function(  VNF,
         VNFTestUtils.vnfTest("[ReliableHub]: Proxy-Testing "   + description, prepareArguments(VNF.ReliableHub),   callback);
         VNFTestUtils.vnfTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(VNF.UnreliableHub), callback);
     };
-    
+
+    QUnit.module("Proxy Channels Tests");
     proxyVNFTest("invalidate", function(assert, args){
         var done = assert.async(1);
 

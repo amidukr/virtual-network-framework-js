@@ -1,6 +1,7 @@
 requirejs(["utils/cycle-buffer", "utils/capture-logs"],
 function(  CycleBuffer, Log){
 
+    QUnit.module("Cycle Buffer Test");
     QUnit.test("[Cycle Buffer Test]: Simple Push", function(assert){
         var buffer = new CycleBuffer();
 

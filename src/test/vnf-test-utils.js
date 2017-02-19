@@ -1,8 +1,25 @@
 define(["vnf/vnf", "utils/logger"], function(VNF, Log){
+
+    var runningTest = "";
+
     var VNFTestUtils = {
 
         test: function(description, args, callback) {
             QUnit.test(description, function(assert){
+                runningTest = description;
+
+                var assertAsync = assert.async;
+                assert.async = function(num) {
+                    var assertDone = assertAsync.call(assert, num);
+                    return function proxyDone() {
+                        if(runningTest != description) {
+                            throw new Error("Wrong call to done, test already executed: " + description + ", while running " + runningTest);
+                        }
+
+                        assertDone();
+                    }
+                }
+
                 Log.info("test", description);
 
                 if(callback == undefined) {
@@ -25,7 +42,7 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
             var rtcHubFactory   = function() {return new VNF.RTCHub(new VNF.InBrowserHub());};
 
             var proxyCallback = function proxyCallback(assert, args) {
-                callback(assert, Object.assign({}, argumentProcessor(args), args));
+                callback(assert, Object.assign({}, argumentProcessor(assert, args), args));
             };
 
             VNFTestUtils.test("[root:InMemory]-" + description, {rootHubFactory: inMemoryFactory}, proxyCallback);

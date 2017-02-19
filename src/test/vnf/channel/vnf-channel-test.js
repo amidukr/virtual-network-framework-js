@@ -7,16 +7,23 @@ function(  VNF,
 
     function hubQUnitTest(description, callback) {
         function prepareArgs(hubConstructor) {
-            return function(args) {
+            return function(assert, args) {
                 return {hubFactory: function(){return new hubConstructor(args.rootHubFactory())}};
             }
         }
 
-        VNFTestUtils.vnfTest("[InBrowserHub]: "  + description, prepareArgs(VNF.InBrowserHub),  callback);
-        VNFTestUtils.vnfTest("[RTCHub]: "        + description, prepareArgs(VNF.RTCHub),        callback);
-        VNFTestUtils.vnfTest("[UnreliableHub]: " + description, prepareArgs(VNF.UnreliableHub), callback);
-        VNFTestUtils.vnfTest("[ReliableHub]: "   + description, prepareArgs(VNF.ReliableHub),   callback);
+
+        function runTest(hubName, description, hub, callback) {
+            QUnit.module(hubName + " Generic VNF Tests");
+            VNFTestUtils.vnfTest("[" + hubName + "]: "  + description, prepareArgs(hub),  callback);
+        }
+
+        runTest("InBrowserHub",  description, VNF.InBrowserHub,  callback);
+        runTest("RTCHub",        description, VNF.RTCHub,        callback);
+        runTest("UnreliableHub", description, VNF.UnreliableHub, callback);
+        runTest("ReliableHub",   description, VNF.ReliableHub,   callback);
     };
+
 
     hubQUnitTest("Channel API Verification", function(assert, arguments) {
          var vnfHub = arguments.hubFactory();

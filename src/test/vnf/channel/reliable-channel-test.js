@@ -20,6 +20,7 @@ function(  VNF,
     //TODO: multiple channel - WebRTC vs WebSocket - multiple chanmel it is different hub implementation
     //TODO: generic channel support
 
+     QUnit.module("Reliable Channel Tests");
      QUnit.test("[Unreliable Hub]: Testing Unreliable hub", function(assert){
             Log.info("test", "[Unreliable Hub]: Testing Unreliable hub");
 
