@@ -1,48 +1,8 @@
-requirejs(["vnf/vnf",
-           "utils/capture-logs",
-           "test/vnf-test-utils"],
-function(  VNF,
-           Log,
-           VNFTestUtils){
+requirejs(["test/vnf/channel/reliable/reliable-test-utils"],
+function( ReliableTestUtils){
 
-
-    function reliableVNFTest(description, callback) {
-        function prepareArguments(assert, args) {
-            var rootHub  = args.rootHubFactory();
-            var reliableHub = new VNF.ReliableHub(rootHub);
-
-            var reliableEndpoint = reliableHub.openEndpoint("reliable-endpoint");
-            var rootEndpoint = rootHub.openEndpoint("root-endpoint");
-
-            reliableEndpoint.onMessage = VNFTestUtils.newPrintCallback("reliable-endpoint");
-            rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback("root-endpoint");
-
-            reliableEndpoint.setEndpointId("rel1");
-            reliableEndpoint.setHeartbeatInterval(10000);
-
-            var reliableCapture = Log.captureLogs(assert, ["reliable-endpoint"], ["message-test-handler"]);
-            var rootCapture     = Log.captureLogs(assert, ["root-endpoint"],     ["message-test-handler"]);
-
-            function destroy() {
-                reliableEndpoint.destroy();
-                rootEndpoint.destroy();
-            }
-
-            return {reliableHub:      reliableHub,
-                    reliableEndpoint: reliableEndpoint,
-                    reliableCapture:  reliableCapture,
-
-                    rootHub:      rootHub,
-                    rootEndpoint: rootEndpoint,
-                    rootCapture:  rootCapture,
-
-                    destroy: destroy};
-        }
-
-        VNFTestUtils.vnfTest("[Reliable Hub] Unit Test: " + description, prepareArguments, callback);
-    };
-
-    reliableVNFTest("(Reliable<--Root) Test handshake accept sequence for reliable endpoint", function(assert, argument) {
+    QUnit.module("Reliable handshake");
+    ReliableTestUtils.reliableVNFTest("Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint", function(assert, argument) {
         var done = assert.async(1);
 
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":2,"payload":"message-1"});
@@ -72,7 +32,7 @@ function(  VNF,
         .then(done);
     });
 
-    reliableVNFTest("(Reliable-->Root) Test handshake initiation sequence by reliable endpoint", function(assert, argument) {
+    ReliableTestUtils.reliableVNFTest("Handshakes: (Reliable-->Root) Test handshake initiation sequence by reliable endpoint", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
@@ -101,7 +61,7 @@ function(  VNF,
         .then(done);
     });
 
-    reliableVNFTest("(Reliable<->Root) Test concurrent synchronous handshake-accept sequence initiation", function(assert, argument) {
+    ReliableTestUtils.reliableVNFTest("Handshakes: (Reliable<->Root) Test concurrent synchronous handshake-accept sequence initiation", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
@@ -140,15 +100,18 @@ function(  VNF,
         .then(done);
     });
 
-    reliableVNFTest("Test mqStartFrom", function(assert, argument) {
+    //ReliableTestUtils.reliableVNFTest("Handshakes: Test mqStartFrom", function(assert, argument) {
         // test by sending three accept message: with mqStartFrom,
         // mqStartFrom: 2, messageIndex: 3
         // mqStartFrom: 2, messageIndex: 1
         // mqStartFrom: 2, messageIndex: 2
         // assert that only messageIndex: 2 and messageIndex: 3 - retrieved in correct order
-    });
+    //});
 
+    //TODO: establish connection with accept heartbeat
+    //TODO: establish connection with regular heartbeat
     //TODO: close connection/reconnect cycles.
+    //TODO: connection lost tests
     //TODO: phantoms
     //TODO: gaps
 

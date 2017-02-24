@@ -5,9 +5,12 @@ function(Log, CycleBuffer, ProxyHub, Random) {
     var STATE_ACCEPTING   = 'ACCEPTING';
     var STATE_CONNECTED   = 'CONNECTED';
 
-    var MESSAGE_HANDSHAKE = 'HANDSHAKE';
-    var MESSAGE_ACCEPT    = 'ACCEPT';
-    var MESSAGE_REGULAR   = 'REGULAR';
+    var MESSAGE_HANDSHAKE         = 'HANDSHAKE';
+    var MESSAGE_ACCEPT            = 'ACCEPT';
+    var MESSAGE_REGULAR           = 'REGULAR';
+    var MESSAGE_HEARTBEAT_ACCEPT  = 'HEARTBEAT-ACCEPT';
+    var MESSAGE_HEARTBEAT_REGULAR = 'HEARTBEAT-REGULAR';
+
 
     return function ReliableHub(hub, args) {
         var selfHub = this;
@@ -89,13 +92,26 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                             Log.error("reliable-hub", ["Invalidate for parent endpoint is not defined, parent peer: ", parentEndpoint])
                         }
                     }
-                    
 
-                    var message = {
-                        type: "heartbeat",
-                        gapBegin: channel.firstMessageNumberInReceivedBuffer + 1,
-                        gapEnd: -1,
-                    }
+                    var message;
+                    if(channel.state == STATE_CONNECTED) {
+                        message = {type:         MESSAGE_HEARTBEAT_REGULAR,
+                                   toSID:        channel.remoteSessionId,
+                                   gapBegin:     channel.firstMessageNumberInReceivedBuffer + 1,
+                                   gapEnd:       -1};
+                    }else if(channel.state == STATE_ACCEPTING) {
+                        message = {type:         MESSAGE_HEARTBEAT_ACCEPT,
+                                   sessionId:    channel.sessionId,
+                                   toSID:        channel.remoteSessionId,
+                                   mqStartFrom:  channel.connectionMqStartFrom,
+                                   gapBegin:     channel.firstMessageNumberInReceivedBuffer + 1,
+                                   gapEnd:       -1}
+                    }else if(channel.state == STATE_HANDSHAKING) {
+                        continue;
+                    }else {
+                        Log.error("reliable-hub", ["Heartbeat sender found unknown channel state in ", channel.state])
+                        continue;
+                     }
 
                     var receivedMessagesLength = channel.receivedMessages.length;
                     if(receivedMessagesLength > 0) {
@@ -137,15 +153,19 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
 
             var allowedMessageStates = {
-                "HANDSHAKE": {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": false},
-                "ACCEPT":    {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true},
-                "REGULAR":   {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true}
+                "HANDSHAKE":         {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": false},
+                "ACCEPT":            {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true},
+                "HEARTBEAT-ACCEPT":  {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true},
+                "REGULAR":           {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true},
+                "HEARTBEAT-REGULAR": {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true}
             };
 
             var verifyRemoteSession = {
-                "HANDSHAKE": {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-                "ACCEPT":    {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-                "REGULAR":   {"HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false}
+                "HANDSHAKE":         {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "ACCEPT":            {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "HEARTBEAT-ACCEPT":  {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "REGULAR":           {"HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false},
+                "HEARTBEAT-REGULAR": {"HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false}
             };
 
             function isPhantom(channel, message) {
@@ -166,20 +186,24 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             function updateChannelState(channel, message) {
                 if(channel.state == STATE_CONNECTED) return;
 
-                if(channel.state == STATE_HANDSHAKING && message.type == MESSAGE_HANDSHAKE) {
-                    channel.state = STATE_ACCEPTING;
+                if(channel.state == STATE_HANDSHAKING) {
+                    if(message.type == MESSAGE_HANDSHAKE) {
+                        channel.state = STATE_ACCEPTING;
 
-                    newConnection(channel, message, message.messageIndex);
-                }
+                        newConnection(channel, message, message.messageIndex);
+                    }
 
-                if(channel.state == STATE_HANDSHAKING && message.type == MESSAGE_ACCEPT) {
-                    channel.state = STATE_CONNECTED;
+                    if(message.type == MESSAGE_ACCEPT || message.type == MESSAGE_HEARTBEAT_ACCEPT) {
+                        channel.state = STATE_CONNECTED;
 
-                    newConnection(channel, message, message.mqStartFrom);
+                        newConnection(channel, message, message.mqStartFrom);
+                    }
+
                 }
 
                 if(channel.state == STATE_ACCEPTING) {
-                    if(message.type == MESSAGE_ACCEPT || message.type == MESSAGE_REGULAR) {
+                    if(message.type == MESSAGE_ACCEPT  || message.type == MESSAGE_HEARTBEAT_ACCEPT
+                    || message.type == MESSAGE_REGULAR || message.type == MESSAGE_HEARTBEAT_REGULAR) {
                         channel.state = STATE_CONNECTED;
                     }
                 }
@@ -192,6 +216,40 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                     if(activeChannels.length == 1) {
                         window.setTimeout(sendHeartbeat, heartbeatInterval);
+                    }
+                }
+            }
+
+            function heartbeatGapProcessing(event, channel, message) {
+                var prevHeartBeatRequest = channel.lastHeartbeatRequest;
+                channel.lastHeartbeatRequest = message.gapBegin;
+
+                // performance optimization- to not flood the network
+                // to avoid double sending of message, responding to gap only after second heartbeat
+                // due to network latencies heartbeat can be out-dated, while message is delivered
+                if(message.gapEnd == -1 && prevHeartBeatRequest != message.gapBegin) {
+                    return;
+                }
+
+                var sentMessages = channel.sentMessages;
+                if(channel.firstMessageNumberInSendBuffer < message.gapBegin) {
+                    sentMessages.removeFirst(message.gapBegin - channel.firstMessageNumberInSendBuffer);
+                    channel.firstMessageNumberInSendBuffer = message.gapBegin;
+                }
+
+
+                var array = sentMessages.array;
+                for(var i = 0; i < sentMessages.length; i++) {
+                    if(message.gapEnd != -1 && message.gapEnd < i + message.gapBegin) {
+                        break;
+                    }
+
+                    var gapMessage = array[(i + sentMessages.beginPointer) % array.length];
+
+                    if(gapMessage) {
+                        parentSend(event.sourceVIP, {type:"message",
+                                                     messageIndex: i + message.gapBegin,
+                                                     message: gapMessage});
                     }
                 }
             }
@@ -240,70 +298,31 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 receivedMessages.removeFirst(processedMessages);
             }
 
-            function handleMessage(event) {
-                var message = event.message;
-                var channel = getChannel(event.sourceVIP);
-
-                if(isPhantom(channel, message)) {
-                    Log.warn("reliable-hub", ["Phantom detected: ", event, channel])
-                    return;
+            function handleHeartbeat(event, channel, message) {
+                try{
+                    self.onHeartbeat && self.onHeartbeat(event);
+                }catch(error) {
+                    Log.error(self.vip, "reliable-hub", [new Error("onHeartbeat handler thrown error"), error]);
                 }
 
+                updateChannelState(channel, message);
+                channel.silenceCycles = 0;
+                heartbeatGapProcessing(event, channel, message);
+            }
+
+            function handleMessage(event, channel, message) {
                 updateChannelState(channel, message);
                 reactivateChannel(channel);
                 messageGapProcessing(event, channel, message);
             }
 
             var handlers = {
-
-                "heartbeat": function(event) {
-                    try{
-                        self.onHeartbeat && self.onHeartbeat(event);
-                    }catch(error) {
-                        Log.error(self.vip, "reliable-hub", [new Error("onHeartbeat handler thrown error"), error]);
-                    }
-
-                    var message = event.message;
-                    var channel = getChannel(event.sourceVIP);
-
-                    channel.silenceCycles = 0;
-
-                    var prevHeartBeatRequest = channel.lastHeartbeatRequest;
-                    channel.lastHeartbeatRequest = message.gapBegin;
-
-                    // performance optimization- to not flood the network
-                    // to avoid double sending of message, responding to gap only after second heartbeat
-                    // due to network latencies heartbeat can be out-dated, while message is delivered
-                    if(message.gapEnd == -1 && prevHeartBeatRequest != message.gapBegin) {
-                        return;
-                    }
-
-                    var sentMessages = channel.sentMessages;
-                    if(channel.firstMessageNumberInSendBuffer < message.gapBegin) {
-                        sentMessages.removeFirst(message.gapBegin - channel.firstMessageNumberInSendBuffer);
-                        channel.firstMessageNumberInSendBuffer = message.gapBegin;
-                    }
-
-
-                    var array = sentMessages.array;
-                    for(var i = 0; i < sentMessages.length; i++) {
-                        if(message.gapEnd != -1 && message.gapEnd < i + message.gapBegin) {
-                            break;
-                        }
-
-                        var gapMessage = array[(i + sentMessages.beginPointer) % array.length];
-
-                        if(gapMessage) {
-                            parentSend(event.sourceVIP, {type:"message",
-                                                         messageIndex: i + message.gapBegin,
-                                                         message: gapMessage});
-                        }
-                    }
-                },
+                "HEARTBEAT-ACCEPT":  handleHeartbeat,
+                "HEARTBEAT-REGULAR": handleHeartbeat,
 
                 "HANDSHAKE": handleMessage,
-                "ACCEPT": handleMessage,
-                "REGULAR": handleMessage
+                "ACCEPT":    handleMessage,
+                "REGULAR":   handleMessage
             }
 
             parentEndpoint.onMessage = function(event) {
@@ -314,6 +333,12 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 //Log.debug(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));
 
                 var message = event.message;
+                var channel = getChannel(event.sourceVIP);
+
+                if(isPhantom(channel, message)) {
+                    Log.warn("reliable-hub", ["Phantom detected: ", event, channel])
+                    return;
+                }
 
                 var handler = handlers[event.message.type];
 
@@ -321,7 +346,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     throw new Error("ReliableHub: Unknown message type received: " + message.type);
                 }
 
-                handler(event);
+                handler(event, channel, message);
             }
 
             this.setEndpointId = function(value) {
