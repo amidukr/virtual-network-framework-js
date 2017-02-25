@@ -263,7 +263,7 @@ function(  CycleBuffer, Log){
 
     });
 
-    QUnit.test("[Cycle Buffer Test]: set value in cycled - extending array", function(assert){
+    QUnit.test("[Cycle Buffer Test]: set value in cycled - extending array - cleaning first entries", function(assert){
         var buffer = new CycleBuffer();
 
         buffer.push("message-1");

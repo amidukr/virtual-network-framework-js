@@ -46,91 +46,7 @@ function(  VNF,
             .then(done);
     });
 
-    QUnit.test("[Reliable Hub]: Sending sequence numbers", function(assert){
-        Log.info("test", "[Reliable Hub]: Sending sequence numbers");
-        var done = assert.async(1);
 
-        var inBrowserHub = new VNF.InBrowserHub();
-        var reliableHub = new VNF.ReliableHub(inBrowserHub);
-
-        var endpoint1 = reliableHub.openEndpoint("vip-1");
-        var endpoint2 = inBrowserHub.openEndpoint("vip-2");
-
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
-
-        var capture1 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
-
-        endpoint1.send("vip-2", "message-1");
-        endpoint1.send("vip-2", "message-2");
-        endpoint1.send("vip-2", "message-3");
-
-        capture1.assertLog(['from vip-1: {"type":"message","messageNumber":0,"message":"message-1"}',
-                            'from vip-1: {"type":"message","messageNumber":1,"message":"message-2"}',
-                            'from vip-1: {"type":"message","messageNumber":2,"message":"message-3"}'])
-        .then(endpoint1.destroy)
-        .then(done);
-    });
-
-    QUnit.test("[Reliable Hub]: Heartbeat message - send buffer info", function(assert){
-        Log.info("test", "[Reliable Hub]: Heartbeat message - send buffer info");
-
-        var done = assert.async(1);
-
-        var inBrowserHub = new VNF.InBrowserHub();
-        var reliableHub = new VNF.ReliableHub(inBrowserHub);
-
-        var endpoint1 = reliableHub.openEndpoint("vip-1");
-        var endpoint2 = inBrowserHub.openEndpoint("vip-2");
-
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
-        var capture1 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
-
-        endpoint1.send("vip-2", "message-1");
-        endpoint1.send("vip-2", "message-2");
-        endpoint1.send("vip-2", "message-3");
-        endpoint1.send("vip-2", "message-4");
-
-        capture1.assertLog(['from vip-1: {"type":"message","messageNumber":0,"message":"message-1"}',
-                            'from vip-1: {"type":"message","messageNumber":1,"message":"message-2"}',
-                            'from vip-1: {"type":"message","messageNumber":2,"message":"message-3"}',
-                            'from vip-1: {"type":"message","messageNumber":3,"message":"message-4"}',
-                            'from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":0,"sendBufferEnd":3}'])
-        .then(endpoint2.send.bind(null, "vip-1", {type:"heartbeat", gapBegin: 1, gapEnd: 2, sendBufferBegin: 0, sendBufferEnd: -1}))
-        .then(capture1.assertLog.bind(null, ['from vip-1: {"type":"message","messageNumber":1,"message":"message-2"}',
-                                             'from vip-1: {"type":"message","messageNumber":2,"message":"message-3"}',
-                                             'from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":1,"sendBufferEnd":3}']))
-        .then(endpoint1.send.bind(null, "vip-2", "message-5"))
-        .then(capture1.assertLog.bind(null, ['from vip-1: {"type":"message","messageNumber":4,"message":"message-5"}',
-                                             'from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":1,"sendBufferEnd":4}']))
-        .then(endpoint2.send.bind(null, "vip-1", {type:"heartbeat", gapBegin: 5, gapEnd: -1, sendBufferBegin: 0, sendBufferEnd: -1}))
-        .then(capture1.assertLog.bind(null, ['from vip-1: {"type":"heartbeat","gapBegin":0,"gapEnd":-1,"sendBufferBegin":5,"sendBufferEnd":4}']))
-        .then(endpoint1.destroy)
-        .then(endpoint2.destroy)
-        .then(done);
-    });
-
-    QUnit.test("[Reliable Hub]: Reply with heartbeat and notifying successful delivery", function(assert){
-        Log.info("test", "[Reliable Hub]: Reply with heartbeat and notifying successful delivery");
-        var done = assert.async(1);
-
-        var inBrowserHub = new VNF.InBrowserHub();
-        var reliableHub = new VNF.ReliableHub(inBrowserHub);
-
-        var endpoint1 = inBrowserHub.openEndpoint("vip-1");
-        var endpoint2 =  reliableHub.openEndpoint("vip-2");
-
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
-
-        var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler"]);
-
-        endpoint1.send("vip-2", {"type":"message","messageNumber":0,"message":"message-1"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":1,"message":"message-2"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":2,"message":"message-3"});
-        
-        capture1.assertLog(['from vip-2: {"type":"heartbeat","gapBegin":3,"gapEnd":-1}'])
-        .then(endpoint2.destroy)
-        .then(done);
-    });
 
     QUnit.test("[Reliable Hub]: Gap detection", function(assert){
         Log.info("test", "[Reliable Hub]: Gap detection");
@@ -222,63 +138,7 @@ function(  VNF,
         .then(done);
     });
 
-    QUnit.test("[Reliable Hub]: Double message sent", function(assert){
-        Log.info("test", "[Reliable Hub]: Double message sent");
-        var done = assert.async(1);
 
-        var inBrowserHub = new VNF.InBrowserHub();
-        var reliableHub = new VNF.ReliableHub(inBrowserHub);
-
-        var endpoint1 = inBrowserHub.openEndpoint("vip-1");
-        var endpoint2 =  reliableHub.openEndpoint("vip-2");
-
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
-
-
-        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
-
-        endpoint1.send("vip-2", {"type":"message","messageNumber":0,"message":"message-1"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":1,"message":"message-2"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":1,"message":"message-2"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":2,"message":"message-3"});
-
-        capture2.assertLog(['from vip-1: message-1',
-                            'from vip-1: message-2',
-                            'from vip-1: message-3',])
-        .then(endpoint2.destroy)
-        .then(done);
-    });
-
-    QUnit.test("[Reliable Hub]: Wrong message order", function(assert){
-        Log.info("test", "[Reliable Hub]: Simulating wrong sent message order");
-        var done = assert.async(1);
-
-        var inBrowserHub = new VNF.InBrowserHub();
-        var reliableHub = new VNF.ReliableHub(inBrowserHub);
-
-        var endpoint1 = inBrowserHub.openEndpoint("vip-1");
-        var endpoint2 =  reliableHub.openEndpoint("vip-2");
-
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
-
-        var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler"]);
-        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler"]);
-
-        endpoint1.send("vip-2", {"type":"message","messageNumber":0,"message":"message-1"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":4,"message":"message-5"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":3,"message":"message-4"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":1,"message":"message-2"});
-        endpoint1.send("vip-2", {"type":"message","messageNumber":2,"message":"message-3"});
-
-        capture2.assertLog(['from vip-1: message-1',
-                            'from vip-1: message-2',
-                            'from vip-1: message-3',
-                            'from vip-1: message-4',
-                            'from vip-1: message-5'])
-        .then(endpoint2.destroy)
-        .then(done);
-    });
 
     QUnit.test("[Reliable Hub]: RTC heartbeat to invalidate - verify invalidate after 3 heartbeats", function(assert){
         Log.info("test", "[Reliable Hub]: RTC heartbeat to invalidate - verify invalidate after 3 heartbeats");

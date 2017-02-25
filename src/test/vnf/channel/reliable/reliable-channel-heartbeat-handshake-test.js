@@ -3,7 +3,8 @@ requirejs(["test/vnf/channel/reliable/reliable-test-utils",
 function( ReliableTestUtils,
           VNFTestUtils){
 
-    ReliableTestUtils.reliableVNFTest("(Reliable<--Root) Catch accept heartbeat", function(assert, argument) {
+    QUnit.module("ReliableHub Handshake with heartbeats");
+    ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable<--Root) Catch accept heartbeat", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableEndpoint.setHeartbeatInterval(300);
@@ -29,8 +30,7 @@ function( ReliableTestUtils,
         .then(done);
     });
 
-    QUnit.module("Reliable heartbeats");
-    ReliableTestUtils.reliableVNFTest("(Reliable<--Root) Test handshake accept sequence for reliable endpoint with heartbeats", function(assert, argument) {
+    ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint with heartbeats", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableEndpoint.setHeartbeatInterval(300);
@@ -52,7 +52,7 @@ function( ReliableTestUtils,
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("(Reliable-->Root) Test handshake initiation sequence by reliable endpoint with heartbeats", function(assert, argument) {
+    ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable-->Root) Test handshake initiation sequence by reliable endpoint with heartbeats", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableEndpoint.setHeartbeatInterval(300);

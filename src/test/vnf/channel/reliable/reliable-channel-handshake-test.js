@@ -1,7 +1,7 @@
 requirejs(["test/vnf/channel/reliable/reliable-test-utils"],
 function( ReliableTestUtils){
 
-    QUnit.module("Reliable handshake");
+    QUnit.module("ReliableHub Handshake");
     ReliableTestUtils.reliableVNFTest("Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint", function(assert, argument) {
         var done = assert.async(1);
 
@@ -100,16 +100,6 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    //ReliableTestUtils.reliableVNFTest("Handshakes: Test mqStartFrom", function(assert, argument) {
-        // test by sending three accept message: with mqStartFrom,
-        // mqStartFrom: 2, messageIndex: 3
-        // mqStartFrom: 2, messageIndex: 1
-        // mqStartFrom: 2, messageIndex: 2
-        // assert that only messageIndex: 2 and messageIndex: 3 - retrieved in correct order
-    //});
-
-    //TODO: establish connection with accept heartbeat
-    //TODO: establish connection with regular heartbeat
     //TODO: close connection/reconnect cycles.
     //TODO: connection lost tests
     //TODO: phantoms

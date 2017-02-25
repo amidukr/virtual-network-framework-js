@@ -266,7 +266,10 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         });
                     }
                 }else {
-                    receivedMessages.setValue(message.messageIndex - channel.firstMessageNumberInReceivedBuffer - 2, message);
+                    if(message.messageIndex > channel.firstMessageNumberInReceivedBuffer) {
+                        receivedMessages.setValue(message.messageIndex - channel.firstMessageNumberInReceivedBuffer - 2, message);
+                    }
+
                     return;
                 }
 
@@ -281,8 +284,6 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                     var message = receivedMessages.array[arrayIndex];
                     if(!message) break;
-
-                    receivedMessages.array[arrayIndex] = null;
 
                     processedMessages++;
                     if(self.onMessage) {
