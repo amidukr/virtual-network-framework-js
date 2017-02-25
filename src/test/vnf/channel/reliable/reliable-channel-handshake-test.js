@@ -100,10 +100,10 @@ function( ReliableTestUtils){
         .then(done);
     });
 
+    //TODO: connection lost tests/invalidate
     //TODO: close connection/reconnect cycles.
-    //TODO: connection lost tests
     //TODO: phantoms
-    //TODO: gaps
+    //TODO: out buffs test/test handling for cleaned-up handshake messages
 
     //TODO: integration test
     //TODO: stress tests

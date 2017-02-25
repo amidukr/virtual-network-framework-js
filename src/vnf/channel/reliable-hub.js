@@ -79,6 +79,52 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 }
             }
 
+            function sendHandshakeMessage(channel, messageIndex, message) {
+                parentSend(channel.targetVIP, {type:         MESSAGE_HANDSHAKE,
+                                               sessionId:    channel.sessionId,
+                                               messageIndex: messageIndex,
+                                               payload:      message});
+            }
+
+            function sendAcceptMessage(channel, messageIndex, message) {
+                parentSend(channel.targetVIP, {type:         MESSAGE_ACCEPT,
+                                               sessionId:    channel.sessionId,
+                                               toSID:        channel.remoteSessionId,
+                                               mqStartFrom:  channel.connectionMqStartFrom,
+                                               messageIndex: messageIndex,
+                                               payload:      message});
+            }
+
+            function sendRegularMessage(channel, messageIndex, message) {
+                parentSend(channel.targetVIP, {type:         MESSAGE_REGULAR,
+                                               toSID:        channel.remoteSessionId,
+                                               messageIndex: messageIndex,
+                                               payload:      message});
+            }
+
+            function sendAcceptHeartbeatMessage(channel, gapBegin, gapEnd) {
+                parentSend(channel.targetVIP, {type:         MESSAGE_HEARTBEAT_ACCEPT,
+                                               sessionId:    channel.sessionId,
+                                               toSID:        channel.remoteSessionId,
+                                               mqStartFrom:  channel.connectionMqStartFrom,
+                                               gapBegin:     gapBegin,
+                                               gapEnd:       gapEnd});
+            }
+
+            function sendRegularHeartbeatMessage(channel, gapBegin, gapEnd) {
+                parentSend(channel.targetVIP, {type:      MESSAGE_HEARTBEAT_REGULAR,
+                                               toSID:     channel.remoteSessionId,
+                                               gapBegin:  gapBegin,
+                                               gapEnd:    gapEnd});
+            }
+
+            var messageSender =   {'HANDSHAKING': sendHandshakeMessage,
+                                   'ACCEPTING':   sendAcceptMessage,
+                                   'CONNECTED':   sendRegularMessage};
+
+            var heartbeatSender = {'ACCEPTING':   sendAcceptHeartbeatMessage,
+                                   'CONNECTED':   sendRegularHeartbeatMessage};
+
             function sendHeartbeat() {
                 for(var i = 0; i < activeChannels.length; i++) {
                     var channel = activeChannels[i];
@@ -93,25 +139,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         }
                     }
 
-                    var message;
-                    if(channel.state == STATE_CONNECTED) {
-                        message = {type:         MESSAGE_HEARTBEAT_REGULAR,
-                                   toSID:        channel.remoteSessionId,
-                                   gapBegin:     channel.firstMessageNumberInReceivedBuffer + 1,
-                                   gapEnd:       -1};
-                    }else if(channel.state == STATE_ACCEPTING) {
-                        message = {type:         MESSAGE_HEARTBEAT_ACCEPT,
-                                   sessionId:    channel.sessionId,
-                                   toSID:        channel.remoteSessionId,
-                                   mqStartFrom:  channel.connectionMqStartFrom,
-                                   gapBegin:     channel.firstMessageNumberInReceivedBuffer + 1,
-                                   gapEnd:       -1}
-                    }else if(channel.state == STATE_HANDSHAKING) {
-                        continue;
-                    }else {
-                        Log.error("reliable-hub", ["Heartbeat sender found unknown channel state in ", channel.state])
-                        continue;
-                     }
+                    var gapBegin = channel.firstMessageNumberInReceivedBuffer + 1;
+                    var gapEnd   = -1;
 
                     var receivedMessagesLength = channel.receivedMessages.length;
                     if(receivedMessagesLength > 0) {
@@ -127,10 +156,17 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                             }
                         }
 
-                        message.gapEnd = message.gapBegin + i;
+                        gapEnd = gapBegin + i;
                     }
 
-                    parentSend(channel.targetVIP, message);
+                    var sendHeartbeatMethod = heartbeatSender[channel.state];
+                    if(sendHeartbeatMethod) {
+                        sendHeartbeatMethod(channel, gapBegin, gapEnd);
+                    }else{
+                        Log.error("reliable-hub", ["Heartbeats processing: Unexpected channel state: '" + channel.state + "'"])
+                        continue;
+                    }
+
                 }
 
                 if(activeChannels.length > 0) {
@@ -168,16 +204,19 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 "HEARTBEAT-REGULAR": {"HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false}
             };
 
-            function isPhantom(channel, message) {
-                if(message.toSID && message.toSID != channel.sessionId) return true;
+            function verifyIfPhantom(channel, message) {
+                if(message.toSID && message.toSID != channel.sessionId) return "message.toSID different to channel.sessionId";
 
                 var messageType = message.type;
                 var channelState = channel.state;
 
-                if(!allowedMessageStates[messageType][channelState]) return true;
+                if(!allowedMessageStates[messageType][channelState])
+                    return "Message type: '" + messageType + "' isn't allowed for channel state: '" + channelState + "'";
 
                 if(verifyRemoteSession[messageType][channelState]) {
-                    if(channel.remoteSessionId != message.sessionId) return true;
+                    if(channel.remoteSessionId != message.sessionId)
+                        return "Message sessionId isn't the same to channel.remoteSessionId," +
+                        " for messageType: '" + messageType + "' and channelState: '"  + channelState + "'";
                 }
 
                 return false;
@@ -191,12 +230,14 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         channel.state = STATE_ACCEPTING;
 
                         newConnection(channel, message, message.messageIndex);
+                        return;
                     }
 
                     if(message.type == MESSAGE_ACCEPT || message.type == MESSAGE_HEARTBEAT_ACCEPT) {
                         channel.state = STATE_CONNECTED;
 
                         newConnection(channel, message, message.mqStartFrom);
+                        return;
                     }
 
                 }
@@ -205,6 +246,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     if(message.type == MESSAGE_ACCEPT  || message.type == MESSAGE_HEARTBEAT_ACCEPT
                     || message.type == MESSAGE_REGULAR || message.type == MESSAGE_HEARTBEAT_REGULAR) {
                         channel.state = STATE_CONNECTED;
+                        return;
                     }
                 }
             }
@@ -247,9 +289,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     var gapMessage = array[(i + sentMessages.beginPointer) % array.length];
 
                     if(gapMessage) {
-                        parentSend(event.sourceVIP, {type:"message",
-                                                     messageIndex: i + message.gapBegin,
-                                                     message: gapMessage});
+                        sendRegularMessage(channel, i + message.gapBegin, gapMessage);
                     }
                 }
             }
@@ -336,15 +376,16 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 var message = event.message;
                 var channel = getChannel(event.sourceVIP);
 
-                if(isPhantom(channel, message)) {
-                    Log.warn("reliable-hub", ["Phantom detected: ", event, channel])
-                    return;
-                }
-
                 var handler = handlers[event.message.type];
 
                 if(!handler) {
                     throw new Error("ReliableHub: Unknown message type received: " + message.type);
+                }
+
+                var phantomError = verifyIfPhantom(channel, message);
+                if(phantomError) {
+                    Log.warn("reliable-hub", ["Phantom detected: " + phantomError,  event, channel])
+                    return;
                 }
 
                 handler(event, channel, message);
@@ -366,27 +407,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 channel.lastSentMessageNumber++;
                 channel.sentMessages.push(message);
 
-                if(channel.state == STATE_CONNECTED) {
-                    parentSend(targetVIP, {type:         MESSAGE_REGULAR,
-                                           toSID:        channel.remoteSessionId,
-                                           messageIndex: channel.lastSentMessageNumber,
-                                           payload:      message});
-                }else if(channel.state == STATE_ACCEPTING) {
-                    parentSend(targetVIP, {type:         MESSAGE_ACCEPT,
-                                           sessionId:    channel.sessionId,
-                                           toSID:        channel.remoteSessionId,
-                                           mqStartFrom:  channel.connectionMqStartFrom,
-                                           messageIndex: channel.lastSentMessageNumber,
-                                           payload:      message});
-                }else if(channel.state == STATE_HANDSHAKING) {
-                    parentSend(targetVIP, {type:         MESSAGE_HANDSHAKE,
-                                           sessionId:    channel.sessionId,
-                                           messageIndex: channel.lastSentMessageNumber,
-                                           payload:      message});
-                }else {
-                    throw new Error("Message not send, unexpected channel state: " + channel.state);
-                }
-
+                var sendMessageMethod = messageSender[channel.state];
+                sendMessageMethod(channel, channel.lastSentMessageNumber, message)
 
                 reactivateChannel(channel);
             }
