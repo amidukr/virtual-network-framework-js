@@ -30,10 +30,7 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
              }, 0)
          }
 
-         self.invalidate = function(){}
-
          var parentDestroy = self.destroy;
-
          self.destroy = function() {
             for(var connectedVIP in self.__connections){
                 try{

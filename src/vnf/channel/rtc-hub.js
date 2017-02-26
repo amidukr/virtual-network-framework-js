@@ -97,6 +97,12 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                     messageType = null;
                 }
             }
+
+            channel.onclose = function(e) {
+                if(!destroyed) {
+                    rtcEndpoint.closeConnection(targetVip);
+                }
+            }
         }
 
         function acceptIce(ice) {
@@ -339,18 +345,20 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                }
            }
 
-           self.onInvalidate(function(targetVip) {
-               if(connectionSet[targetVip]) {
-                   connectionSet[targetVip].destroy();
+           this.closeConnection = function(targetVip) {
+              if(connectionSet[targetVip]) {
+                  connectionSet[targetVip].destroy();
 
-                   delete connectionSet[targetVip];
-                   delete connectionMessageQueue[targetVip];
-               }
-           });
+                  delete connectionSet[targetVip];
+                  delete connectionMessageQueue[targetVip];
+
+                  self.__fireConnectionLost(targetVip);
+              }
+           }
 
            self.onDestroy(function() {
                for(var vip in connectionSet) {
-                   connectionSet[vip].destroy();
+                   self.closeConnection(vip);
                }
 
                connectionSet = {};

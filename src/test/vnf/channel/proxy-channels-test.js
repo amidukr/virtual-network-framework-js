@@ -22,18 +22,17 @@ function(  VNF,
             }
         }
 
-        VNFTestUtils.vnfTest("[ReliableHub]: Proxy-Testing "   + description, prepareArguments(VNF.ReliableHub),   callback);
         VNFTestUtils.vnfTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(VNF.UnreliableHub), callback);
     };
 
     QUnit.module("Proxy Channels Tests");
-    proxyVNFTest("invalidate", function(assert, args){
+    proxyVNFTest("closeConnection", function(assert, args){
         var done = assert.async(1);
 
         var endPointInBrowser = args.rootHub.openEndpoint("vip-1");
         var endPointProxy     = args.proxyHub.openEndpoint("vip-1");
 
-        endPointInBrowser.invalidate = function(targetVip) {
+        endPointInBrowser.closeConnection = function(targetVip) {
             assert.equal(targetVip, "target-vip-2");
 
             endPointProxy.destroy();
@@ -41,7 +40,7 @@ function(  VNF,
             done();
         }
 
-        endPointProxy.invalidate("target-vip-2");
+        endPointProxy.closeConnection("target-vip-2");
     })
 
     proxyVNFTest("destroy", function(assert, args){

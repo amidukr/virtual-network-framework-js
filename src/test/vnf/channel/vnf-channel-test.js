@@ -23,10 +23,10 @@ function(  VNF,
         }
 
         function configureReliableHub(reliableHub) {
-            reliableHub.setHeartbeatInterval(10);
-            reliableHub.setConnectionInvalidateInterval(100);
-            reliableHub.setConnectionLostTimeout(300);
-            reliableHub.setKeepAliveHandshakingChannelTimeout(200);
+            reliableHub.setHeartbeatInterval(100);
+            reliableHub.setConnectionInvalidateInterval(1000);
+            reliableHub.setConnectionLostTimeout(3000);
+            reliableHub.setKeepAliveHandshakingChannelTimeout(2000);
         }
 
         runTest("InBrowserHub",  description, VNF.InBrowserHub,  callback);
@@ -40,9 +40,8 @@ function(  VNF,
          var vnfHub = arguments.hubFactory();
  
          var endpoint1 = vnfHub.openEndpoint("vip-1");
- 
+
          assert.ok(endpoint1.send, "Verifying send method");
-         assert.notOk(endpoint1.invalidate, "Invalidate method is deprecated");
          assert.ok(endpoint1.closeConnection,  "Verifying closeConnection method");
          assert.ok(endpoint1.onConnectionLost, "Verifying onConnectionLost method");
          assert.ok(endpoint1.destroy, "Verifying destroy method");
@@ -487,7 +486,7 @@ function(  VNF,
         .then(function(){
  
             endpoint2V1.destroy();
-            endpoint1.invalidate("vip-2");
+            endpoint1.closeConnection("vip-2");
  
             endpoint2V2 = vnfHub.openEndpoint("vip-2");
  

@@ -8,7 +8,6 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
       self.BaseEndPoint = function BaseEndPoint(selfVip) {
          var self = this;
          var destroyListeners = new Observable();
-         var invalidateListeners = new Observable();
          var connectionLostListeners = new Observable();
 
          self.vip = selfVip;
@@ -22,11 +21,8 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
 
          self.onDestroy = destroyListeners.addListener;
 
-         self.onInvalidate = invalidateListeners.addListener;
-         self.invalidate   = invalidateListeners.fire;
-
-         self.onConnectionLost = invalidateListeners.addListener;
-         self.__fireConnectionLost = invalidateListeners.fire;
+         self.onConnectionLost = connectionLostListeners.addListener;
+         self.__fireConnectionLost = connectionLostListeners.fire;
 
          self.destroy = function() {
             if(destroyed) return;

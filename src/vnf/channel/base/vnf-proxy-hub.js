@@ -20,11 +20,15 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
                 }
             });
 
-            self.onInvalidate(function(targetVIP) {
-                if(self.parentEndpoint) {
-                    self.parentEndpoint.invalidate(targetVIP);
-                }
+            self.parentEndpoint.onConnectionLost(function(targetVIP){
+                self.__fireConnectionLost(targetVIP);
             });
+
+            self.closeConnection = function(targetVIP) {
+                if(self.parentEndpoint) {
+                    self.parentEndpoint.closeConnection(targetVIP);
+                }
+            };
         }
     };
 });
