@@ -6,22 +6,33 @@ function(  VNF,
            VNFTestUtils){
 
     function hubQUnitTest(description, callback) {
-        function prepareArgs(hubConstructor) {
+        function prepareArgs(hubConstructor, configureHubCallback) {
             return function(assert, args) {
-                return {hubFactory: function(){return new hubConstructor(args.rootHubFactory())}};
+                return {hubFactory: function(){
+                            var hub = new hubConstructor(args.rootHubFactory())
+                            if(configureHubCallback) configureHubCallback(hub);
+                            return hub;
+                       }};
             }
         }
 
 
-        function runTest(hubName, description, hub, callback) {
+        function runTest(hubName, description, hub, callback, configureHubCallback) {
             QUnit.module(hubName + " Generic VNF Tests");
-            VNFTestUtils.vnfTest("[" + hubName + "]: "  + description, prepareArgs(hub),  callback);
+            VNFTestUtils.vnfTest("[" + hubName + "] Generic VNF Tests: "  + description, prepareArgs(hub, configureHubCallback),  callback);
+        }
+
+        function configureReliableHub(reliableHub) {
+            reliableHub.setHeartbeatInterval(10);
+            reliableHub.setConnectionInvalidateInterval(100);
+            reliableHub.setConnectionLostTimeout(300);
+            reliableHub.setKeepAliveHandshakingChannelTimeout(200);
         }
 
         runTest("InBrowserHub",  description, VNF.InBrowserHub,  callback);
         runTest("RTCHub",        description, VNF.RTCHub,        callback);
         runTest("UnreliableHub", description, VNF.UnreliableHub, callback);
-        runTest("ReliableHub",   description, VNF.ReliableHub,   callback);
+        runTest("ReliableHub",   description, VNF.ReliableHub,   callback, configureReliableHub);
     };
 
 
@@ -30,10 +41,12 @@ function(  VNF,
  
          var endpoint1 = vnfHub.openEndpoint("vip-1");
  
-         assert.ok(endpoint1.send, "Verifying send method")
-         assert.ok(endpoint1.invalidate, "Verifying invalidate method")
-         assert.ok(endpoint1.destroy, "Verifying destroy method")
-         assert.equal(endpoint1.vip, "vip-1", "Verifying vip property");
+         assert.ok(endpoint1.send, "Verifying send method");
+         assert.notOk(endpoint1.invalidate, "Invalidate method is deprecated");
+         assert.ok(endpoint1.closeConnection,  "Verifying closeConnection method");
+         assert.ok(endpoint1.onConnectionLost, "Verifying onConnectionLost method");
+         assert.ok(endpoint1.destroy, "Verifying destroy method");
+         assert.equal(endpoint1.vip, "vip-1", "Verifying vip property");;
  
          endpoint1.destroy();
     });
@@ -280,6 +293,77 @@ function(  VNF,
          }
  
      });
+
+    hubQUnitTest("Call closeConnection, catch onConnectionLost", function(assert, arguments) {
+        var done = assert.async(1);
+
+        var vnfHub = arguments.hubFactory();
+
+        var endpoint1 = vnfHub.openEndpoint("vip-1");
+        var endpoint2 = vnfHub.openEndpoint("vip-2");
+
+        var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler", "connection-lost-handler"]);
+        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler", "connection-lost-handler"]);
+
+        endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
+        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+
+        endpoint1.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-1"));
+        endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-2"));
+
+        endpoint1.send("vip-2", "message-1");
+
+        Promise.resolve()
+        .then(capture2.assertLog.bind(null, ["from vip-1: message-1"]))
+
+        .then(endpoint2.send.bind(null, "vip-1", "message-2"))
+        .then(capture1.assertLog.bind(null, ["from vip-2: message-2"]))
+
+        .then(endpoint1.closeConnection.bind(null, "vip-2"))
+
+        .then(capture1.assertLog.bind(null, ["from vip-2 connection lost"]))
+        .then(capture2.assertLog.bind(null, ["from vip-1 connection lost"]))
+
+        .then(endpoint1.destroy)
+        .then(endpoint2.destroy)
+
+        .then(done);
+    });
+
+    hubQUnitTest("Call destroy, catch onConnectionLost", function(assert, arguments) {
+        var done = assert.async(1);
+
+        var vnfHub = arguments.hubFactory();
+
+        var endpoint1 = vnfHub.openEndpoint("vip-1");
+        var endpoint2 = vnfHub.openEndpoint("vip-2");
+
+        var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler", "connection-lost-handler"]);
+        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler", "connection-lost-handler"]);
+
+        endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
+        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+
+        endpoint1.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-1"));
+        endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-2"));
+
+        endpoint1.send("vip-2", "message-1");
+
+        Promise.resolve()
+        .then(capture2.assertLog.bind(null, ["from vip-1: message-1"]))
+
+        .then(endpoint2.send.bind(null, "vip-1", "message-2"))
+        .then(capture1.assertLog.bind(null, ["from vip-2: message-2"]))
+
+        .then(endpoint1.destroy)
+
+        .then(capture1.assertLog.bind(null, ["from vip-2 connection lost"]))
+        .then(capture2.assertLog.bind(null, ["from vip-1 connection lost"]))
+
+        .then(endpoint2.destroy)
+
+        .then(done);
+    });
  
     hubQUnitTest("Channel Destroy Method Verification", function(assert, arguments) {
          var vnfHub = arguments.hubFactory();

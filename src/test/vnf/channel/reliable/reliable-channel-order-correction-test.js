@@ -5,7 +5,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Order Correction: Test send first message after mqStartFrom", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");
@@ -27,7 +27,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Order Correction: Test send first message before mqStartFrom", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");
@@ -50,7 +50,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Order Correction: mqStartFrom Test send shuffled messages", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");
@@ -73,7 +73,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Order Correction: Double message send", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");
@@ -100,7 +100,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Order Correction: Shuffled messages", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");

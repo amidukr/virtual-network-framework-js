@@ -66,6 +66,24 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
             }
         },
 
+        newConnectionLostPrintCallback: function (instance) {
+            return function onConnectionLost(targetVIP) {
+
+                description = "from " + targetVIP + " connection lost";
+
+                Log.info(instance, "connection-lost-handler", description);
+            }
+        },
+
+        newHeartbeatPrintCallback: function (instance) {
+            return function onHeartbeat(event) {
+
+                description = event.sourceVIP + " heartbeat message";
+
+                Log.info(instance, "connection-lost-handler", description);
+            }
+        },
+
         onHeartbeatPromise: function(reliableEndpoint) {
             Log.debug(reliableEndpoint.vip, "waiting-info", "Waiting for heartbeat");
 

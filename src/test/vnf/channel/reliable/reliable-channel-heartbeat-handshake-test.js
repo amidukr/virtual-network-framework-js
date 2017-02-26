@@ -7,7 +7,7 @@ function( ReliableTestUtils,
     ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable<--Root) Catch accept heartbeat", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":2,"payload":"message-1"});
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":3,"payload":"message-2"});
@@ -33,7 +33,7 @@ function( ReliableTestUtils,
     ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint with heartbeats", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":2,"payload":"message-1"});
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":3,"payload":"message-2"});
@@ -55,7 +55,7 @@ function( ReliableTestUtils,
     ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable-->Root) Test handshake initiation sequence by reliable endpoint with heartbeats", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");

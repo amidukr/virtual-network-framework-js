@@ -100,11 +100,17 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    //TODO: connection lost tests/invalidate
-    //TODO: close connection/reconnect cycles.
+    //TODO: reliable-channel-connection-lost-test.js: TODO: connection lost by destroy method
+    //TODO; rename invalidate to closeConnection
+    //TODO; add connecion lost to generic API, update vnf-channel-test with appropriate tests
+
+    //TODO: test handshakes with unexpected message index(second acceptor case), ignore handshake FML gaps
+
     //TODO: phantoms
     //TODO: out buffs test/test handling for cleaned-up handshake messages
 
     //TODO: integration test
+    //TODO: close connection/reconnect cycles.
+    //TODO: connection lost should be consistent on both sides
     //TODO: stress tests
 })

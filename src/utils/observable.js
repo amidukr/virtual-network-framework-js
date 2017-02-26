@@ -1,4 +1,4 @@
-define(function(){
+define(["utils/logger"], function(Log){
     return function Observable() {
         var self = this;
 
@@ -10,7 +10,11 @@ define(function(){
 
         self.fire = function fire() {
             for(var i = 0; i < listeners.length; i++) {
-                listeners[i].apply(null, arguments);
+                try{
+                    listeners[i].apply(null, arguments);
+                }catch(e) {
+                    Log.error("observable-error", ["Listener thrown error", e]);
+                }
             }
         }
     }

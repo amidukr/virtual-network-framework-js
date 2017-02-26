@@ -16,15 +16,29 @@ function(  VNF,
             reliableEndpoint.onMessage = VNFTestUtils.newPrintCallback("reliable-endpoint");
             rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback("root-endpoint");
 
-            reliableEndpoint.setEndpointId("rel1");
-            reliableEndpoint.setHeartbeatInterval(10000);
+            reliableEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("reliable-endpoint"));
+            rootEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("root-endpoint"));
 
-            var reliableCapture = Log.captureLogs(assert, ["reliable-endpoint"], ["message-test-handler"]);
-            var rootCapture     = Log.captureLogs(assert, ["root-endpoint"],     ["message-test-handler"]);
+            reliableEndpoint.setEndpointId("rel1");
+            reliableHub.setHeartbeatInterval(10000);
+
+            var reliableCapture = Log.captureLogs(assert, ["reliable-endpoint"], ["message-test-handler", "connection-lost-handler"]);
+            var rootCapture     = Log.captureLogs(assert, ["root-endpoint"],     ["message-test-handler", "connection-lost-handler"]);
 
             function destroy() {
                 reliableEndpoint.destroy();
                 rootEndpoint.destroy();
+            }
+
+            function makeConnection() {
+                reliableEndpoint.send('root-endpoint', "utils-message-1");
+
+                return Promise.resolve()
+
+                .then(rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":0,"messageIndex":0,"payload":"utils-message-2"}))
+
+                .then(rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"utils-message-1"}']))
+                .then(reliableCapture.assertLog.bind(null, ['from root-endpoint: utils-message-2']))
             }
 
             return {reliableHub:      reliableHub,
@@ -35,6 +49,7 @@ function(  VNF,
                     rootEndpoint: rootEndpoint,
                     rootCapture:  rootCapture,
 
+                    makeConnection: makeConnection,
                     destroy: destroy};
         }
 

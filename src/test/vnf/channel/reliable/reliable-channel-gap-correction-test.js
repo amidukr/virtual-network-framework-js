@@ -5,7 +5,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Gap Correction: Gap Detection", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":1,"payload":"message-2"});
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":5,"payload":"message-2"});
@@ -22,7 +22,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Gap Correction: gap response in middle", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");
@@ -50,7 +50,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Gap Correction: gap response in end", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableEndpoint.setHeartbeatInterval(300);
+        argument.reliableHub.setHeartbeatInterval(300);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
         argument.reliableEndpoint.send('root-endpoint', "message-2");
