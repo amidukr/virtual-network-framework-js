@@ -188,16 +188,21 @@ function(  VNF,
             var endpoint2 = reliableHub.openEndpoint("vip-2");
 
             endpoint1V1.onMessage = VNFTestUtils.newPrintCallback("vip-1-original");
+            endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-2"));
+
+
             var capture1V1 = Log.captureLogs(assert, ["vip-1-original"], ["message-test-handler"]);
             var capture1V2 = Log.captureLogs(assert, ["vip-1-new"], ["message-test-handler"]);
+            var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler", "connection-lost-handler"]);
 
             endpoint2.send("vip-1", "receive-from-existing-connection-message-1");
 
             capture1V1.assertLog(["from vip-2: receive-from-existing-connection-message-1"])
             .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint1V1))
             .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint2))
+            .then(endpoint1V1.destroy)
+            .then(capture2.assertLog.bind(null, ["from vip-1 connection lost"]))
             .then(function(){
-                endpoint1V1.destroy();
 
                 endpoint1V2 = reliableHub.openEndpoint("vip-1");
 
