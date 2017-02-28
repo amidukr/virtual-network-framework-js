@@ -353,6 +353,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                   delete connectionMessageQueue[targetVip];
 
                   self.__fireConnectionLost(targetVip);
+                  signalingEndpoint.closeConnection(targetVip);
               }
            }
 

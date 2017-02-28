@@ -20,10 +20,6 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
                 }
             });
 
-            self.parentEndpoint.onConnectionLost(function(targetVIP){
-                self.__fireConnectionLost(targetVIP);
-            });
-
             self.closeConnection = function(targetVIP) {
                 if(self.parentEndpoint) {
                     self.parentEndpoint.closeConnection(targetVIP);

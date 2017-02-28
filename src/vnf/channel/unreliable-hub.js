@@ -28,6 +28,10 @@ define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHu
 
                 self.parentEndpoint.send(vip, message);
             }
+
+            self.parentEndpoint.onConnectionLost(function(targetVIP){
+                self.__fireConnectionLost(targetVIP);
+            });
         }
 
         selfHub.blockChannel = function(fromVip1, toVip2) {
