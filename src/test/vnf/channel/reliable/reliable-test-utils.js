@@ -41,16 +41,25 @@ function(  VNF,
                 .then(reliableCapture.assertLog.bind(null, ['from root-endpoint: utils-message-2']))
             }
 
-            return {reliableHub:      reliableHub,
-                    reliableEndpoint: reliableEndpoint,
-                    reliableCapture:  reliableCapture,
+            function fastHeartbeats() {
+                reliableHub.setHeartbeatInterval(args.getInterval("reliableFastHeartbeatInterval"));
+                reliableHub.setConnectionInvalidateInterval(args.getInterval("reliableFastConnectionInvalidateInterval"));
+                reliableHub.setConnectionLostTimeout(args.getInterval("reliableFastConnectionLostTimeout"));
+                reliableHub.setKeepAliveHandshakingChannelTimeout(args.getInterval("reliableFastKeepAliveHandshakingChannelTimeout"));
+            }
 
-                    rootHub:      rootHub,
-                    rootEndpoint: rootEndpoint,
-                    rootCapture:  rootCapture,
+            return Object.assign({}, {  reliableHub:      reliableHub,
+                                        reliableEndpoint: reliableEndpoint,
+                                        reliableCapture:  reliableCapture,
 
-                    makeConnection: makeConnection,
-                    destroy: destroy};
+                                        rootHub:      rootHub,
+                                        rootEndpoint: rootEndpoint,
+                                        rootCapture:  rootCapture,
+
+                                        makeConnection: makeConnection,
+                                        fastHeartbeats: fastHeartbeats,
+                                        destroy: destroy},
+                           args);
         }
 
         VNFTestUtils.vnfTest("[Reliable Hub v0.2] " + description, prepareArguments, callback);

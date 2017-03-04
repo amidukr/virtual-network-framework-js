@@ -6,8 +6,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Connection Lost: Close connection by reliable endpoint", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(200);
+        argument.fastHeartbeats();
 
         Promise.resolve()
 
@@ -28,8 +27,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Connection Lost: Close connection by root endpoint", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(300);
-        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(600);
+        argument.fastHeartbeats();
 
         Promise.resolve()
 
@@ -49,8 +47,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Connection Lost: ignore close connection without special message", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(200);
+        argument.fastHeartbeats();
 
         Promise.resolve()
 
@@ -90,8 +87,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Connection Lost: send message after connection lost message", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(200);
+        argument.fastHeartbeats();
 
         argument.reliableEndpoint.onConnectionLost(function(event){
             argument.reliableEndpoint.send("root-endpoint", "message-3");
@@ -116,10 +112,10 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Connection Lost: by timeout", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(300);
-        argument.reliableHub.setConnectionLostTimeout(499);
-        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(200);
+        argument.reliableHub.setHeartbeatInterval(argument.toAbsoluteInterval(300));
+        argument.reliableHub.setConnectionInvalidateInterval(argument.toAbsoluteInterval(900));
+        argument.reliableHub.setConnectionLostTimeout(argument.toAbsoluteInterval(1499));
+        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(argument.toAbsoluteInterval(600));
 
         Promise.resolve()
 
@@ -153,10 +149,7 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVNFTest("Connection Lost: by timeout v2", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(10);
-        argument.reliableHub.setConnectionInvalidateInterval(100);
-        argument.reliableHub.setConnectionLostTimeout(300);
-        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(200);
+        argument.fastHeartbeats();
 
          Promise.resolve()
 

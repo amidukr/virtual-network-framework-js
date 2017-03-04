@@ -4,9 +4,13 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
 
     var VNFTestUtils = {
 
-        test: function(description, args, callback) {
+        test: function(testProfile, shortDescription, args, callback) {
+            var description = "["+testProfile+"]-" + shortDescription;
             QUnit.test(description, function(assert){
                 runningTest = description;
+
+                QUnit.config.testTimeout   = TestingProfiles.getInterval(testProfile, "qunitTestTimeout");
+                Timeouts.logCaptureTimeout = TestingProfiles.getInterval(testProfile, "logCaptureTimeout");
 
                 var assertAsync = assert.async;
                 assert.async = function(num) {
@@ -27,7 +31,20 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                     args = {};
                 }
 
-                callback(assert, args);
+                function getInterval(config) {
+                    return TestingProfiles.getInterval(testProfile, config)
+                }
+
+                function toAbsoluteInterval(timePoints) {
+                    return TestingProfiles.toAbsoluteInterval(testProfile, timePoints)
+                }
+
+                args = Object.assign({}, {testProfile: testProfile,
+                                          getInterval: getInterval,
+                                          toAbsoluteInterval: toAbsoluteInterval},
+                                     args)
+
+                return callback(assert, args);
             });
         },
 
@@ -42,11 +59,11 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
             var rtcHubFactory   = function() {return new VNF.RTCHub(new VNF.InBrowserHub());};
 
             var proxyCallback = function proxyCallback(assert, args) {
-                callback(assert, Object.assign({}, argumentProcessor(assert, args), args));
+                return callback(assert, Object.assign({}, argumentProcessor(assert, args), args));
             };
 
-            VNFTestUtils.test("[root:InMemory]-" + description, {rootHubFactory: inMemoryFactory}, proxyCallback);
-            VNFTestUtils.test("[root:RTC]-"      + description, {rootHubFactory: rtcHubFactory}  , proxyCallback);
+            VNFTestUtils.test("root:InMemory", description, {rootHubFactory: inMemoryFactory}, proxyCallback);
+            VNFTestUtils.test("root:RTC",      description, {rootHubFactory: rtcHubFactory}  , proxyCallback);
         },
 
         newPrintCallback: function (instance, version) {
