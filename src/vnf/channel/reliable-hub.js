@@ -527,7 +527,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 reactivateChannel(channel);
             }
 
-           self.isConnected = function(targetVip) {
+           self.isConnected = function(targetVIP) {
                 var channel = channels[targetVIP];
                 if(channel) {
                     return channel.state == STATE_CONNECTED;

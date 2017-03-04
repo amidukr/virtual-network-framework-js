@@ -211,10 +211,6 @@ function(  VNF,
  
          capture1.assertLog("from vip-1: loopback-message-to-vip1").then(done);
      });
-
-     hubQUnitTest("Channel isConnected Test", function(assert, arguments) {
-
-     });
  
      hubQUnitTest("Multiple/Loopback Channels Send Test", function(assert, arguments) {
  

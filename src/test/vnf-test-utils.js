@@ -40,6 +40,7 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                 }
 
                 args = Object.assign({}, {testProfile: testProfile,
+                                          testDescription: description,
                                           getInterval: getInterval,
                                           toAbsoluteInterval: toAbsoluteInterval},
                                      args)

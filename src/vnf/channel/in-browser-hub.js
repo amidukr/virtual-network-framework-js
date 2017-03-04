@@ -9,30 +9,42 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
          var self = this;
          selfHub.BaseEndPoint.call(this, selfVip);
 
-         self.__connections = {};
+         var connections = {};
+
+         self.setConnection = function(targetVip, endpoint) {
+            connections[targetVip] = endpoint;
+         }
 
          self.send = function(vip, message) {
              if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 
-             self.__connections[vip] = true;
+            var remoteEndpoint = connections[vip];
+            var connecting = false;
+            if(!remoteEndpoint) {
+                connecting = true;
+                remoteEndpoint = selfHub.getEndPoint(vip);
+                connections[vip] = remoteEndpoint;
+            }
 
              window.setTimeout(function inBrowserSend() {
-                 var endpoint = selfHub.getEndPoint(vip);
-                 var handler = endpoint && endpoint.onMessage;
+                if(!remoteEndpoint) return;
 
-                 if(endpoint) {
-                    endpoint.__connections[selfVip] = true;
-                 }
+                if(remoteEndpoint == connections[vip]) {
+                    remoteEndpoint.setConnection(selfVip, self);
+                }
 
-                 if(handler) {
-                    handler({sourceVIP: selfVip, message: message, endpoint: endpoint});
-                 }
+                var connectionDropped = connecting && remoteEndpoint != connections[vip];
+                var handler = remoteEndpoint.onMessage;
+
+                if(!connectionDropped && handler) {
+                    handler({sourceVIP: selfVip, message: message, endpoint: remoteEndpoint});
+                }
              }, 0)
          }
 
          var parentDestroy = self.destroy;
          self.destroy = function() {
-            for(var connectedVIP in self.__connections){
+            for(var connectedVIP in connections){
                 try{
                     self.closeConnection(connectedVIP);
                 }catch(e){
@@ -43,24 +55,22 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
             parentDestroy();
          }
 
-         self.isConnected = function(targetVip) {
-            return self.__connections[targetVip] != undefined;
-         }
+        self.isConnected = function(targetVip) {
+             return connections[targetVip] != undefined;
+        }
 
          self.closeConnection = function(targetVip) {
-            if(!self.__connections[targetVip]) return;
-            var endpoint = selfHub.getEndPoint(targetVip);
+            var remoteEndpoint = connections[targetVip];
+            if(!remoteEndpoint) return;
 
-            self.__connections[targetVip] = false
+            connections[targetVip] = undefined;
             self.__fireConnectionLost(targetVip);
 
-            if(endpoint) {
-                endpoint.__connections[targetVip] = false;
-                endpoint.__fireConnectionLost(selfVip);
+            if(remoteEndpoint) {
+                remoteEndpoint.closeConnection(selfVip);
             }
          }
       }
    };
 });
-
 
