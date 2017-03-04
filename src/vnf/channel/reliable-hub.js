@@ -527,10 +527,19 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 reactivateChannel(channel);
             }
 
+           self.isConnected = function(targetVip) {
+                var channel = channels[targetVIP];
+                if(channel) {
+                    return channel.state == STATE_CONNECTED;
+                }
+
+                return false;
+           }
+
             this.closeConnection = function(targetVIP) {
                 var channel = channels[targetVIP];
                 if(channel) {
-                    if(channel.state != STATE_HANDSHAKING) {
+                    if(parentEndpoint.isConnected(targetVIP)) {
                         sendCloseMessage(channel);
                     }
 

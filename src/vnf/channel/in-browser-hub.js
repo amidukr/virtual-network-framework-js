@@ -43,6 +43,10 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
             parentDestroy();
          }
 
+         self.isConnected = function(targetVip) {
+            return self.__connections[targetVip] != undefined;
+         }
+
          self.closeConnection = function(targetVip) {
             if(!self.__connections[targetVip]) return;
             var endpoint = selfHub.getEndPoint(targetVip);

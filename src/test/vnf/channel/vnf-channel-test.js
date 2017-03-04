@@ -42,6 +42,7 @@ function(  VNF,
          var endpoint1 = vnfHub.openEndpoint("vip-1");
 
          assert.ok(endpoint1.send, "Verifying send method");
+         assert.ok(endpoint1.isConnected,      "Verifying isConnected method");
          assert.ok(endpoint1.closeConnection,  "Verifying closeConnection method");
          assert.ok(endpoint1.onConnectionLost, "Verifying onConnectionLost method");
          assert.ok(endpoint1.destroy, "Verifying destroy method");
@@ -210,6 +211,10 @@ function(  VNF,
  
          capture1.assertLog("from vip-1: loopback-message-to-vip1").then(done);
      });
+
+     hubQUnitTest("Channel isConnected Test", function(assert, arguments) {
+
+     });
  
      hubQUnitTest("Multiple/Loopback Channels Send Test", function(assert, arguments) {
  
@@ -292,6 +297,37 @@ function(  VNF,
          }
  
      });
+
+    hubQUnitTest("Call closeConnection, and send message", function(assert, arguments) {
+        var done = assert.async(1);
+
+        var vnfHub = arguments.hubFactory();
+
+        var endpoint1 = vnfHub.openEndpoint("vip-1");
+        var endpoint2 = vnfHub.openEndpoint("vip-2");
+
+        var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler", "connection-lost-handler"]);
+        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler", "connection-lost-handler"]);
+
+        endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
+        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+
+        endpoint1.send("vip-2", "message-1");
+
+        Promise.resolve()
+        .then(capture2.assertLog.bind(null, ["from vip-1: message-1"]))
+        .then(function(){
+            endpoint1.closeConnection("vip-2");
+            endpoint1.send("vip-2", "message-2");
+        })
+
+        .then(capture2.assertLog.bind(null, ["from vip-1: message-2"]))
+
+        .then(endpoint1.destroy)
+        .then(endpoint2.destroy)
+
+        .then(done);
+    });
 
     hubQUnitTest("Call closeConnection, catch onConnectionLost", function(assert, arguments) {
         var done = assert.async(1);

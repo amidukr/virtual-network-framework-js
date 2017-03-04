@@ -345,7 +345,11 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                }
            }
 
-           this.closeConnection = function(targetVip) {
+           self.isConnected = function(targetVip) {
+                return connectionSet[targetVip] != undefined;
+           }
+
+           self.closeConnection = function(targetVip) {
               if(connectionSet[targetVip]) {
                   connectionSet[targetVip].destroy();
 
