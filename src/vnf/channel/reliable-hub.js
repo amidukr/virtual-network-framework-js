@@ -576,12 +576,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
            self.isConnected = function(targetVIP) {
-                var channel = channels[targetVIP];
-                if(channel) {
-                    return channel.state != STATE_HANDSHAKING;
-                }
-
-                return false;
+                return parentEndpoint.isConnected(targetVIP);
            }
 
             this.closeConnection = function(targetVIP) {
