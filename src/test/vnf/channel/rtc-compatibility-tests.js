@@ -40,9 +40,6 @@ function(  VNF,
 
         var vnfHub = arguments.hubFactory();
 
-        var reliableConnection = false;
-        if(arguments.testDescription.indexOf("-[ReliableHub]") != -1) reliableConnection = true;
-
         var endpoint1 = vnfHub.openEndpoint("vip-1");
         var endpoint2 = vnfHub.openEndpoint("vip-2");
 
@@ -57,14 +54,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(capture1.assertSilence.bind(null, 3000))
-        
-        .then(function(){
-            if(reliableConnection) {
-                return capture2.assertLog(["from vip-1: message-1"]);
-            }else{
-                return capture2.assertSilence(0);
-            }
-        })
+        .then(capture2.assertSilence.bind(null, 0))
 
         .then(function(){
             assert.equal(endpoint2.isConnected("vip-1"), false, "Verifying vip-1 connection closed for vip-2");
@@ -82,10 +72,6 @@ function(  VNF,
 
         var vnfHub = arguments.hubFactory();
 
-        var connectionStatusStale = false;
-        if(arguments.testDescription.indexOf("[RTCHub]") != -1)                   connectionStatusStale = true;
-        if(arguments.testDescription.indexOf("[root:RTC]-[UnreliableHub]") != -1) connectionStatusStale = true;
-
         var endpoint1 = vnfHub.openEndpoint("vip-1");
         var endpoint2 = vnfHub.openEndpoint("vip-2");
 
@@ -94,6 +80,9 @@ function(  VNF,
 
         endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
         endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+
+        endpoint1.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-1"));
+        endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-2"));
 
         endpoint1.send("vip-2", "message-1");
 
@@ -105,21 +94,17 @@ function(  VNF,
 
         .then(function(){
             endpoint1.send("vip-2", "message-3");
-            endpoint1.closeConnection("vip-2")
+            endpoint1.closeConnection("vip-2");
         })
 
         .then(capture2.assertLog.bind(null, ["from vip-1: message-3"]))
+        .then(capture1.assertLog.bind(null, ["from vip-2 connection lost"]))
+        .then(capture2.assertLog.bind(null, ["from vip-1 connection lost"]))
         .then(capture1.assertSilence.bind(null, 2000))
 
         .then(function(){
-            if(!connectionStatusStale) {
-                assert.equal(endpoint2.isConnected("vip-1"), false, "Verifying vip-1 connection closed for vip-2");
-                assert.equal(endpoint1.isConnected("vip-2"), false, "Verifying vip-2 connection closed for vip-1");
-            }else{
-                assert.equal(endpoint2.isConnected("vip-1"), true, "Verifying vip-1 connection closed for vip-2");
-                assert.equal(endpoint1.isConnected("vip-2"), false, "Verifying vip-2 connection closed for vip-1");
-            }
-
+            assert.equal(endpoint2.isConnected("vip-1"), false, "Verifying vip-1 connection closed for vip-2");
+            assert.equal(endpoint1.isConnected("vip-2"), false, "Verifying vip-2 connection closed for vip-1");
         })
 
         .then(endpoint1.destroy)

@@ -428,15 +428,15 @@ function(  VNF,
         .then(endpoint2.destroy)
          
         .then(endpoint1.send.bind(null, "vip-2", "send-to-destroyed message-2 to vip-2"))
-        .then(endpoint1.send.bind(null, "vip-3", "send-to-destroyed message-2 to vip-3"))
- 
-        .then(capture3.assertLog.bind(null, ["from vip-1: send-to-destroyed message-2 to vip-3"]))
-        .then(capture2.assertSilence.bind(null, 1))
- 
-        .then(endpoint1.send.bind(null, "vip-2", "send-to-destroyed message-3 to vip-2"))
         .then(endpoint1.send.bind(null, "vip-3", "send-to-destroyed message-3 to vip-3"))
  
         .then(capture3.assertLog.bind(null, ["from vip-1: send-to-destroyed message-3 to vip-3"]))
+        .then(capture2.assertSilence.bind(null, 1))
+ 
+        .then(endpoint1.send.bind(null, "vip-2", "send-to-destroyed message-4 to vip-2"))
+        .then(endpoint1.send.bind(null, "vip-3", "send-to-destroyed message-5 to vip-3"))
+ 
+        .then(capture3.assertLog.bind(null, ["from vip-1: send-to-destroyed message-5 to vip-3"]))
         .then(capture2.assertSilence.bind(null, 1))
         
         .then(endpoint1.destroy)

@@ -33,6 +33,8 @@ function( ReliableTestUtils){
 
         .then(argument.makeConnection)
 
+        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HEARTBEAT-REGULAR","toSID":"root1-1","gapBegin":1,"gapEnd":-1}']))
+
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"CLOSE-CONNECTION","sessionId":"root1-1","toSID":"rel1-1"}))
 
         .then(argument.reliableCapture.assertLog.bind(null, ["from root-endpoint connection lost"]))
@@ -56,10 +58,12 @@ function( ReliableTestUtils){
         .then(argument.rootEndpoint.closeConnection.bind(null, "reliable-endpoint"))
         .then(argument.rootCapture.assertLog.bind(null, ["from reliable-endpoint connection lost"]))
 
+        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HEARTBEAT-REGULAR","toSID":"root1-1","gapBegin":1,"gapEnd":-1}']))
+        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HEARTBEAT-REGULAR","toSID":"root1-1","gapBegin":1,"gapEnd":-1}']))
+
         .then(argument.reliableCapture.assertSilence.bind(null, 0))
         .then(argument.rootCapture.assertSilence.bind(null, 0))
 
-        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HEARTBEAT-REGULAR","toSID":"root1-1","gapBegin":1,"gapEnd":-1}']))
 
         .then(argument.destroy)
         .then(done);
@@ -78,6 +82,7 @@ function( ReliableTestUtils){
         })
 
         .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"CLOSE-CONNECTION","sessionId":"rel1-1","toSID":"root1-1"}']))
+        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint connection lost']))
         .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-2","messageIndex":1,"payload":"message-3"}']))
 
         .then(argument.destroy)
@@ -139,6 +144,7 @@ function( ReliableTestUtils){
         //1500ms - connection lost
         .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"CLOSE-CONNECTION","sessionId":"rel1-1","toSID":"root1-1"}']))
         .then(argument.rootCapture.assertLog.bind(null, ["from reliable-endpoint connection lost"]))
+
         .then(argument.reliableCapture.assertLog.bind(null, ["from root-endpoint connection lost"]))
 
         .then(argument.destroy)
@@ -196,7 +202,6 @@ function( ReliableTestUtils){
         .then(argument.reliableCapture.assertLog.bind(null, ["from root-endpoint connection lost"]))
 
         // root capture lost after timeout
-        .then(argument.rootCapture.assertSilence.bind(null, 0))
         .then(argument.rootCapture.assertLog.bind(null, ["from reliable-endpoint connection lost"]))
 
         .then(argument.destroy)

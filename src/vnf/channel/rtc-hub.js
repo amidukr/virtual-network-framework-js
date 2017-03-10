@@ -8,6 +8,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
         iceServers: [
             {url: "stun:23.21.150.121"},
             {url: "stun:stun.1.google.com:19302"}
+            //{url: "stun:127.0.0.1"}
         ]
     };
     
@@ -98,8 +99,10 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                 }
             }
 
-            channel.onclose = function(e) {
+            channel.onclose = function(evt) {
+                Log.debug(instanceId, "webrtc-onclose", "\n" + printStatuses(evt.target));
                 if(!destroyed) {
+                    destroyed = true;
                     rtcEndpoint.closeConnection(targetVip);
                 }
             }
@@ -143,10 +146,15 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
 
             connection.onsignalingstatechange = function(evt){
                 Log.debug(instanceId, "webrtc-onsignalingstatechange", "\n" + printStatuses(evt.target));
+
             };
 
             connection.oniceconnectionstatechange = function(evt){
-                Log.debug(instanceId, "webrtc-oniceconnectionstatechange", "\n" + printStatuses(evt.target));
+                Log.debug(instanceId, "webrtc-oniceconnectionstatechange", "\n" + printStatuses(evt.target) + ", destroyed: " + destroyed);
+                if(evt.target.iceConnectionState == "disconnected" && !destroyed) {
+                    destroyed = true;
+                    rtcEndpoint.closeConnection(targetVip);
+                }
             };
 
             connection.onicecandidate = function(evt){
@@ -353,8 +361,8 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
               if(connectionSet[targetVip]) {
                   connectionSet[targetVip].destroy();
 
-                  delete connectionSet[targetVip];
-                  delete connectionMessageQueue[targetVip];
+                  connectionSet[targetVip] = undefined;
+                  connectionMessageQueue[targetVip] = undefined;
 
                   self.__fireConnectionLost(targetVip);
                   signalingEndpoint.closeConnection(targetVip);

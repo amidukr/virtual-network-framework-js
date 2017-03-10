@@ -250,7 +250,6 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 channel.keepAliveHandshakingCounter++;
                 if(channel.keepAliveHandshakingCounter >= heartbeatsToDropHandshakingConnection) {
                     parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVIP);
-
                     channel.suspended = true;
                 }
             }
@@ -364,6 +363,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             function reactivateChannel(channel) {
                 if(channel.suspended) {
                     channel.suspended = false;
+                    channel.keepAliveHandshakingCounter = 0;
                     activeChannels.push(channel);
 
                     if(activeChannels.length == 1) {
@@ -541,6 +541,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 if(channel) {
                     if(parentEndpoint.isConnected(targetVIP)) {
                         sendCloseMessage(channel);
+                        parentEndpoint.closeConnection(targetVIP);
+                        channel.suspended = true;
                     }
 
                     handleConnectionOnLost(channel);

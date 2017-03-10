@@ -64,7 +64,7 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
             if(!remoteEndpoint) return;
 
             connections[targetVip] = undefined;
-            self.__fireConnectionLost(targetVip);
+            window.setTimeout(self.__fireConnectionLost.bind(null, targetVip), 0);
 
             if(remoteEndpoint) {
                 remoteEndpoint.closeConnection(selfVip);
