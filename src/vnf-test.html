@@ -23,6 +23,7 @@
         reliableFastHeartbeatInterval: 20,
         reliableFastConnectionInvalidateInterval: 200,
         reliableFastConnectionLostTimeout: 600,
+        reliableFastHandshakeRetryInterval: 60,
         reliableFastKeepAliveHandshakingChannelTimeout: 200,
 
         "root:InMemory": {
@@ -35,7 +36,8 @@
             reliableFastHeartbeatInterval: 1000,
             reliableFastConnectionInvalidateInterval: 10000,
             reliableFastConnectionLostTimeout: 30000,
-            reliableFastKeepAliveHandshakingChannelTimeout: 2000,
+            reliableFastHandshakeRetryInterval: 1000,
+            reliableFastKeepAliveHandshakingChannelTimeout: 4000,
         },
 
         toAbsoluteInterval: function(profile, timePoints) {

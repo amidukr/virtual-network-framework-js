@@ -21,6 +21,7 @@ function(  VNF,
 
             reliableEndpoint.setEndpointId("rel1");
             reliableHub.setHeartbeatInterval(10000);
+            reliableHub.setHandshakeRetries(0);
 
             var reliableCapture = Log.captureLogs(assert, ["reliable-endpoint"], ["message-test-handler", "connection-lost-handler"]);
             var rootCapture     = Log.captureLogs(assert, ["root-endpoint"],     ["message-test-handler", "connection-lost-handler"]);
@@ -45,6 +46,7 @@ function(  VNF,
                 reliableHub.setHeartbeatInterval(args.getInterval("reliableFastHeartbeatInterval"));
                 reliableHub.setConnectionInvalidateInterval(args.getInterval("reliableFastConnectionInvalidateInterval"));
                 reliableHub.setConnectionLostTimeout(args.getInterval("reliableFastConnectionLostTimeout"));
+                reliableHub.setHandshakeRetryInterval(args.getInterval("reliableFastHandshakeRetryInterval"));
                 reliableHub.setKeepAliveHandshakingChannelTimeout(args.getInterval("reliableFastKeepAliveHandshakingChannelTimeout"));
             }
 

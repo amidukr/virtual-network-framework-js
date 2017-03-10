@@ -29,16 +29,21 @@ function(Log, CycleBuffer, ProxyHub, Random) {
         var connectionInvalidateInterval = 5000;
         var connectionLostTimeout = 25000;
         var keepAliveHandshakingChannelTimeout = 25000;
+        var handshakeRetryInterval = 3000;
+
+        var handshakeRetries = 3;
 
         var heartbeatsToInvalidate = 0;
         var heartbeatsToDropConnection = 0;
         var heartbeatsToDropHandshakingConnection = 0;
+        var heartbeatsToHandshakeRetry = 0;
 
 
         function updateHeartbeatCounters() {
             heartbeatsToInvalidate                = Math.round(connectionInvalidateInterval / heartbeatInterval);
             heartbeatsToDropConnection            = Math.round(connectionLostTimeout / heartbeatInterval);
             heartbeatsToDropHandshakingConnection = Math.round(keepAliveHandshakingChannelTimeout / heartbeatInterval);
+            heartbeatsToHandshakeRetry            = Math.round(handshakeRetryInterval / heartbeatInterval);
         }
 
         if(args.heartbeatInterval) {
@@ -73,6 +78,15 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             updateHeartbeatCounters();
         }
 
+        selfHub.setHandshakeRetries = function(value) {
+            handshakeRetries = value;
+        }
+
+        selfHub.setHandshakeRetryInterval = function(value) {
+            handshakeRetryInterval = value;
+            updateHeartbeatCounters();
+        }
+
         selfHub.VNFEndpoint = function ReliableEndpoint(vip) {
             var self = this;
             selfHub.ProxyEndpoint.call(self, vip);
@@ -100,10 +114,14 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         toInvalidateCounter: 0,
                         keepAliveActiveConnectionCounter: 0,
                         keepAliveHandshakingCounter: 0,
+                        keepAliveHandshakingCounter: 0,
 
                         lastHeartbeatRequest: -1,
                         lastSentMessageNumber: -1,
 
+                        lastMessage: null,
+                        handshakeRetriesIntervalCounter: 0,
+                        handshakeRetriesCounter: 0,
 
                         firstMessageNumberInSendBuffer: 0,
                         sentMessages: new CycleBuffer(),
@@ -124,6 +142,11 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 channel.remoteSessionId = "";
 
                 channel.lastHeartbeatRequest = -1;
+
+                channel.lastMessage = null;
+                channel.handshakeRetriesCounter = 0;
+                channel.handshakeRetriesIntervalCounter = 0;
+
 
                 channel.firstMessageNumberInReceivedBuffer = -1;
                 channel.receivedMessages = new CycleBuffer();
@@ -247,6 +270,26 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
             function refreshHandshakingChannel(channel) {
+                if(channel.lastMessage) {
+
+                    channel.handshakeRetriesIntervalCounter++;
+
+                    if(channel.handshakeRetriesIntervalCounter >= heartbeatsToHandshakeRetry) {
+
+                        channel.handshakeRetriesIntervalCounter = 0;
+
+                        parentEndpoint.closeConnection(channel.targetVIP);
+                        sendHandshakeMessage(channel, channel.lastSentMessageNumber, channel.lastMessage);
+
+                        channel.handshakeRetriesCounter++;
+                        if(channel.handshakeRetriesCounter >= handshakeRetries) {
+                            channel.lastMessage = null;
+                            channel.handshakeRetriesCounter = 0;
+                        }
+                    }
+
+                }
+
                 channel.keepAliveHandshakingCounter++;
                 if(channel.keepAliveHandshakingCounter >= heartbeatsToDropHandshakingConnection) {
                     parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVIP);
@@ -520,6 +563,12 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                 channel.lastSentMessageNumber++;
                 channel.sentMessages.push(message);
+
+                if(channel.state == STATE_HANDSHAKING) {
+                    channel.lastMessage = message;
+                    channel.handshakeRetriesCounter = 0;
+                    channel.handshakeRetriesIntervalCounter = 0;
+                }
 
                 var sendMessageMethod = messageSender[channel.state];
                 sendMessageMethod(channel, channel.lastSentMessageNumber, message)
