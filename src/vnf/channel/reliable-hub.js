@@ -278,16 +278,15 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                         channel.handshakeRetriesIntervalCounter = 0;
 
-                        parentEndpoint.closeConnection(channel.targetVIP);
-                        sendHandshakeMessage(channel, channel.lastSentMessageNumber, channel.lastMessage);
-
                         channel.handshakeRetriesCounter++;
-                        if(channel.handshakeRetriesCounter >= handshakeRetries) {
+                        if(channel.handshakeRetriesCounter > handshakeRetries) {
                             channel.lastMessage = null;
                             channel.handshakeRetriesCounter = 0;
+                        }else{
+                            parentEndpoint.closeConnection(channel.targetVIP);
+                            sendHandshakeMessage(channel, channel.lastSentMessageNumber, channel.lastMessage);
                         }
                     }
-
                 }
 
                 channel.keepAliveHandshakingCounter++;
@@ -579,7 +578,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
            self.isConnected = function(targetVIP) {
                 var channel = channels[targetVIP];
                 if(channel) {
-                    return channel.state == STATE_CONNECTED;
+                    return channel.state != STATE_HANDSHAKING;
                 }
 
                 return false;
