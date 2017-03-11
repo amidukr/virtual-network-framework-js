@@ -15,7 +15,21 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                 var assertAsync = assert.async;
                 assert.async = function(num) {
                     var assertDone = assertAsync.call(assert, num);
+                    var doneCallCounter = 0;
                     return function proxyDone() {
+                        doneCallCounter++;
+                        if(doneCallCounter >= num && window.vnfActiveEndpoints.length > 0) {
+                            Log.warn("test", ["Active endpoints left: ", window.vnfActiveEndpoints]);
+                            var vnfActiveEndpointsClone = window.vnfActiveEndpoints.slice();
+                            for(var i = 0; i < vnfActiveEndpointsClone.length; i++) {
+                                try{
+                                    vnfActiveEndpointsClone[i].destroy();
+                                }catch(e) {
+                                    Log.warn("test", ["Exception during endpoint destroy: ", e]);
+                                }
+                            }
+                        }
+
                         if(runningTest != description) {
                             throw new Error("Wrong call to done, test already executed: " + description + ", while running " + runningTest);
                         }
@@ -56,15 +70,31 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                 argumentProcessor = {};
             }
 
-            var inMemoryFactory = function() {return new VNF.InBrowserHub();};
-            var rtcHubFactory   = function() {return new VNF.RTCHub(new VNF.InBrowserHub());};
+            function inMemoryFactory() {return new VNF.InBrowserHub();};
+            function rtcHubFactory() {return new VNF.RTCHub(new VNF.InBrowserHub());};
+
+            function reliableRtcHubFactory() {
+                var reliableRTC = new VNF.ReliableRTCHub(new VNF.InBrowserHub());
+
+                reliableRTC.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCHeartbeatInterval"));
+                reliableRTC.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCConnectionInvalidateInterval"));
+                reliableRTC.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCConnectionLostTimeout"));
+                reliableRTC.setHandshakeRetryInterval(            TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCHandshakeRetryInterval"));
+                reliableRTC.setKeepAliveHandshakingChannelTimeout(TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCKeepAliveHandshakingChannelTimeout"));
+
+                reliableRTC.setHandshakeRetries(10);
+
+                return reliableRTC;
+            };
 
             var proxyCallback = function proxyCallback(assert, args) {
                 return callback(assert, Object.assign({}, argumentProcessor(assert, args), args));
             };
 
-            VNFTestUtils.test("root:InMemory", description, {rootHubFactory: inMemoryFactory}, proxyCallback);
-            VNFTestUtils.test("root:RTC",      description, {rootHubFactory: rtcHubFactory}  , proxyCallback);
+            VNFTestUtils.test("root:InMemory",    description, {rootHubFactory: inMemoryFactory},       proxyCallback);
+            VNFTestUtils.test("root:RTC",         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
+            VNFTestUtils.test("root:ReliableRTC", description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
+
         },
 
         newPrintCallback: function (instance, version) {

@@ -66,6 +66,9 @@ function(  VNF,
             assert.equal(event.sourceVIP, "vip-1");
             assert.equal(event.endpoint, endpoint2);
             assert.equal(event.endpoint.vip, "vip-2");
+
+            endpoint1.destroy();
+            endpoint2.destroy();
  
             done();
         };
@@ -86,6 +89,9 @@ function(  VNF,
  
             assert.equal(event.message.value1,       "object-value-1");
             assert.equal(event.message.sub.value2,   "object-sub-value-2");
+
+            endpoint1.destroy();
+            endpoint2.destroy();
  
             done();
         };
@@ -110,6 +116,10 @@ function(  VNF,
         capture2.assertLog(["from vip-1: message-sequence-1-from-vip1-to-vip2"])
            .then(endpoint1.send.bind(null,          "vip-2", "message-2-sequence-1-from-vip1-to-vip2"))
            .then(capture2.assertLog.bind(null, ["from vip-1: message-2-sequence-1-from-vip1-to-vip2"]))
+
+        .then(endpoint1.destroy)
+        .then(endpoint2.destroy)
+
         .then(done);
     });
  
@@ -133,7 +143,10 @@ function(  VNF,
  
          capture2.assertLog(["from vip-1: double-message-1-from-vip1-to-vip2",
                              "from vip-1: double-message-2-from-vip1-to-vip2"])
-                 .then(done);
+        .then(endpoint1.destroy)
+        .then(endpoint2.destroy)
+
+        .then(done);
      });
  
     hubQUnitTest("Channel Callback Test", function(assert, arguments) {

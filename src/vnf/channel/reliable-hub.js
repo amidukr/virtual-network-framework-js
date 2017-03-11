@@ -38,6 +38,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
         var heartbeatsToDropHandshakingConnection = 0;
         var heartbeatsToHandshakeRetry = 0;
 
+        var heartbeatDeviation = 0.3;
+
 
         function updateHeartbeatCounters() {
             heartbeatsToInvalidate                = Math.round(connectionInvalidateInterval / heartbeatInterval);
@@ -220,8 +222,15 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
 
             function sendHeartbeat(channel) {
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVIP + "]";
+
                 channel.toInvalidateCounter++;
                 channel.keepAliveActiveConnectionCounter++;
+
+                Log.debug(instanceId, "reliable-channel-status",
+                      "invalidate: " + channel.toInvalidateCounter              + "/" + heartbeatsToInvalidate + ", "
+                    + "keep-alive: " + channel.keepAliveActiveConnectionCounter + "/" + heartbeatsToDropConnection
+                );  
 
                 if(channel.keepAliveActiveConnectionCounter >= heartbeatsToDropConnection) {
                     channel.keepAliveActiveConnectionCounter = 0;
@@ -270,6 +279,12 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
             function refreshHandshakingChannel(channel) {
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVIP + "]";
+                Log.debug(instanceId, "reliable-channel-status",
+                "handshake-retry-interval: " + (channel.handshakeRetriesIntervalCounter + 1) + "/" + heartbeatsToHandshakeRetry + ", "
+                + "handshake-retries: " + (channel.handshakeRetriesCounter + 1) + "/" + handshakeRetries + ","
+                + "handshake-keep-alive: " + (channel.keepAliveHandshakingCounter + 1) + "/" + heartbeatsToDropHandshakingConnection);
+
                 if(channel.lastMessage) {
 
                     channel.handshakeRetriesIntervalCounter++;
@@ -285,6 +300,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         }else{
                             parentEndpoint.closeConnection(channel.targetVIP);
                             sendHandshakeMessage(channel, channel.lastSentMessageNumber, channel.lastMessage);
+                            Log.debug(instanceId, "reliable-channel-status", "handshake retry")
                         }
                     }
                 }
@@ -293,6 +309,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 if(channel.keepAliveHandshakingCounter >= heartbeatsToDropHandshakingConnection) {
                     parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVIP);
                     channel.suspended = true;
+                    Log.debug(instanceId, "reliable-channel-status", "closing connection")
                 }
             }
 
@@ -319,7 +336,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 }
 
                 if(activeChannels.length > 0) {
-                    window.setTimeout(onTimeEvent, heartbeatInterval);
+                    var nextInterval = heartbeatInterval * (1 + (Math.random() * 2 - 1) * heartbeatDeviation);
+                    window.setTimeout(onTimeEvent, nextInterval);
                 }
             }
 
@@ -584,9 +602,10 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 if(channel) {
                     if(parentEndpoint.isConnected(targetVIP)) {
                         sendCloseMessage(channel);
-                        parentEndpoint.closeConnection(targetVIP);
                         channel.suspended = true;
                     }
+
+                    parentEndpoint.closeConnection(targetVIP);
 
                     handleConnectionOnLost(channel);
                 }

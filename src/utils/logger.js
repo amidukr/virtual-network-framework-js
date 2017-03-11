@@ -4,6 +4,26 @@ define([], function(){
     //  Log.debug("instance-id", "category", "message")
     //  Log.debug("category", "message")
 
+    var ERROR = 0;
+    var WARN  = 1;
+    var INFO = 2;
+    var DEBUG = 3;
+    var TRACE = 4;
+
+    var logLevelMap = {
+        "error": ERROR,
+        "warn": WARN,
+        "info": INFO,
+        "debug": DEBUG,
+        "trace": TRACE
+    }
+
+    var categoryLogLevel = {
+        "webrtc-connecting": INFO,
+        "webrtc-oniceconnectionstatechange": INFO,
+        "webrtc-onsignalingstatechange": INFO
+    }
+
     var self;
     var listeners = [];
 
@@ -24,12 +44,16 @@ define([], function(){
             listeners[i](event);
           }
 
-          if(instance) {
-            console[level]("[" + category + "] - [" + instance  + "]: ", message);
-          }else{
-            console[level]("[" + category + "]: ", message);
-          }
+          allowedLogLevel = categoryLogLevel[category] || TRACE;
+          currentLogLevel = logLevelMap[level];
 
+          if(allowedLogLevel >= currentLogLevel) {
+              if(instance) {
+                console[level]("[" + category + "] - [" + instance  + "]: ", message);
+              }else{
+                console[level]("[" + category + "]: ", message);
+              }
+          }
         },
 
         trace: function(instance, category, message) {

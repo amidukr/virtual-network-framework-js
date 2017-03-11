@@ -97,9 +97,9 @@ function(  VNF,
             endpoint1.closeConnection("vip-2");
         })
 
-        .then(capture2.assertLog.bind(null, ["from vip-1: message-3"]))
+
+        .then(capture2.assertLogUnordered.bind(null, ["from vip-1: message-3", "from vip-1 connection lost"]))
         .then(capture1.assertLog.bind(null, ["from vip-2 connection lost"]))
-        .then(capture2.assertLog.bind(null, ["from vip-1 connection lost"]))
         .then(capture1.assertSilence.bind(null, 2000))
 
         .then(function(){

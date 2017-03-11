@@ -6,9 +6,9 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
 
     var servers = {
         iceServers: [
-            {url: "stun:23.21.150.121"},
-            {url: "stun:stun.1.google.com:19302"}
-            //{url: "stun:127.0.0.1"}
+            //{url: "stun:23.21.150.121"},
+            //{url: "stun:stun.1.google.com:19302"}
+            {url: "stun:127.0.0.1"}
         ]
     };
     
@@ -335,7 +335,6 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
 
                    connection = new VNFRTCConnection(self, targetVip, signalingEndpoint);
 
-                   connectionMessageQueue[targetVip] = connectionMessageQueue[targetVip] || [];
                    connectionSet[targetVip] = connection;
 
                    connection.startCaller();
@@ -349,6 +348,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                    }
 
                }else{
+                   connectionMessageQueue[targetVip] = connectionMessageQueue[targetVip] || [];
                    connectionMessageQueue[targetVip].push(message);
                }
            }
@@ -375,6 +375,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                }
 
                connectionSet = {};
+               connectionMessageQueue = {};
            });
         };
     };

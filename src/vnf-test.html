@@ -17,27 +17,37 @@
     TestingProfiles = {}
 
     TestingProfiles = {
-        qunitTestTimeout: 20000,
-        logCaptureTimeout: 20000,
+        qunitTestTimeout: 3000,
+        logCaptureTimeout: 3000,
 
         reliableFastHeartbeatInterval: 20,
         reliableFastConnectionInvalidateInterval: 200,
         reliableFastConnectionLostTimeout: 600,
         reliableFastHandshakeRetryInterval: 60,
-        reliableFastKeepAliveHandshakingChannelTimeout: 200,
+        reliableFastKeepAliveHandshakingChannelTimeout: 240,
+
+        reliableRTCHeartbeatInterval: 1,
+        reliableRTCConnectionInvalidateInterval: 10,
+        reliableRTCConnectionLostTimeout: 100,
+        reliableRTCHandshakeRetryInterval: 10,
+        reliableRTCKeepAliveHandshakingChannelTimeout: 100,
+
+
+
 
         "root:InMemory": {
-            rate: 1
+            rate: 2,
         },
 
         "root:RTC": {
-            rate: 3,
+            rate: 50,
+        },
 
-            reliableFastHeartbeatInterval: 1000,
-            reliableFastConnectionInvalidateInterval: 10000,
-            reliableFastConnectionLostTimeout: 30000,
-            reliableFastHandshakeRetryInterval: 1000,
-            reliableFastKeepAliveHandshakingChannelTimeout: 4000,
+        "root:ReliableRTC": {
+            rate: 100,   
+
+            qunitTestTimeout:  500000,
+            logCaptureTimeout: 500000
         },
 
         toAbsoluteInterval: function(profile, timePoints) {
@@ -56,6 +66,7 @@
         }
     }
 
+    QUnit.config.reorder = false;
     QUnit.config.testTimeout = TestingProfiles.qunitTestTimeout;
     Timeouts.logCaptureTimeout = TestingProfiles.logCaptureTimeout;
 

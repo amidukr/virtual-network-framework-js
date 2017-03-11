@@ -1,5 +1,7 @@
 define(["utils/logger", "utils/observable"], function(Log, Observable) {
 
+   window.vnfActiveEndpoints = [];
+
    return function VNFHub(){
       var self = this;
 
@@ -9,6 +11,8 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
          var self = this;
          var destroyListeners = new Observable();
          var connectionLostListeners = new Observable();
+
+         window.vnfActiveEndpoints.push(self);
 
          self.vip = selfVip;
 
@@ -31,6 +35,8 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
             delete hub[selfVip];
 
             destroyListeners.fire();
+
+            window.vnfActiveEndpoints.removeValue(self);
          }
       }
 
