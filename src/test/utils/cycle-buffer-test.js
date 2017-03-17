@@ -1,5 +1,5 @@
-requirejs(["utils/cycle-buffer", "utils/capture-logs"],
-function(  CycleBuffer, Log){
+requirejs(["utils/cycle-buffer"],
+function( CycleBuffer){
 
     QUnit.module("Cycle Buffer Test");
     QUnit.test("[Cycle Buffer Test]: Simple Push", function(assert){

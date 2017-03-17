@@ -97,7 +97,7 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
 
         },
 
-        newPrintCallback: function (instance, version) {
+        newPrintCallback: function (captor, instance, version) {
             return function onMessage(event) {
                 var message = event.message;
                 if(typeof message == "object") {
@@ -111,24 +111,27 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                 description += "from " + event.sourceVIP + ": " + message;
 
                 Log.info(instance, "message-test-handler", description);
+                captor.signal(description);
             }
         },
 
-        newConnectionLostPrintCallback: function (instance) {
+        newConnectionLostPrintCallback: function (captor, instance) {
             return function onConnectionLost(targetVIP) {
 
                 description = "from " + targetVIP + " connection lost";
 
                 Log.info(instance, "connection-lost-handler", description);
+                captor.signal(description);
             }
         },
 
-        newHeartbeatPrintCallback: function (instance) {
+        newHeartbeatPrintCallback: function (captor, instance) {
             return function onHeartbeat(event) {
 
                 description = event.sourceVIP + " heartbeat message";
 
                 Log.info(instance, "connection-lost-handler", description);
+                captor.signal(description);
             }
         },
 

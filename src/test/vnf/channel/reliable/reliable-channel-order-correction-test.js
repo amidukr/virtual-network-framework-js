@@ -17,8 +17,8 @@ function( ReliableTestUtils){
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":2,"messageIndex":1,"payload":"message-phantom"}))
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":2,"messageIndex":2,"payload":"message-3"}))
 
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-3']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-4']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-3']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-4']))
 
         .then(argument.destroy)
         .then(done);
@@ -40,8 +40,8 @@ function( ReliableTestUtils){
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":2,"messageIndex":3,"payload":"message-4"}))
 
 
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-3']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-4']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-3']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-4']))
 
         .then(argument.destroy)
         .then(done);
@@ -63,8 +63,8 @@ function( ReliableTestUtils){
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":2,"messageIndex":2,"payload":"message-3"}))
 
 
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-3']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-4']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-3']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-4']))
 
         .then(argument.destroy)
         .then(done);
@@ -88,10 +88,10 @@ function( ReliableTestUtils){
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":2,"messageIndex":5,"payload":"message-6"}))
 
 
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-3']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-4']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-5']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-6']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-3']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-4']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-5']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-6']))
 
         .then(argument.destroy)
         .then(done);
@@ -115,11 +115,11 @@ function( ReliableTestUtils){
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":4,"messageIndex":6,"payload":"message-5"}))
 
 
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-3']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-4']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-5']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-6']))
-        .then(argument.reliableCapture.assertLog.bind(null, ['from root-endpoint: message-7']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-3']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-4']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-5']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-6']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-7']))
 
         .then(argument.destroy)
         .then(done);

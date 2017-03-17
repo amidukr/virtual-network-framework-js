@@ -1,8 +1,8 @@
 requirejs(["vnf/vnf",
-           "utils/capture-logs",
+           "utils/signal-captor",
            "test/vnf-test-utils"],
 function(  VNF,
-           Log,
+           SignalCaptor,
            VNFTestUtils){
 
     function hubQUnitTest(description, callback) {
@@ -43,11 +43,11 @@ function(  VNF,
         var endpoint1 = vnfHub.openEndpoint("vip-1");
         var endpoint2 = vnfHub.openEndpoint("vip-2");
 
-        var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler", "connection-lost-handler"]);
-        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler", "connection-lost-handler"]);
+        var capture1 = new SignalCaptor(assert);
+        var capture2 = new SignalCaptor(assert);
 
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+        endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
+        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
 
         endpoint1.send("vip-2", "message-1");
         endpoint1.closeConnection("vip-2");
@@ -75,22 +75,22 @@ function(  VNF,
         var endpoint1 = vnfHub.openEndpoint("vip-1");
         var endpoint2 = vnfHub.openEndpoint("vip-2");
 
-        var capture1 = Log.captureLogs(assert, ["vip-1"], ["message-test-handler", "connection-lost-handler"]);
-        var capture2 = Log.captureLogs(assert, ["vip-2"], ["message-test-handler", "connection-lost-handler"]);
+        var capture1 = new SignalCaptor(assert);
+        var capture2 = new SignalCaptor(assert);
 
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback("vip-1");
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback("vip-2");
+        endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
+        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
 
-        endpoint1.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-1"));
-        endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("vip-2"));
+        endpoint1.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(capture1, "vip-1"));
+        endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
 
         endpoint1.send("vip-2", "message-1");
 
         Promise.resolve()
-        .then(capture2.assertLog.bind(null, ["from vip-1: message-1"]))
+        .then(capture2.assertSignals.bind(null, ["from vip-1: message-1"]))
 
         .then(endpoint2.send.bind(null, "vip-1", "message-2"))
-        .then(capture1.assertLog.bind(null, ["from vip-2: message-2"]))
+        .then(capture1.assertSignals.bind(null, ["from vip-2: message-2"]))
 
         .then(function(){
             endpoint1.send("vip-2", "message-3");
@@ -98,8 +98,8 @@ function(  VNF,
         })
 
 
-        .then(capture2.assertLogUnordered.bind(null, ["from vip-1: message-3", "from vip-1 connection lost"]))
-        .then(capture1.assertLog.bind(null, ["from vip-2 connection lost"]))
+        .then(capture2.assertSignalsUnordered.bind(null, ["from vip-1: message-3", "from vip-1 connection lost"]))
+        .then(capture1.assertSignals.bind(null, ["from vip-2 connection lost"]))
         .then(capture1.assertSilence.bind(null, 2000))
 
         .then(function(){

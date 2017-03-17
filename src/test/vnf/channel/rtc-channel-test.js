@@ -1,5 +1,5 @@
 requirejs(["vnf/vnf",
-           "utils/capture-logs",
+           "utils/signal-captor",
            "test/vnf-test-utils"],
 function(  VNF,
            Log,

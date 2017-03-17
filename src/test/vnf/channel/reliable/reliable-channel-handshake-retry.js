@@ -13,19 +13,19 @@ function( ReliableTestUtils){
 
         Promise.resolve()
 
-        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"message-1"}']))
-        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
+        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"message-1"}']))
+        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
 
-        .then(argument.rootCapture.assertLog.bind(null, ["from reliable-endpoint connection lost"]))
-        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
+        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
 
-        .then(argument.rootCapture.assertLog.bind(null, ["from reliable-endpoint connection lost"]))
-        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
+        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
 
-        .then(argument.rootCapture.assertLog.bind(null, ["from reliable-endpoint connection lost"]))
-        .then(argument.rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
+        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
 
-        .then(argument.rootCapture.assertLog.bind(null, ["from reliable-endpoint connection lost"]))
+        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
         .then(argument.rootCapture.assertSilence.bind(null, 60))
 
 

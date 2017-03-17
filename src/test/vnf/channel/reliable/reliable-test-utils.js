@@ -1,30 +1,33 @@
 define(["vnf/vnf",
-           "utils/capture-logs",
-           "test/vnf-test-utils"],
+           "utils/signal-captor",
+           "test/vnf-test-utils",
+           "utils/signal-captor"],
 function(  VNF,
            Log,
-           VNFTestUtils){
+           VNFTestUtils,
+           SignalCaptor){
 
     function reliableVNFTest(description, callback) {
         function prepareArguments(assert, args) {
             var rootHub  = args.rootHubFactory();
             var reliableHub = new VNF.ReliableHub(rootHub);
 
+            var reliableCapture = new SignalCaptor(assert);
+            var rootCapture     = new SignalCaptor(assert);
+
             var reliableEndpoint = reliableHub.openEndpoint("reliable-endpoint");
             var rootEndpoint = rootHub.openEndpoint("root-endpoint");
 
-            reliableEndpoint.onMessage = VNFTestUtils.newPrintCallback("reliable-endpoint");
-            rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback("root-endpoint");
+            reliableEndpoint.onMessage = VNFTestUtils.newPrintCallback(reliableCapture, "reliable-endpoint");
+            rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback(rootCapture,      "root-endpoint");
 
-            reliableEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("reliable-endpoint"));
-            rootEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback("root-endpoint"));
+            reliableEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(reliableCapture, "reliable-endpoint"));
+            rootEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(rootCapture, "root-endpoint"));
 
             reliableEndpoint.setEndpointId("rel1");
             reliableHub.setHeartbeatInterval(10000);
             reliableHub.setHandshakeRetries(0);
 
-            var reliableCapture = Log.captureLogs(assert, ["reliable-endpoint"], ["message-test-handler", "connection-lost-handler"]);
-            var rootCapture     = Log.captureLogs(assert, ["root-endpoint"],     ["message-test-handler", "connection-lost-handler"]);
 
             function destroy() {
                 reliableEndpoint.destroy();
@@ -38,8 +41,8 @@ function(  VNF,
 
                 .then(rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":0,"messageIndex":0,"payload":"utils-message-2"}))
 
-                .then(rootCapture.assertLog.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"utils-message-1"}']))
-                .then(reliableCapture.assertLog.bind(null, ['from root-endpoint: utils-message-2']))
+                .then(rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"utils-message-1"}']))
+                .then(reliableCapture.assertSignals.bind(null, ['from root-endpoint: utils-message-2']))
             }
 
             function fastHeartbeats() {
