@@ -103,7 +103,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                 Log.debug(instanceId, "webrtc-onclose", "\n" + printStatuses(evt.target));
                 if(!destroyed) {
                     destroyed = true;
-                    rtcEndpoint.closeConnection(targetVip);
+                    window.setTimeout(rtcEndpoint.closeConnection.bind(null, targetVip), 5);
                 }
             }
         }

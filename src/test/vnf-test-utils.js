@@ -12,23 +12,22 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                 QUnit.config.testTimeout   = TestingProfiles.getInterval(testProfile, "qunitTestTimeout");
                 Timeouts.logCaptureTimeout = TestingProfiles.getInterval(testProfile, "logCaptureTimeout");
 
+                if(window.vnfActiveEndpoints.length > 0) {
+                    Log.warn("test", ["Active endpoints left: ", window.vnfActiveEndpoints]);
+                    var vnfActiveEndpointsClone = window.vnfActiveEndpoints.slice();
+                    for(var i = 0; i < vnfActiveEndpointsClone.length; i++) {
+                        try{
+                            vnfActiveEndpointsClone[i].destroy();
+                        }catch(e) {
+                            Log.warn("test", ["Exception during endpoint destroy: ", e]);
+                        }
+                    }
+                }
+
                 var assertAsync = assert.async;
                 assert.async = function(num) {
                     var assertDone = assertAsync.call(assert, num);
-                    var doneCallCounter = 0;
                     return function proxyDone() {
-                        doneCallCounter++;
-                        if(doneCallCounter >= num && window.vnfActiveEndpoints.length > 0) {
-                            Log.warn("test", ["Active endpoints left: ", window.vnfActiveEndpoints]);
-                            var vnfActiveEndpointsClone = window.vnfActiveEndpoints.slice();
-                            for(var i = 0; i < vnfActiveEndpointsClone.length; i++) {
-                                try{
-                                    vnfActiveEndpointsClone[i].destroy();
-                                }catch(e) {
-                                    Log.warn("test", ["Exception during endpoint destroy: ", e]);
-                                }
-                            }
-                        }
 
                         if(runningTest != description) {
                             throw new Error("Wrong call to done, test already executed: " + description + ", while running " + runningTest);
