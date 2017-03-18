@@ -16,6 +16,11 @@
     Timeouts = {}
     TestingProfiles = {}
 
+    var TESTING_LEVEL_SMOKE = 0;
+    var TESTING_LEVEL_RELEASE = 1;
+    var TESTING_LEVEL_DEBUG = 2;
+    var TESTING_LEVEL_STRESS = 3;
+
     TestingProfiles = {
         qunitTestTimeout: 3000,
         logCaptureTimeout: 3000,
@@ -32,19 +37,25 @@
         reliableRTCHandshakeRetryInterval: 10,
         reliableRTCKeepAliveHandshakingChannelTimeout: 100,
 
+        activeTestingLevel: TESTING_LEVEL_RELEASE,
+
 
 
 
         "root:InMemory": {
             rate: 2,
+            testLevel: TESTING_LEVEL_SMOKE
         },
 
         "root:RTC": {
             rate: 50,
+            testLevel: TESTING_LEVEL_DEBUG
         },
 
         "root:ReliableRTC": {
-            rate: 100,   
+            rate: 100,
+
+            testLevel: TESTING_LEVEL_RELEASE,
 
             qunitTestTimeout:  500000,
             logCaptureTimeout: 500000
@@ -63,6 +74,12 @@
             var defaultInterval = TestingProfiles.toAbsoluteInterval(profile, TestingProfiles[config]);
 
             return profileConfigurations[config] || defaultInterval;
+        },
+
+        getValue: function(profile, config) {
+            var profileConfigurations = TestingProfiles[profile];
+
+            return profileConfigurations[config] != undefined ? profileConfigurations[config] : TestingProfiles[config];
         }
     }
 

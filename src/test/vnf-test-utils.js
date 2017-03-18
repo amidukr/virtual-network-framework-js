@@ -6,6 +6,17 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
 
         test: function(testProfile, shortDescription, args, callback) {
             var description = "["+testProfile+"]-" + shortDescription;
+
+            var activeTestingLevel = TestingProfiles.getValue(testProfile, "activeTestingLevel");
+            var testLevel          = TestingProfiles.getValue(testProfile, "testLevel");
+
+            if(activeTestingLevel < testLevel) {
+                Log.info("test", description);
+                Log.info("Skipping for testingLevel: " + activeTestingLevel);
+                return;
+            }
+
+
             QUnit.test(description, function(assert){
                 runningTest = description;
 
