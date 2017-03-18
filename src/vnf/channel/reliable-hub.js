@@ -235,6 +235,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 if(channel.keepAliveActiveConnectionCounter >= heartbeatsToDropConnection) {
                     channel.keepAliveActiveConnectionCounter = 0;
 
+                    Log.warn(instanceId, "reliable-channel-status", "connection closed due to silence in channel");
+
                     self.closeConnection(channel.targetVIP);
                     return;
                 }
@@ -242,6 +244,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 if(channel.toInvalidateCounter >= heartbeatsToInvalidate) {
                     channel.toInvalidateCounter = 0;
                     parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVIP);
+
+                    Log.warn(instanceId, "reliable-channel-status", "re-creating connection due to silence");
 
                     if(!parentEndpoint.closeConnection) {
                         Log.error("reliable-hub", ["Invalidate for parent endpoint is not defined, parent peer: ", parentEndpoint])
