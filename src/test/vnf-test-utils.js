@@ -12,7 +12,7 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
         isTestEnabled: function(testProfile) {
             var testLevel = TestingProfiles.getValue(testProfile, "testLevel");
 
-            VNFTestUtils.isTestingLevelEnabled(testLevel, testProfile);
+            return VNFTestUtils.isTestingLevelEnabled(testLevel, testProfile);
         },
 
         test: function(testProfile, shortDescription, args, callback) {
@@ -85,7 +85,7 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
 
             if(callback == undefined) {
                 callback = argumentProcessor;
-                argumentProcessor = {};
+                argumentProcessor = function(value){return value;};
             }
 
             function inMemoryFactory() {return new VNF.InBrowserHub();};

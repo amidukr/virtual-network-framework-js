@@ -4,7 +4,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
     var RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
     var RTCIceCandidate       = window.RTCIceCandidate       || window.mozRTCIceCandidate       || window.webkitRTCIceCandidate;
 
-    var servers = {
+    window.vnfRTCServers = {
         iceServers: [
             //{url: "stun:23.21.150.121"},
             //{url: "stun:stun.1.google.com:19302"}
@@ -125,7 +125,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
         }
 
         function createRTCConnection() {
-            connection = new RTCPeerConnection(servers);
+            connection = new RTCPeerConnection(vnfRTCServers);
 
             ice = {candidate: []};
             self.isReady = false;

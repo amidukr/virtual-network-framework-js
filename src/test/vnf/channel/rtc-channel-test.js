@@ -9,9 +9,34 @@ function(  VNF,
            VNFTestUtils,
            Promise){
 
+    var RTCPeerConnection     = window.RTCPeerConnection     || window.mozRTCPeerConnection     || window.webkitRTCPeerConnection;
+    var RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
+    var RTCIceCandidate       = window.RTCIceCandidate       || window.mozRTCIceCandidate       || window.webkitRTCIceCandidate;
+
+    function logErrorCallback(){
+        var stacktrace = new Error();
+        return function(e) {
+            window.RTCDebugLastError = e;
+            Log.error("test-error", e + " see RTCDebugLastError for details");
+            console.error(stacktrace);
+        }
+
+    }
+
+    function logSuccess(e){}
+
+    function captureMessage(captor) {
+        return function onMessage(event) {
+            Log.info("test-message", event.message);
+            captor.signal(event.message);
+        }
+    }
+
+    QUnit.module("RTCHub")
     QUnit.test("[RTCHub]: synchronous connect stress test", function(assert){
+        Log.info("test", "[RTCHub]: synchronous connect stress test");
+
         if(!VNFTestUtils.isTestingLevelEnabled(TESTING_LEVEL_STRESS)) {
-            Log.info("test", "[RTCHub]: synchronous connect stress test");
             assert.ok(true, "Skipping test due to testing level");
             return;
         }
@@ -69,5 +94,225 @@ function(  VNF,
         .then(done);
 
     })
+
+    VNFTestUtils.vnfTest("[RTCHub]: rtc initiate connection test", function(assert, argument){
+        var done = assert.async(1);
+
+        var rootHub = argument.rootHubFactory();
+        var rtcHub = new VNF.RTCHub(rootHub);
+
+        var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
+        var rootEndpoint = rootHub.openEndpoint("root-endpoint");
+
+        var rtcCaptor  = new SignalCaptor(assert);
+        var rootCaptor = new SignalCaptor(assert);
+
+        rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
+        rootEndpoint.onMessage = captureMessage(rootCaptor);
+
+        rtcEndpoint.send("root-endpoint", "message-1");
+
+        var rtcConnection;
+
+        Promise.resolve()
+         .then(rootCaptor.takeNext.bind(null, 1))
+         .then(function(message) {
+            assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
+            assert.equal(message[0].requestForNewConnection, true, "Asserting requestForNewConnection");
+
+            rtcConnection = new RTCPeerConnection(vnfRTCServers);
+
+            var ice = {candidate: [], sdp: null}
+
+            rtcConnection.onicecandidate = function(evt){
+                Log.info("test", "on ice candidate")
+                if(evt.candidate != null) {
+                    ice.candidate.push(evt.candidate);
+                }else{
+                    Log.info("test", "Send rtc ice candidates")
+
+                    assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
+
+                    rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
+                                                       requestForNewConnection: false,
+                                                       ice: ice,
+                                                       connectionCreateDate: self.createDate})
+                }
+            };
+
+            rtcConnection.ondatachannel = function(evt){
+                Log.info("test", ["ondatachannel: ", evt]);
+
+                evt.channel.onmessage = function(e) {
+                    rootCaptor.signal(e.data);
+                }
+            }
+
+            rtcConnection.setRemoteDescription(new RTCSessionDescription(message[0].ice.sdp));
+
+            rtcConnection.createAnswer(function(desc){
+                Log.info("test", "Answer created")
+
+                for(var i = 0; i < message[0].ice.candidate.length; i++) {
+                    rtcConnection.addIceCandidate(new RTCIceCandidate(message[0].ice.candidate[i]));
+                }
+
+                rtcConnection.setLocalDescription(desc);
+                ice.sdp = desc;
+            }, logErrorCallback());
+
+         })
+
+         .then(rootCaptor.assertSignals.bind(null, "S19message-1"))
+
+         .then(rootEndpoint.destroy)
+         .then(rtcEndpoint.destroy)
+
+         .then(done);
+    });
+
+    VNFTestUtils.vnfTest("[RTCHub]: rtc accept connection test", function(assert, argument){
+        var done = assert.async(1);
+
+        var rootHub = argument.rootHubFactory();
+        var rtcHub = new VNF.RTCHub(rootHub);
+
+        var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
+        var rootEndpoint = rootHub.openEndpoint("root-endpoint");
+
+        var rtcCaptor  = new SignalCaptor(assert);
+        var rootCaptor = new SignalCaptor(assert);
+
+        rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
+        rootEndpoint.onMessage = captureMessage(rootCaptor);
+
+        var rtcConnection = new RTCPeerConnection(vnfRTCServers);
+        var ice = {candidate: [], sdp: null}
+
+        var ice = {candidate: [], sdp: null}
+
+        rtcConnection.onicecandidate = function(evt){
+            Log.info("test", "on ice candidate")
+            if(evt.candidate != null) {
+                ice.candidate.push(evt.candidate);
+            }else{
+                Log.info("test", "Send rtc ice candidates")
+
+                assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
+
+                rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
+                                                   requestForNewConnection: true,
+                                                   ice: ice,
+                                                   connectionCreateDate: self.createDate})
+            }
+        };
+
+        var dataChannel = rtcConnection.createDataChannel("data");
+        dataChannel.onopen = function(event) {
+            Log.info("test", "Data Channel opened")
+
+            dataChannel.send("S19message-1");
+        }
+
+        rtcConnection.createOffer(function(desc){
+            Log.info("test", "Offer created")
+            rtcConnection.setLocalDescription(desc);
+            ice.sdp = desc;
+        }, logErrorCallback());
+
+
+        Promise.resolve()
+         .then(rootCaptor.takeNext.bind(null, 1))
+         .then(function(message) {
+            assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
+            assert.equal(message[0].requestForNewConnection, false, "Asserting requestForNewConnection");
+
+            rtcConnection.setRemoteDescription(new RTCSessionDescription(message[0].ice.sdp));
+
+            for(var i = 0; i < message[0].ice.candidate.length; i++) {
+                rtcConnection.addIceCandidate(new RTCIceCandidate(message[0].ice.candidate[i]));
+            }
+         })
+
+         .then(rtcCaptor.assertSignals.bind(null, "message-1"))
+
+         .then(rootEndpoint.destroy)
+         .then(rtcEndpoint.destroy)
+
+         .then(done);
+    });
+
+    VNFTestUtils.vnfTest("[RTCHub]: rtc synchronous connection establish test", function(assert, argument){
+        var done = assert.async(1);
+
+        var rootHub = argument.rootHubFactory();
+        var rtcHub = new VNF.RTCHub(rootHub);
+
+        var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
+        var rootEndpoint = rootHub.openEndpoint("root-endpoint");
+
+        var rtcCaptor  = new SignalCaptor(assert);
+        var rootCaptor = new SignalCaptor(assert);
+
+        rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
+        rootEndpoint.onMessage = captureMessage(rootCaptor);
+
+        rtcEndpoint.send("root-endpoint", "message-1");
+
+        var rtcConnection = new RTCPeerConnection(vnfRTCServers);
+        var ice = {candidate: [], sdp: null}
+
+        var ice = {candidate: [], sdp: null}
+
+        rtcConnection.onicecandidate = function(evt){
+            Log.info("test", "on ice candidate")
+            if(evt.candidate != null) {
+                ice.candidate.push(evt.candidate);
+            }else{
+                Log.info("test", "Send rtc ice candidates")
+
+                assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
+
+                rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
+                                                   requestForNewConnection: true,
+                                                   ice: ice,
+                                                   connectionCreateDate: self.createDate})
+            }
+        };
+
+        var dataChannel = rtcConnection.createDataChannel("data");
+        dataChannel.onopen = function(event) {
+            Log.info("test", "Data Channel opened")
+
+            dataChannel.send("S19message-1");
+        }
+
+        rtcConnection.createOffer(function(desc){
+            Log.info("test", "Offer created")
+            rtcConnection.setLocalDescription(desc);
+            ice.sdp = desc;
+        }, logErrorCallback());
+
+
+        Promise.resolve()
+         .then(rootCaptor.takeNext.bind(null, 1))
+         .then(function(message) {
+            assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
+            assert.equal(message[0].requestForNewConnection, false, "Asserting requestForNewConnection");
+
+            rtcConnection.setRemoteDescription(new RTCSessionDescription(message[0].ice.sdp));
+
+            for(var i = 0; i < message[0].ice.candidate.length; i++) {
+                rtcConnection.addIceCandidate(new RTCIceCandidate(message[0].ice.candidate[i]));
+            }
+         })
+
+         .then(rtcCaptor.assertSignals.bind(null, "message-1"))
+
+         .then(rootEndpoint.destroy)
+         .then(rtcEndpoint.destroy)
+
+         .then(done);
+    });
 
 });
