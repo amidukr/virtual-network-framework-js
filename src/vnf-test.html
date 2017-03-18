@@ -38,6 +38,7 @@
         reliableRTCKeepAliveHandshakingChannelTimeout: 100,
 
         activeTestingLevel: TESTING_LEVEL_RELEASE,
+        //activeTestingLevel: TESTING_LEVEL_STRESS,
 
 
 
@@ -78,6 +79,10 @@
 
         getValue: function(profile, config) {
             var profileConfigurations = TestingProfiles[profile];
+
+            if(!profileConfigurations) {
+                return TestingProfiles[config];
+            }
 
             return profileConfigurations[config] != undefined ? profileConfigurations[config] : TestingProfiles[config];
         }

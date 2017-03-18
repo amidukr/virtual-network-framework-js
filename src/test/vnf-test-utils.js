@@ -4,20 +4,28 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
 
     var VNFTestUtils = {
 
+        isTestingLevelEnabled: function(testLevel, testProfile) {
+            var activeTestingLevel = TestingProfiles.getValue(testProfile, "activeTestingLevel");
+            return activeTestingLevel >= testLevel;
+        },
+
+        isTestEnabled: function(testProfile) {
+            var testLevel = TestingProfiles.getValue(testProfile, "testLevel");
+
+            VNFTestUtils.isTestingLevelEnabled(testLevel, testProfile);
+        },
+
         test: function(testProfile, shortDescription, args, callback) {
             var description = "["+testProfile+"]-" + shortDescription;
 
-            var activeTestingLevel = TestingProfiles.getValue(testProfile, "activeTestingLevel");
-            var testLevel          = TestingProfiles.getValue(testProfile, "testLevel");
-
-            if(activeTestingLevel < testLevel) {
-                Log.info("test", description);
-                Log.info("Skipping for testingLevel: " + activeTestingLevel);
-                return;
-            }
-
-
             QUnit.test(description, function(assert){
+               Log.info("test", description);
+
+               if(!VNFTestUtils.isTestEnabled(testProfile)) {
+                    assert.ok(true, "Skipping test due to testing level");
+                    return;
+                }
+
                 runningTest = description;
 
                 QUnit.config.testTimeout   = TestingProfiles.getInterval(testProfile, "qunitTestTimeout");
@@ -48,7 +56,7 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                     }
                 }
 
-                Log.info("test", description);
+
 
                 if(callback == undefined) {
                     callback = args;
