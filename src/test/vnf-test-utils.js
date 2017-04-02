@@ -18,14 +18,12 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
         test: function(testProfile, shortDescription, args, callback) {
             var description = "["+testProfile+"]-" + shortDescription;
 
+            if(!VNFTestUtils.isTestEnabled(testProfile)) {
+                return;
+            }
+
             QUnit.test(description, function(assert){
-               Log.info("test", description);
-
-               if(!VNFTestUtils.isTestEnabled(testProfile)) {
-                    assert.ok(true, "Skipping test due to testing level");
-                    return;
-                }
-
+                Log.info("test", description);
                 runningTest = description;
 
                 QUnit.config.testTimeout   = TestingProfiles.getInterval(testProfile, "qunitTestTimeout");

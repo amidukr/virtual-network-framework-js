@@ -22,8 +22,10 @@
     var TESTING_LEVEL_STRESS = 3;
 
     TestingProfiles = {
+        rate: 1,
         qunitTestTimeout: 3000,
         logCaptureTimeout: 3000,
+        testLevel: TESTING_LEVEL_SMOKE,
 
         reliableFastHeartbeatInterval: 20,
         reliableFastConnectionInvalidateInterval: 200,
@@ -37,7 +39,9 @@
         reliableRTCHandshakeRetryInterval: 10,
         reliableRTCKeepAliveHandshakingChannelTimeout: 100,
 
+        //activeTestingLevel: TESTING_LEVEL_SMOKE,
         activeTestingLevel: TESTING_LEVEL_RELEASE,
+        //activeTestingLevel: TESTING_LEVEL_DEBUG,
         //activeTestingLevel: TESTING_LEVEL_STRESS,
 
 
@@ -65,16 +69,17 @@
         toAbsoluteInterval: function(profile, timePoints) {
             if(!timePoints) return;
 
-            var rate = TestingProfiles[profile].rate;
+            var rate = TestingProfiles.getValue(profile, "rate");
             return rate * timePoints;
         },
 
         getInterval: function(profile, config) {
             var profileConfigurations = TestingProfiles[profile];
+            var defaultPointsValue = TestingProfiles[config];
 
-            var defaultInterval = TestingProfiles.toAbsoluteInterval(profile, TestingProfiles[config]);
+            var defaultInterval = TestingProfiles.toAbsoluteInterval(profile, defaultPointsValue);
 
-            return profileConfigurations[config] || defaultInterval;
+            return (profileConfigurations && profileConfigurations[config]) || defaultInterval;
         },
 
         getValue: function(profile, config) {
