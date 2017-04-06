@@ -48,7 +48,7 @@ function(  VNF,
          assert.ok(endpoint1.closeConnection,  "Verifying closeConnection method");
          assert.ok(endpoint1.onConnectionLost, "Verifying onConnectionLost method");
          assert.ok(endpoint1.destroy, "Verifying destroy method");
-         assert.equal(endpoint1.vip, "vip-1", "Verifying vip property");;
+         assert.equal(endpoint1.vip, "vip-1", "Verifying vip property");
  
          endpoint1.destroy();
     });

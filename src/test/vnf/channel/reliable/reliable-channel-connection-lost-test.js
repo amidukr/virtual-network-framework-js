@@ -1,6 +1,5 @@
 requirejs(["test/vnf/channel/reliable/reliable-test-utils"],
 function( ReliableTestUtils){
-    //TODO: connection lost by destroy method
 
     QUnit.module("ReliableHub Connection Lost");
     ReliableTestUtils.reliableVNFTest("Connection Lost: Close connection by reliable endpoint", function(assert, argument) {
