@@ -19,9 +19,9 @@ define([], function(){
     }
 
     var categoryLogLevel = {
-        "webrtc-connecting": INFO,
-        "webrtc-oniceconnectionstatechange": INFO,
-        "webrtc-onsignalingstatechange": INFO
+        //"webrtc-connecting": INFO,
+        //"webrtc-oniceconnectionstatechange": INFO,
+        //"webrtc-onsignalingstatechange": INFO
     }
 
     var self;

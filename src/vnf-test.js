@@ -10,7 +10,7 @@ requirejs(
 "test/vnf/channel/reliable/reliable-channel-connection-lost-test",
 "test/vnf/channel/reliable/reliable-channel-handshake-retry",
 "test/vnf/channel/proxy-channels-test",
-//"test/vnf/websocket/websocket-rpc-test",
+"test/vnf/store/store-integration-test",
 "test/utils/cycle-buffer-test",
 "test/utils/signal-captor-test"
 ], function(){})

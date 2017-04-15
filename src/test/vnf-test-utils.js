@@ -69,6 +69,10 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                     return TestingProfiles.toAbsoluteInterval(testProfile, timePoints)
                 }
 
+                if(typeof args == 'function') {
+                    args = args();
+                }
+
                 args = Object.assign({}, {testProfile: testProfile,
                                           testDescription: description,
                                           getInterval: getInterval,
