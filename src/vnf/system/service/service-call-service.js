@@ -122,7 +122,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
 
             function vnfCall(vip, method, argument) {
                 return new Promise(function(resolve, reject){
-                    var tokenId = nextTokenId++;
+                    var tokenId = nextTokenId;
                     vipCallbacks = callbackMap[vip];
 
                     if(!timerActive) {
@@ -141,12 +141,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
                        reject: reject
                     }
 
-                    vnfEndpoint.send(vip, {
-                       type: MESSAGE_TYPE_CALL,
-                       token: tokenId,
-                       method: method,
-                       argument: argument
-                    })
+                    vnfPush(vip, method, argument);
                })
             }
 
