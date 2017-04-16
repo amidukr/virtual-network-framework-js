@@ -114,6 +114,8 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             }
 
             this.destroy = function() {
+                delete clients[vip];
+
                 for(var prop in ownedKeys){
                     removeEntry(ownedKeys[prop]);
                 }

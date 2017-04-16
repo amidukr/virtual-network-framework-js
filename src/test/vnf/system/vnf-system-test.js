@@ -1,27 +1,55 @@
 
 requirejs(["vnf/vnf",
-           "vnf/global",
            "utils/signal-captor",
            "utils/logger",
            "test/vnf-test-utils",
            "lib/bluebird"],
 function(  VNF,
-           Global,
            SignalCaptor,
            Log,
            VNFTestUtils,
            Promise){
 
     function vfnSystemTest(description, callback) {
-        var vnfSystem = new VNF.System();
+
 
         //VNF.System.registerWebSocket(vnfSystem, "http://....");
         //VNF.System.registerInBrowser(vnfSystem, inBrowserHub, inBrowserStore);
 
-        argument.vnfEndpoint = .... //vnf-endpoint
-        argument.rootEndpoint = .... //root-endpoint
+        //argument.vnfEndpoint = .... //vnf-endpoint
+        //argument.rootEndpoint = .... //root-endpoint
 
+        function prepareArguments(assert, args) {
+            var vnfSystem = new VNF.System();
 
+            var rootHub  = args.rootHubFactory();
+
+            vnfSystem.registerService(new VNF.System.ChannelHubService(rootHub))
+            vnfSystem.registerService(new VNF.System.StoreService(new VNF.InBrowserStore()))
+
+            var rootCapture = new SignalCaptor(assert);
+
+            var rootEndpoint = rootHub.openEndpoint("root-endpoint");
+
+            rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback(rootCapture,      "root-endpoint");
+
+            rootEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(rootCapture, "root-endpoint"));
+
+            function destroy() {
+                rootEndpoint.destroy();
+            }
+
+            return Object.assign({}, {  vnfSystem: vnfSystem,
+
+                                        rootHub:      rootHub,
+                                        rootEndpoint: rootEndpoint,
+                                        rootCapture:  rootCapture,
+
+                                        destroy: destroy},
+                           args);
+        }
+
+        VNFTestUtils.vnfTest("[VNF System Tests] " + description, prepareArguments, callback);
     }
 
     vfnSystemTest("Consume side test: Service call test",  function(assert, argument){
@@ -35,12 +63,13 @@ function(  VNF,
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"RESPONSE","token":1,"result":"response-to-argument-2"}))
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"RESPONSE","token":0,"result":"response-to-argument-1"}))
 
-        Promise.all(vnfEndpoint.call("root-endpoint", "test-method", "test-method-argument-1"),
-                    vnfEndpoint.call("root-endpoint", "test-method", "test-method-argument-2"))
+        Promise.all([vnfEndpoint.call("root-endpoint", "test-method", "test-method-argument-1"),
+                    vnfEndpoint.call("root-endpoint", "test-method", "test-method-argument-2")])
         .then(function(results){
             assert.equal(results[0], "response-to-argument-1", "Verifying first call response")
-            assert.equal(results[1], "response-to-argument-1", "Verifying second call response")
+            assert.equal(results[1], "response-to-argument-2", "Verifying second call response")
         })
+        .then(argument.destroy)
         .then(done);
     })
 
@@ -61,6 +90,7 @@ function(  VNF,
         }, function(reason){
             assert.equal(reason, "error-reason-code", "asserting error reason");
         })
+        .then(argument.destroy)
         .then(done);
     });
 
@@ -75,23 +105,25 @@ function(  VNF,
 
         .then(argument.rootCapture.assertSignals.bind(null, ['from vnf-endpoint: {"type":"CALL","token":0,"method":"test-method","argument":"test-method-argument-1"}']))
         .then(argument.rootCapture.assertSignals.bind(null, ['from vnf-endpoint: {"type":"CALL","token":1,"method":"test-method","argument":"test-method-argument-2"}']))
-
+        .then(argument.destroy)
         .then(done);
     })
 
     vfnSystemTest("Provider side test: Service call test",  function(assert, argument){
         var done = assert.async(1);
 
+        var i = 1;
+
         function MockService(endpoint) {
             this.handlers = {
                 "test-method": function(event) {
-                    assert.equal(event.message,      "test-method-argument",   "asserting event message");
-                    assert.equal(event.method,       "test-method",            "asserting event method");
-                    assert.equal(event.sourceVIP,    "consumer-endpoint",      "asserting event sourceVIP");
-                    assert.equal(event.endpoint,     endpoint,                 "asserting event endpoint");
-                    assert.equal(event.endpoint.vip, "provider-endpoint".      "asserting event endpoint vip");
+                    assert.equal(event.message,      "test-method-argument-" + i++, "asserting event message");
+                    assert.equal(event.method,       "test-method",                 "asserting event method");
+                    assert.equal(event.sourceVIP,    "root-endpoint",               "asserting event sourceVIP");
+                    assert.equal(event.endpoint,     endpoint,                      "asserting event endpoint");
+                    assert.equal(event.endpoint.vip, "vnf-endpoint",                "asserting event endpoint vip");
 
-                    return event.message-echo;
+                    return event.message + "-echo";
                 }
             }
         }
@@ -103,8 +135,10 @@ function(  VNF,
         Promise.resolve()
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":0,"method":"test-method","argument":"test-method-argument-1"}))
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":1,"method":"test-method","argument":"test-method-argument-2"}))
-        .then(argument.rootCapture.assertSignals.bind(null, 'vnf-endpoint: {"type":"RESPONSE","token":0,"result":"test-method-argument-1-echo"}'))
-        .then(argument.rootCapture.assertSignals.bind(null, 'vnf-endpoint: {"type":"RESPONSE","token":1,"result":"test-method-argument-2-echo"}'))
+        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE","token":0,"result":"test-method-argument-1-echo"}'))
+        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE","token":1,"result":"test-method-argument-2-echo"}'))
+
+        .then(argument.destroy)
         .then(done);
     });
 
@@ -126,8 +160,10 @@ function(  VNF,
         Promise.resolve()
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":0,"method":"test-method","argument":"test-method-argument-1"}))
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":1,"method":"test-method","argument":"test-method-argument-2"}))
-        .then(argument.rootCapture.assertSignals.bind(null, 'vnf-endpoint: {"type":"RESPONSE","token":0,"result":"test-method-argument-1-echo"}'))
-        .then(argument.rootCapture.assertSignals.bind(null, 'vnf-endpoint: {"type":"RESPONSE","token":1,"result":"test-method-argument-2-echo"}'))
+        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE","token":0,"result":"test-method-argument-1-echo"}'))
+        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE","token":1,"result":"test-method-argument-2-echo"}'))
+
+        .then(argument.destroy)
         .then(done);
     });
 
@@ -139,7 +175,9 @@ function(  VNF,
 
         Promise.resolve()
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":0,"method":"test-method","argument":"test-method-argument-1"}))
-        .then(argument.rootCapture.assertSignals.bind(null, 'vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"CALL_FAILED_UNKNOWN_METHOD"}'))
+        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"CALL_FAILED_UNKNOWN_METHOD"}'))
+
+        .then(argument.destroy)
         .then(done);
 
     });
@@ -162,7 +200,9 @@ function(  VNF,
 
        Promise.resolve()
        .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":0,"method":"test-method","argument":"test-method-argument-1"}))
-       .then(argument.rootCapture.assertSignals.bind(null, 'vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"CALL_FAILED_UNEXPECTED_EXCEPTION"}'))
+       .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"CALL_FAILED_UNEXPECTED_EXCEPTION"}'))
+
+       .then(argument.destroy)
        .then(done);
     });
 
@@ -184,7 +224,9 @@ function(  VNF,
 
        Promise.resolve()
        .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":0,"method":"test-method","argument":"test-method-argument-1"}))
-       .then(argument.rootCapture.assertSignals.bind(null, 'vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"fail-reason-code"}'))
+       .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"fail-reason-code"}'))
+
+       .then(argument.destroy)
        .then(done);
     });
 
@@ -200,8 +242,8 @@ function(  VNF,
                 }
             }
 
-            this.onConnectionLost = function(event) {
-                captor.signal("connection-lost: " + event.sourceVIP);
+            this.onConnectionLost = function(targetVIP) {
+                captor.signal("connection-lost: " + targetVIP);
             };
         }
 
@@ -210,8 +252,11 @@ function(  VNF,
 
         Promise.resolve()
         .then(argument.rootEndpoint.send.bind(null, "vnf-endpoint", {"type":"CALL","token":0,"method":"ping","argument":"no-arg"}))
+        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE","token":0,"result":"pong"}'))
         .then(argument.rootEndpoint.closeConnection.bind(null, "vnf-endpoint"))
         .then(captor.assertSignals.bind(null, ["connection-lost: root-endpoint"]))
+
+        .then(argument.destroy)
         .then(done);
     });
 
@@ -229,8 +274,10 @@ function(  VNF,
          .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, Global.FAILED_DUE_TO_CONNECTION_LOST, "asserting error reason");
+            assert.equal(reason, VNF.Global.FAILED_DUE_TO_CONNECTION_LOST, "asserting error reason");
         })
+
+        .then(argument.destroy)
         .then(done);
     });
 
@@ -238,18 +285,20 @@ function(  VNF,
         var done = assert.async(1);
 
         var vnfEndpoint = argument.vnfSystem.openEndpoint("vnf-endpoint");
+        vnfEndpoint.setCallTimeout(1);
 
         Promise.resolve()
         .then(argument.rootCapture.assertSignals.bind(null, ['from vnf-endpoint: {"type":"CALL","token":0,"method":"test-method","argument":"test-method-argument-1"}']))
-        .then(argument.rootEndpoint.closeConnection.bind(null, "vnf-endpoint"))
 
         Promise.resolve()
         vnfEndpoint.call("root-endpoint", "test-method", "test-method-argument-1")
          .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, Global.REJECTED_BY_TIMEOUT, "asserting error reason");
+            assert.equal(reason, VNF.Global.REJECTED_BY_TIMEOUT, "asserting error reason");
         })
+
+        .then(argument.destroy)
         .then(done);
     });
 });
