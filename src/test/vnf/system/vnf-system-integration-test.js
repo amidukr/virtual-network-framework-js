@@ -1,23 +1,15 @@
 requirejs(["vnf/vnf",
-           "vnf/global",
-           "utils/signal-captor",
-           "utils/logger",
-           "test/vnf-test-utils",
-           "lib/bluebird"],
+           "lib/bluebird",
+           "test/vnf/system/vnf-system-test-utils",
+           "utils/signal-captor"],
 function(  VNF,
-           Global,
-           SignalCaptor,
-           Log,
-           VNFTestUtils,
-           Promise){
+           Promise,
+           VNFSystemTestUtils,
+           SignalCaptor){
+
 
     function vnfSystemIntegrationTest(description, callback) {
-        var vnfSystem = new VNF.System();
-
-        //VNF.System.registerWebSocket(vnfSystem, "http://....");
-        //VNF.System.registerInBrowser(vnfSystem, inBrowserHub, inBrowserStore);
-
-
+        VNFSystemTestUtils.vfnSystemTest("[Integration] " + description, callback);
     }
 
     vnfSystemIntegrationTest("Service call test",  function(assert, argument){
@@ -30,7 +22,7 @@ function(  VNF,
                     assert.equal(event.method,       "test-method",            "asserting event method");
                     assert.equal(event.sourceVIP,    "consumer-endpoint",      "asserting event sourceVIP");
                     assert.equal(event.endpoint,     endpoint,                 "asserting event endpoint");
-                    assert.equal(event.endpoint.vip, "provider-endpoint".      "asserting event endpoint vip");
+                    assert.equal(event.endpoint.vip, "provider-endpoint",      "asserting event endpoint vip");
 
                     return "test-method-result";
                 }
@@ -43,7 +35,7 @@ function(  VNF,
         var consumerEndpoint = argument.vnfSystem.openEndpoint("consumer-endpoint");
 
         Promise.resolve()
-        .then(consumerEndpoint.call("provider-endpoint", "test-method", "test-method-argument"))
+        .then(consumerEndpoint.call.bind(null, "provider-endpoint", "test-method", "test-method-argument"))
         .then(function(result){
             assert.equal(result, "test-method-result", "asserting service call result");
         })
@@ -72,9 +64,8 @@ function(  VNF,
         var consumerEndpoint = argument.vnfSystem.openEndpoint("consumer-endpoint");
 
         Promise.resolve()
-        .then(consumerEndpoint.push("provider-endpoint", "test-method", "test-method-argument-1"))
-        .then(consumerEndpoint.push("provider-endpoint", "test-method", "test-method-argument-2"))
-        .then(done);
+        .then(consumerEndpoint.push.bind(null, "provider-endpoint", "test-method", "test-method-argument-1"))
+        .then(consumerEndpoint.push.bind(null, "provider-endpoint", "test-method", "test-method-argument-2"))
     })
 
     vnfSystemIntegrationTest("Service call async processing test",  function(assert, argument){
@@ -94,7 +85,7 @@ function(  VNF,
         var consumerEndpoint = argument.vnfSystem.openEndpoint("consumer-endpoint");
 
         Promise.resolve()
-        .then(consumerEndpoint.call("provider-endpoint", "test-method", "test-method-argument"))
+        .then(consumerEndpoint.call.bind(null, "provider-endpoint", "test-method", "test-method-argument"))
         .then(function(result){
             assert.equal(result, "test-method-result", "asserting service call result");
         })
@@ -108,11 +99,11 @@ function(  VNF,
         var consumerEndpoint = argument.vnfSystem.openEndpoint("consumer-endpoint");
 
         Promise.resolve()
-        .then(consumerEndpoint.call("provider-endpoint", "test-method", "test-method-argument"))
+        .then(consumerEndpoint.call.bind(null, "provider-endpoint", "test-method", "test-method-argument"))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, Global.CALL_FAILED_UNKNOWN_METHOD, "asserting error reason");
+            assert.equal(reason, VNF.Global.CALL_FAILED_UNKNOWN_METHOD, "asserting error reason");
         })
         .then(done);
     });
@@ -134,11 +125,11 @@ function(  VNF,
         var consumerEndpoint = argument.vnfSystem.openEndpoint("consumer-endpoint");
 
         Promise.resolve()
-        .then(consumerEndpoint.call("provider-endpoint", "test-method", "test-method-argument"))
+        .then(consumerEndpoint.call.bind(null, "provider-endpoint", "test-method", "test-method-argument"))
          .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, Global.CALL_FAILED_UNEXPECTED_EXCEPTION, "asserting error reason");
+            assert.equal(reason, VNF.Global.CALL_FAILED_UNEXPECTED_EXCEPTION, "asserting error reason");
         })
         .then(done);
     });
@@ -160,7 +151,7 @@ function(  VNF,
         var consumerEndpoint = argument.vnfSystem.openEndpoint("consumer-endpoint");
 
         Promise.resolve()
-        .then(consumerEndpoint.call("provider-endpoint", "test-method", "test-method-argument"))
+        .then(consumerEndpoint.call.bind(null, "provider-endpoint", "test-method", "test-method-argument"))
          .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
@@ -181,10 +172,12 @@ function(  VNF,
                 }
             }
 
-            this.onConnectionLost = function(event) {
-                captor.signal("connection-lost: " + event.sourceVIP);
+            this.onConnectionLost = function(targetVIP) {
+                captor.signal("connection-lost: " + targetVIP);
             };
         }
+
+        argument.vnfSystem.registerService(MockService);
 
         var providerEndpoint = argument.vnfSystem.openEndpoint("provider-endpoint");
         var consumerEndpoint = argument.vnfSystem.openEndpoint("consumer-endpoint");
@@ -192,17 +185,19 @@ function(  VNF,
         Promise.resolve()
         .then(consumerEndpoint.call.bind(null, "provider-endpoint", "ping"))
         .then(consumerEndpoint.closeConnection.bind(null, "provider-endpoint"))
-        .then(captor.assertSignals.bind(null, ["connection-lost: consumer-endpoint"]))
+        .then(captor.assertSignalsUnordered.bind(null, ["connection-lost: consumer-endpoint",
+                                                        "connection-lost: provider-endpoint"]))
         .then(done);
     });
 
     vnfSystemIntegrationTest("Store service test",  function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = arguments.storeClient;
+        var vnfEndpoint = argument.vnfSystem.openEndpoint("provider-endpoint");
+        var storeClient = vnfEndpoint.getStoreClient();
 
         Promise.resolve()
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value"}))
+        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value"))
         .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
         .then(function(value){
             assert.equal(value, "entry value", "asserting inserted entry");

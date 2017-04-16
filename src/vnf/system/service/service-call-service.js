@@ -7,7 +7,6 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
 
     return function ServiceCallService(storeHub) {
         return function(vnfEndpoint) {
-            var parentEndpoint;
             var callbackMap = {};
             var nextTokenId = 0;
             var handlersRegistry = {};
@@ -50,7 +49,6 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             vnfEndpoint.setCallTimeout = function(value) {
                 callTimeout = value;
             }
-
 
             function sendResult(event, result) {
                 vnfEndpoint.send(event.sourceVIP, {
@@ -172,11 +170,6 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
                         for(var methods in handlers) {
                             handlersRegistry[methods] = handlers[methods];
                         }
-                    }
-
-                    var parentEndpoint = vnfEndpoint.serviceLookupCall("initializeEndpoint");
-                    if(parentEndpoint.length == 0) {
-                        throw new Error("no endpoints found");
                     }
 
                     vnfEndpoint.call = vnfCall;

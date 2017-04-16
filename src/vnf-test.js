@@ -12,6 +12,7 @@ requirejs(
 "test/vnf/channel/proxy-channels-test",
 "test/vnf/store/store-integration-test",
 "test/vnf/system/vnf-system-test",
+"test/vnf/system/vnf-system-integration-test",
 "test/utils/cycle-buffer-test",
 "test/utils/signal-captor-test"
 ], function(){})

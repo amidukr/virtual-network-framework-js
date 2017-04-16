@@ -3,6 +3,7 @@ define([], function() {
     return function VNFCoreService() {
         return function(vnfEndpoint) {
             var parentEndpoint;
+            var storeClient;
 
             var handlersRegistry = {}
 
@@ -21,14 +22,15 @@ define([], function() {
                         }
                     }
 
-                    var parentEndpoint = vnfEndpoint.serviceLookupCallSingle("initializeEndpoint");
-                    var storeClient    = vnfEndpoint.serviceLookupCallSingle("initializeStoreClient");
+                    parentEndpoint = vnfEndpoint.serviceLookupCallSingle("initializeEndpoint");
+                    storeClient    = vnfEndpoint.serviceLookupCallSingle("initializeStoreClient");
 
                     vnfEndpoint.send = parentEndpoint.send;
+                    vnfEndpoint.closeConnection = parentEndpoint.closeConnection;
                     parentEndpoint.onMessage = onMessage;
 
                     vnfEndpoint.getStoreClient = function() {
-                        storeClient;
+                        return storeClient;
                     }
 
                     parentEndpoint.onConnectionLost(function(targetVip){

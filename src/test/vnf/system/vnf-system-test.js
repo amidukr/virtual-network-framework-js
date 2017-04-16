@@ -1,58 +1,17 @@
-
 requirejs(["vnf/vnf",
-           "utils/signal-captor",
-           "utils/logger",
-           "test/vnf-test-utils",
-           "lib/bluebird"],
+           "lib/bluebird",
+           "test/vnf/system/vnf-system-test-utils",
+           "utils/signal-captor"],
 function(  VNF,
-           SignalCaptor,
-           Log,
-           VNFTestUtils,
-           Promise){
+           Promise,
+           VNFSystemTestUtils,
+           SignalCaptor){
 
-    function vfnSystemTest(description, callback) {
-
-
-        //VNF.System.registerWebSocket(vnfSystem, "http://....");
-        //VNF.System.registerInBrowser(vnfSystem, inBrowserHub, inBrowserStore);
-
-        //argument.vnfEndpoint = .... //vnf-endpoint
-        //argument.rootEndpoint = .... //root-endpoint
-
-        function prepareArguments(assert, args) {
-            var vnfSystem = new VNF.System();
-
-            var rootHub  = args.rootHubFactory();
-
-            vnfSystem.registerService(new VNF.System.ChannelHubService(rootHub))
-            vnfSystem.registerService(new VNF.System.StoreService(new VNF.InBrowserStore()))
-
-            var rootCapture = new SignalCaptor(assert);
-
-            var rootEndpoint = rootHub.openEndpoint("root-endpoint");
-
-            rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback(rootCapture,      "root-endpoint");
-
-            rootEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(rootCapture, "root-endpoint"));
-
-            function destroy() {
-                rootEndpoint.destroy();
-            }
-
-            return Object.assign({}, {  vnfSystem: vnfSystem,
-
-                                        rootHub:      rootHub,
-                                        rootEndpoint: rootEndpoint,
-                                        rootCapture:  rootCapture,
-
-                                        destroy: destroy},
-                           args);
-        }
-
-        VNFTestUtils.vnfTest("[VNF System Tests] " + description, prepareArguments, callback);
+    function vfnSystemUnitTest(description, callback) {
+        VNFSystemTestUtils.vfnSystemTest("[Unit] " + description, callback);
     }
 
-    vfnSystemTest("Consume side test: Service call test",  function(assert, argument){
+    vfnSystemUnitTest("Consume side test: Service call test",  function(assert, argument){
         var done = assert.async(1);
 
         var vnfEndpoint = argument.vnfSystem.openEndpoint("vnf-endpoint");
@@ -69,12 +28,14 @@ function(  VNF,
             assert.equal(results[0], "response-to-argument-1", "Verifying first call response")
             assert.equal(results[1], "response-to-argument-2", "Verifying second call response")
         })
+
         .then(argument.destroy)
+        .then(vnfEndpoint.destroy)
         .then(done);
     })
 
 
-    vfnSystemTest("Consumer side test: Service call failed test",  function(assert, argument){
+    vfnSystemUnitTest("Consumer side test: Service call failed test",  function(assert, argument){
         var done = assert.async(1);
 
         var vnfEndpoint = argument.vnfSystem.openEndpoint("vnf-endpoint");
@@ -91,10 +52,11 @@ function(  VNF,
             assert.equal(reason, "error-reason-code", "asserting error reason");
         })
         .then(argument.destroy)
+        .then(vnfEndpoint.destroy)
         .then(done);
     });
 
-    vfnSystemTest("Consume side test: Service push test",  function(assert, argument){
+    vfnSystemUnitTest("Consume side test: Service push test",  function(assert, argument){
         var done = assert.async(1);
 
         var vnfEndpoint = argument.vnfSystem.openEndpoint("vnf-endpoint");
@@ -109,7 +71,7 @@ function(  VNF,
         .then(done);
     })
 
-    vfnSystemTest("Provider side test: Service call test",  function(assert, argument){
+    vfnSystemUnitTest("Provider side test: Service call test",  function(assert, argument){
         var done = assert.async(1);
 
         var i = 1;
@@ -139,10 +101,11 @@ function(  VNF,
         .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE","token":1,"result":"test-method-argument-2-echo"}'))
 
         .then(argument.destroy)
+        .then(vnfEndpoint.destroy)
         .then(done);
     });
 
-    vfnSystemTest("Provider side test: Service call async processing test",  function(assert, argument){
+    vfnSystemUnitTest("Provider side test: Service call async processing test",  function(assert, argument){
         var done = assert.async(1);
 
         function MockService(endpoint) {
@@ -168,7 +131,7 @@ function(  VNF,
     });
 
 
-    vfnSystemTest("Provider side test: Service call failed: unknown method test",  function(assert, argument){
+    vfnSystemUnitTest("Provider side test: Service call failed: unknown method test",  function(assert, argument){
         var done = assert.async(1);
 
         var vnfEndpoint = argument.vnfSystem.openEndpoint("vnf-endpoint");
@@ -178,12 +141,12 @@ function(  VNF,
         .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"CALL_FAILED_UNKNOWN_METHOD"}'))
 
         .then(argument.destroy)
+        .then(vnfEndpoint.destroy)
         .then(done);
-
     });
 
 
-    vfnSystemTest("Provider side test: Service call failed: unexpected error test",  function(assert, argument){
+    vfnSystemUnitTest("Provider side test: Service call failed: unexpected error test",  function(assert, argument){
        var done = assert.async(1);
 
        function MockService(endpoint) {
@@ -203,11 +166,12 @@ function(  VNF,
        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"CALL_FAILED_UNEXPECTED_EXCEPTION"}'))
 
        .then(argument.destroy)
+       .then(vnfEndpoint.destroy)
        .then(done);
     });
 
 
-    vfnSystemTest("Provider side test: Service call failed: controlled failure test",  function(assert, argument){
+    vfnSystemUnitTest("Provider side test: Service call failed: controlled failure test",  function(assert, argument){
        var done = assert.async(1);
 
        function MockService(endpoint) {
@@ -227,10 +191,11 @@ function(  VNF,
        .then(argument.rootCapture.assertSignals.bind(null, 'from vnf-endpoint: {"type":"RESPONSE-FAIL","token":0,"reason":"fail-reason-code"}'))
 
        .then(argument.destroy)
+       .then(vnfEndpoint.destroy)
        .then(done);
     });
 
-    vfnSystemTest("onConnectionLost test",  function(assert, argument){
+    vfnSystemUnitTest("onConnectionLost test",  function(assert, argument){
         var done = assert.async(1);
 
         var captor = new SignalCaptor(assert);
@@ -257,10 +222,11 @@ function(  VNF,
         .then(captor.assertSignals.bind(null, ["connection-lost: root-endpoint"]))
 
         .then(argument.destroy)
+        .then(vnfEndpoint.destroy)
         .then(done);
     });
 
-    vfnSystemTest("Service call failed: failed due to connection lost test",  function(assert, argument){
+    vfnSystemUnitTest("Service call failed: failed due to connection lost test",  function(assert, argument){
         var done = assert.async(1);
 
         var vnfEndpoint = argument.vnfSystem.openEndpoint("vnf-endpoint");
@@ -278,10 +244,11 @@ function(  VNF,
         })
 
         .then(argument.destroy)
+        .then(vnfEndpoint.destroy)
         .then(done);
     });
 
-    vfnSystemTest("Service call failed: failed due to timeout test",  function(assert, argument){
+    vfnSystemUnitTest("Service call failed: failed due to timeout test",  function(assert, argument){
         var done = assert.async(1);
 
         var vnfEndpoint = argument.vnfSystem.openEndpoint("vnf-endpoint");
@@ -299,6 +266,7 @@ function(  VNF,
         })
 
         .then(argument.destroy)
+        .then(vnfEndpoint.destroy)
         .then(done);
     });
 });

@@ -62,7 +62,7 @@ define(["vnf/global",
             }
 
             this.destroy = function() {
-                serviceLookupCall("destroy");
+                vnfEndpoint.serviceLookupCall("destroy");
                 delete endpoints[vip];
             }
 
