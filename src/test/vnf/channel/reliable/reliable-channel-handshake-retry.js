@@ -26,6 +26,7 @@ function( ReliableTestUtils){
         .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":1,"payload":"message-2"}']))
 
         .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+        .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
         .then(argument.rootCapture.assertSilence.bind(null, 60))
 
 

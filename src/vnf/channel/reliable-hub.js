@@ -312,6 +312,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 channel.keepAliveHandshakingCounter++;
                 if(channel.keepAliveHandshakingCounter >= heartbeatsToDropHandshakingConnection) {
                     parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVIP);
+                    self.__fireConnectionLost(channel.targetVIP);
                     channel.suspended = true;
                     Log.debug(instanceId, "reliable-channel-status", "closing connection")
                 }
