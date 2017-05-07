@@ -1,5 +1,6 @@
 requirejs(
-["test/vnf/channel/vnf-channel-test",
+["test/vnf/websocket/websocket-rpc-test",
+"test/vnf/channel/vnf-channel-test",
 "test/vnf/channel/rtc-channel-test.js",
 "test/vnf/channel/rtc-compatibility-tests.js",
 "test/vnf/channel/reliable-channel-test",

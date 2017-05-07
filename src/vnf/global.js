@@ -13,7 +13,9 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
         CALL_FAILED_UNEXPECTED_EXCEPTION : "CALL_FAILED_UNEXPECTED_EXCEPTION",
 
         FAILED_DUE_TO_CONNECTION_LOST    : "FAILED_DUE_TO_CONNECTION_LOST",
-        REJECTED_BY_TIMEOUT              : "REJECTED_BY_TIMEOUT"
+        REJECTED_BY_TIMEOUT              : "REJECTED_BY_TIMEOUT",
+
+        INSTANCE_DESTROYED: "INSTANCE_DESTROYED"
 
     };
 });

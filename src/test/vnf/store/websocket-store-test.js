@@ -15,7 +15,7 @@ function(  VNF,
 
     function doLogin(argument) {
         return Promise.resolve()
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
     }
 
@@ -29,7 +29,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 CREATE-ENTRY\ncollection1\nentry1\nSentry value"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 CREATE-ENTRY\ncollection1\nentry1\nSentry value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 CREATE-ENTRY\nSUCCESS\noperation-status"))
 
         arguments.storeClient.createEntry({collection: "collection1", name: "entry1"}, "entry value")
@@ -47,7 +47,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry value"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 CREATE-OR-UPDATE-ENTRY\nSUCCESS\noperation-status"))
 
         arguments.storeClient.createOrUpdate({collection: "collection1", name: "entry1"}, "entry value")
@@ -65,7 +65,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 GET-ENTRY\ncollection1\nentry1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 GET-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 GET-ENTRY\nSUCCESS\nSentry-value"))
 
         arguments.storeClient.getEntry({collection: "collection1", name: "entry1"})
@@ -84,7 +84,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 1 CREATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 CREATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 CREATE-ENTRY\nSUCCESS\noperation-status"))
 
         arguments.storeClient.createEntry({collection: "collection1", name: "entry1"}, {"json":"value"})
@@ -102,7 +102,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 1 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 CREATE-OR-UPDATE-ENTRY\nSUCCESS\noperation-status"))
 
         arguments.storeClient.createOrUpdate({collection: "collection1", name: "entry1"}, {"json":"value"})
@@ -120,7 +120,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 GET-ENTRY\ncollection1\nentry1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 GET-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '1 GET-ENTRY\nSUCCESS\nJ{"json":"value"}'))
 
         arguments.storeClient.getEntry({collection: "collection1", name: "entry1"})
@@ -138,7 +138,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 GET-ENTRIES-WITH-BODY\ncollection1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 GET-ENTRIES-WITH-BODY\ncollection1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '1 GET-ENTRIES-WITH-BODY\nSUCCESS\n6 key1\nS12345\n7 key2\nSABCDEF\n10 key3\nJ{"a":"b"}\n'))
 
 
@@ -158,7 +158,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 DELETE-ENTRY\ncollection1\nentry1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 DELETE-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 DELETE-ENTRY\nSUCCESS\noperation-status"))
 
         arguments.storeClient.deleteEntry({collection: "collection1", name: "entry1"})
@@ -176,7 +176,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 CREATE-ENTRY\ncollection1\nentry1\nSentry value"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 CREATE-ENTRY\ncollection1\nentry1\nSentry value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 CREATE-ENTRY\nFAIL\nfail-status"))
 
         arguments.storeClient.createEntry({collection: "collection1", name: "entry1"}, "entry value")
@@ -196,7 +196,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry value"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 CREATE-OR-UPDATE-ENTRY\nnFAIL\nfail-status"))
 
         arguments.storeClient.createOrUpdate({collection: "collection1", name: "entry1"}, "entry value")
@@ -216,7 +216,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 GET-ENTRY\ncollection1\nentry1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 GET-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 GET-ENTRY\nFAIL\nfail-status"))
 
         arguments.storeClient.getEntry({collection: "collection1", name: "entry1"})
@@ -236,7 +236,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 GET-ENTRIES-WITH-BODY\ncollection1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 GET-ENTRIES-WITH-BODY\ncollection1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '1 GET-ENTRIES-WITH-BODY\nFAIL\nfail-status'))
 
 
@@ -258,7 +258,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 DELETE-ENTRY\ncollection1\nentry1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 DELETE-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 DELETE-ENTRY\nFAIL\nfail-status"))
 
         arguments.storeClient.deleteEntry({collection: "collection1", name: "entry1"})

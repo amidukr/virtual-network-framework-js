@@ -15,7 +15,7 @@ function(  VNF,
 
     function doLogin(argument) {
         return Promise.resolve()
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
     }
 
@@ -30,7 +30,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 1 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nSstring-value"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nSstring-value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 SEND_TO_ENDPOINT\nSUCCESS"))
 
         .then(done)
@@ -45,7 +45,7 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nJ{"json":"value"}']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nJ{"json":"value"}']))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 SEND_TO_ENDPOINT\nSUCCESS"))
 
         .then(done)
@@ -109,8 +109,8 @@ function(  VNF,
         Promise.resolve()
         .then(doLogin.bind(null, argument))
         .then(argument.webSocketEndpoint.closeConnection.bind("external-endpoint-vip"))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nendpoint-vip\nCLOSE-CONNECTION']))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["message: 2 PING"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nendpoint-vip\nCLOSE-CONNECTION']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 PING"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 PING"))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 SEND_TO_ENDPOINT\nSUCCESS"))
 
@@ -127,15 +127,15 @@ function(  VNF,
 
         Promise.resolve()
         .then(doLogin.bind(null, argument))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nvip-1\nMESSAGE\nSmessage-1']))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 2 SEND_TO_ENDPOINT\nvip-2\nMESSAGE\nSmessage-2']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nvip-1\nMESSAGE\nSmessage-1']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 2 SEND_TO_ENDPOINT\nvip-2\nMESSAGE\nSmessage-2']))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 SEND_TO_ENDPOINT\nSUCCESS"))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT\nSUCCESS"))
 
         .then(argument.webSocketEndpoint.destroy.bind("external-endpoint-vip"))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 3 SEND_TO_ENDPOINT\nvip-1\nCLOSE-CONNECTION']))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ['message: 4 SEND_TO_ENDPOINT\nvip-2\nCLOSE-CONNECTION']))
-        .then(argument.webSocketCapture.assertSignals.bind(null, ["destroy"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 3 SEND_TO_ENDPOINT\nvip-1\nCLOSE-CONNECTION']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 4 SEND_TO_ENDPOINT\nvip-2\nCLOSE-CONNECTION']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["destroy"]))
 
         .then(done)
     })

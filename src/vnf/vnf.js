@@ -1,6 +1,6 @@
 define(["vnf/global",
 
-        "vnf/system/system",
+        "vnf/websocket/websocket-rpc",
 
         "vnf/store/in-browser-store",
 
@@ -10,10 +10,12 @@ define(["vnf/global",
         "vnf/channel/reliable-hub",
         "vnf/channel/reliable-rtc-hub",
 
+        "vnf/system/system",
+
         "utils/arrays"],
   function(Global,
 
-           VNFSystem,
+           WebSocketRpc,
 
            InBrowserStore,
 
@@ -21,11 +23,13 @@ define(["vnf/global",
            RTCHub,
            UnreliableHub,
            ReliableHub,
-           ReliableRTCHub){
+           ReliableRTCHub,
+
+           VNFSystem){
     return {
       Global: Global,
 
-      System: VNFSystem,
+      WebSocketRpc: WebSocketRpc,
 
       InBrowserStore: InBrowserStore,
 
@@ -33,7 +37,9 @@ define(["vnf/global",
       UnreliableHub: UnreliableHub,
       ReliableHub: ReliableHub,
       RTCHub: RTCHub,
-      ReliableRTCHub: ReliableRTCHub
+      ReliableRTCHub: ReliableRTCHub,
+
+      System: VNFSystem
     }
 });
 
