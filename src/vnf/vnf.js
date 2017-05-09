@@ -3,6 +3,7 @@ define(["vnf/global",
         "vnf/websocket/websocket-rpc",
 
         "vnf/store/in-browser-store",
+        "vnf/store/websocket-store-client",
 
         "vnf/channel/in-browser-hub",
         "vnf/channel/rtc-hub",
@@ -18,6 +19,7 @@ define(["vnf/global",
            WebSocketRpc,
 
            InBrowserStore,
+           WebSocketStoreClient,
 
            InBrowserHub,
            RTCHub,
@@ -31,12 +33,13 @@ define(["vnf/global",
 
       WebSocketRpc: WebSocketRpc,
 
-      InBrowserStore: InBrowserStore,
+      InBrowserStore:       InBrowserStore,
+      WebSocketStoreClient: WebSocketStoreClient,
 
-      InBrowserHub: InBrowserHub,
-      UnreliableHub: UnreliableHub,
-      ReliableHub: ReliableHub,
-      RTCHub: RTCHub,
+      InBrowserHub:   InBrowserHub,
+      UnreliableHub:  UnreliableHub,
+      ReliableHub:    ReliableHub,
+      RTCHub:         RTCHub,
       ReliableRTCHub: ReliableRTCHub,
 
       System: VNFSystem

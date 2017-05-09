@@ -355,4 +355,33 @@ function(  VNF,
         .then(done);
     })
 
+
+    storeIntegrationTest("Test invalid character handling",  function(assert, argument){
+
+        var storeClient = argument.newStoreClient("owner-1");
+
+        function verifyInvalidEOLArguments(methodName, callback) {
+            try{
+                callback();
+                assert.notOk(methodName + ": expected exception not thrown");
+            }catch(e) {
+                assert.ok(e.message.indexOf("EOL character") != -1, methodName + ": EOL character exception thrown");
+            }
+        }
+
+        verifyInvalidEOLArguments("createEntry", storeClient.createEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}, "entry value"));
+        verifyInvalidEOLArguments("createEntry", storeClient.createEntry.bind(null, {collection: "collection name", name: "entry\nname"}, "entry value"));
+
+        verifyInvalidEOLArguments("createOrUpdate", storeClient.createOrUpdate.bind(null, {collection: "bad\ncollection name", name: "entry name"}, "entry value"));
+        verifyInvalidEOLArguments("createOrUpdate", storeClient.createOrUpdate.bind(null, {collection: "collection name", name: "entry\nname"}, "entry value"));
+
+        verifyInvalidEOLArguments("getEntry", storeClient.getEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}));
+        verifyInvalidEOLArguments("getEntry", storeClient.getEntry.bind(null, {collection: "collection name", name: "entry\nname"}));
+
+        verifyInvalidEOLArguments("getEntriesWithBody", storeClient.getEntriesWithBody.bind(null, "bad\ncollection name"));
+
+        verifyInvalidEOLArguments("deleteEntry", storeClient.deleteEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}));
+        verifyInvalidEOLArguments("deleteEntry", storeClient.deleteEntry.bind(null, {collection: "collection name", name: "entry\nname"}));
+    })
+
 });

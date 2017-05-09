@@ -1,5 +1,10 @@
 define(["vnf/global", "utils/utils"], function(Global, Utils) {
 
+    function validateKey(key) {
+        if(key.collection.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in collection name");
+        if(key.name.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in entry name");
+    }
+
     return function InBrowserStore() {
         var clients = {};
 
@@ -11,6 +16,8 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             var ownedKeys     = {};
 
             function putEntry(failIfExists, key, value) {
+                validateKey(key);
+
                 return new Promise(function(resolve, reject){
                     if(!collections[key.collection]) {
                         collections[key.collection] = {}
@@ -71,6 +78,8 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             }
 
             this.getEntry = function(key, value) {
+                validateKey(key);
+
                 return new Promise(function(resolve, reject){
                     var collection = collections[key.collection];
                     var entry = collection && collection[key.name];
@@ -85,6 +94,8 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             }
 
             this.getEntriesWithBody = function(collection) {
+                if(collection.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in collection name");
+
                 return new Promise(function(resolve){
                     var collectionSet = collections[collection];
 
@@ -101,6 +112,8 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             }
 
             this.deleteEntry = function(key) {
+                validateKey(key);
+
                 return new Promise(function(resolve, reject){
                     var errorCode = removeEntry(key);
 
