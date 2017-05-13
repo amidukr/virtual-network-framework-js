@@ -1,25 +1,19 @@
 requirejs(["vnf/vnf",
            "utils/signal-captor",
            "utils/logger",
-           "test/vnf-test-utils",
-           "test/mock/mock-websocket-factory",
+           "test/utils/vnf-test-utils",
+           "test/utils/websocket-rpc-test-utils",
            "lib/bluebird"],
 function(  VNF,
            SignalCaptor,
            Log,
            VNFTestUtils,
-           MockWebSocketFactory,
+           WebSocketRpcTestUtils,
            Promise){
 
     function webSocketStoreTest(description, callback) {
         VNFTestUtils.test("WebSocketStoreClient", description, {}, function(assert, argument){
-            argument.mockWebSocketFactory = new MockWebSocketFactory(assert);
-            argument.webSocketRpc = new VNF.WebSocketRpc("endpoint-vip", argument.mockWebSocketFactory);
-            argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
-
-            argument.webSocketRpc.setBusyTimerInterval(200);
-            argument.webSocketRpc.setIdleTimerInterval(300);
-            argument.webSocketRpc.setLoginRecreateInterval(200)
+            WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument);
 
             argument.storeClient = new VNF.WebSocketStoreClient(argument.webSocketRpc);
 
@@ -27,13 +21,7 @@ function(  VNF,
         });
     }
 
-    function doLogin(argument, index) {
-        return Promise.resolve()
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: " + index + " LOGIN\nendpoint-vip"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, index + " LOGIN\nOK"))
-    }
+
 
 
     QUnit.module("WebSocketStoreClient Tests");
@@ -41,7 +29,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-ENTRY\ncollection1\nentry1\nSentry\n value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-ENTRY\noperation-status"))
 
@@ -56,7 +44,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry\n value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-OR-UPDATE-ENTRY\noperation-status"))
 
@@ -71,7 +59,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 GET-ENTRY\nSentry-value"))
 
@@ -87,7 +75,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 CREATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-ENTRY\noperation-status"))
 
@@ -103,7 +91,7 @@ function(  VNF,
 
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-OR-UPDATE-ENTRY\noperation-status"))
 
@@ -118,7 +106,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '0 GET-ENTRY\nJ{"json":"value"}'))
 
@@ -133,7 +121,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRIES-WITH-BODY\ncollection1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '0 GET-ENTRIES-WITH-BODY\n6 key1\nS12345\n7 key2\nSABCDEF\n8 key3\nSabc\ndef\n10 key4\nJ{"a":"b"}\n'))
 
@@ -151,7 +139,7 @@ function(  VNF,
 
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 DELETE-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 DELETE-ENTRY\noperation-status"))
 
@@ -166,7 +154,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-ENTRY\ncollection1\nentry1\nSentry value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 CREATE-ENTRY\nfail-status"))
 
@@ -183,7 +171,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry value"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 CREATE-OR-UPDATE-ENTRY\nfail-status"))
 
@@ -200,7 +188,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 GET-ENTRY\nfail-status"))
 
@@ -217,7 +205,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRIES-WITH-BODY\ncollection1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, 'CALL_ERROR\n0 GET-ENTRIES-WITH-BODY\nfail-status'))
 
@@ -236,7 +224,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 DELETE-ENTRY\ncollection1\nentry1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 DELETE-ENTRY\nfail-status"))
 
@@ -253,7 +241,7 @@ function(  VNF,
         var done = assert.async(1);
 
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRIES-WITH-BODY\ncollection1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '0 GET-ENTRIES-WITH-BODY\n6key1S12345'))
 
@@ -271,7 +259,7 @@ function(  VNF,
 
         // Emulating Ok response to store data into cache
         Promise.resolve()
-        .then(doLogin.bind(null, argument, 1))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-ENTRY\ncollection1\nentry1\nSentry\n value - 1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-ENTRY\nOK"))
@@ -319,7 +307,7 @@ function(  VNF,
 
         // reconnect sequence
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
-        .then(doLogin.bind(null, argument, 10))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 10))
 
         // verifying if client reinitialize store with data from cache
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 11 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry\n value - 1"]))
@@ -338,7 +326,7 @@ function(  VNF,
 
         // verifying if all entries are reinitialized except value - 4
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
-        .then(doLogin.bind(null, argument, 16))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 16))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 17 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry\n value - 1"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 18 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry2\nSentry\n value - 2"])) // value 4 no more here
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 19 CREATE-OR-UPDATE-ENTRY\ncollection2\nentry2\nSentry\n value - 5"]))

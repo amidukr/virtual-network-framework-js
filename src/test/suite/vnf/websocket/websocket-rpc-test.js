@@ -1,34 +1,26 @@
 requirejs(["vnf/vnf",
            "utils/signal-captor",
            "utils/logger",
-           "test/vnf-test-utils",
-           "test/mock/mock-websocket-factory",
+           "test/utils/vnf-test-utils",
+           "test/utils/websocket-rpc-test-utils",
            "lib/bluebird"],
 function(  VNF,
            SignalCaptor,
            Log,
            VNFTestUtils,
-           MockWebSocketFactory,
+           WebSocketRpcTestUtils,
            Promise){
 
     function webSocketTest(description, callback) {
-        function buildArgument(assert, argument) {
-            argument.mockWebSocketFactory = new MockWebSocketFactory(assert);
-            argument.webSocketRpc = new VNF.WebSocketRpc("endpoint-vip", argument.mockWebSocketFactory);
-            argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
-
-            argument.webSocketRpc.setBusyTimerInterval(200);
-            argument.webSocketRpc.setIdleTimerInterval(300);
-            argument.webSocketRpc.setLoginRecreateInterval(200)
-        }
 
         VNFTestUtils.test("WebSocketTest", description, {}, function(assert, argument){
-            buildArgument(assert, argument)
+            WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument)
+
             return callback(assert, argument);
         });
 
         VNFTestUtils.test("WebSocketTest", "Exception failover: "+ description, {}, function(assert, argument){
-            buildArgument(assert, argument)
+            WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument)
 
             argument.mockWebSocketFactory.setExceptionOnCall("Testing unexpected exception fail-overs");
 

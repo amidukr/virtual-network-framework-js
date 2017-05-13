@@ -1,22 +1,28 @@
 requirejs(["vnf/vnf",
            "utils/signal-captor",
            "utils/logger",
-           "test/vnf-test-utils",
+           "test/utils/vnf-test-utils",
+           "test/utils/websocket-rpc-test-utils",
            "lib/bluebird"],
 function(  VNF,
            SignalCaptor,
            Log,
            VNFTestUtils,
+           WebSocketRpcTestUtils,
            Promise){
 
-    function webSocketHubTest(description, callback) {
-        argument.
-    }
+    //TODO: test malformed message
+    //TODO: test send retry
+    //TODO: test close retry
 
-    function doLogin(argument) {
-        return Promise.resolve()
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
+    function webSocketHubTest(description, callback) {
+        VNFTestUtils.test("WebSocketHub", description, {}, function(assert, argument){
+            WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument);
+
+
+
+            return callback(assert, argument);
+        });
     }
 
 
