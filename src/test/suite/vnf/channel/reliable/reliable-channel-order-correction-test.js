@@ -1,4 +1,4 @@
-requirejs(["test/vnf/channel/reliable/reliable-test-utils"],
+requirejs(["test/utils/reliable-test-utils"],
 function( ReliableTestUtils){
 
     QUnit.module("ReliableHub Message Order Correction");

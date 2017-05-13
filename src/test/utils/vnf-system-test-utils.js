@@ -1,5 +1,5 @@
 define(["vnf/vnf",
-        "test/vnf-test-utils",
+        "test/utils/vnf-test-utils",
         "utils/signal-captor"],
 function(  VNF,
            VNFTestUtils,

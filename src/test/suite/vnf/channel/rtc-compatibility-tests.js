@@ -1,6 +1,6 @@
 requirejs(["vnf/vnf",
            "utils/signal-captor",
-           "test/vnf-test-utils"],
+           "test/utils/vnf-test-utils"],
 function(  VNF,
            SignalCaptor,
            VNFTestUtils){

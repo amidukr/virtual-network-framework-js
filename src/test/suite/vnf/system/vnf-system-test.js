@@ -1,6 +1,6 @@
 requirejs(["vnf/vnf",
            "lib/bluebird",
-           "test/vnf/system/vnf-system-test-utils",
+           "test/utils/vnf-system-test-utils",
            "utils/signal-captor"],
 function(  VNF,
            Promise,

@@ -1,5 +1,5 @@
-requirejs(["test/vnf/channel/reliable/reliable-test-utils",
-           "test/vnf-test-utils"],
+requirejs(["test/utils/reliable-test-utils",
+           "test/utils/vnf-test-utils"],
 function( ReliableTestUtils,
           VNFTestUtils){
 
