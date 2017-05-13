@@ -10,10 +10,14 @@ define(["vnf/global",
         "vnf/channel/unreliable-hub",
         "vnf/channel/reliable-hub",
         "vnf/channel/reliable-rtc-hub",
+        "vnf/channel/websocket-hub",
 
         "vnf/system/system",
 
         "utils/arrays"],
+//TODO: check gather todo
+//TODO: renamve VNF to Vnf
+
   function(Global,
 
            WebSocketRpc,
@@ -26,6 +30,7 @@ define(["vnf/global",
            UnreliableHub,
            ReliableHub,
            ReliableRTCHub,
+           WebSocketHub,
 
            VNFSystem){
     return {
@@ -41,6 +46,8 @@ define(["vnf/global",
       ReliableHub:    ReliableHub,
       RTCHub:         RTCHub,
       ReliableRTCHub: ReliableRTCHub,
+      WebSocketHub:   WebSocketHub,
+
 
       System: VNFSystem
     }

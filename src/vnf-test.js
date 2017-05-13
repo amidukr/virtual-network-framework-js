@@ -11,6 +11,7 @@ requirejs(
 "test/suite/vnf/channel/reliable/reliable-channel-connection-lost-test",
 "test/suite/vnf/channel/reliable/reliable-channel-handshake-retry",
 "test/suite/vnf/channel/proxy-channels-test",
+"test/suite/vnf/channel/websocket-channel-test",
 "test/suite/vnf/store/websocket-store-client-test",
 "test/suite/vnf/store/store-integration-test",
 "test/suite/vnf/system/vnf-system-test",

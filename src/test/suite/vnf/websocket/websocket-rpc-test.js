@@ -11,6 +11,8 @@ function(  VNF,
            WebSocketRpcTestUtils,
            Promise){
 
+//TODO: rename method call to invoke
+
     function webSocketTest(description, callback) {
 
         VNFTestUtils.test("WebSocketTest", description, {}, function(assert, argument){
