@@ -144,11 +144,21 @@ function(Log, Observable, Utils, Global) {
                     var argument = message.substr(lineBreakIndex+1);
                 }
 
-                var handler = handlers[header];
-                handler && handler(header, argument);
+                try {
 
-                var callAction = callMap[header];
-                callAction && handleCallResponse(callAction, header, argument);
+                    var handler = handlers[header];
+                    handler && handler(header, argument);
+
+                    var callAction = callMap[header];
+                    callAction && handleCallResponse(callAction, header, argument);
+
+                    if(!handler && !callAction) {
+                        throw new Error("WebSocketRpc: Unexpected message header: '" + header + "'")
+                    }
+
+                }catch(error) {
+                    Log.error(vip, "websocket-rtc", error);
+                }
             }
 
             webSocket.onclose = function(evt) {
