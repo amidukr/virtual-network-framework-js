@@ -1,4 +1,4 @@
-define(["vnf/global", "utils/utils"], function(Global, Utils) {
+define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, Utils, VnfSerializer) {
 
     return function WebSocketStoreClient(webSocketRpc) {
 
@@ -45,28 +45,10 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             if(key.name.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in entry name");
         }
 
-        function serializeValue(value) {
-            if(typeof value == "string") return "S" + value;
-
-            return "J" + JSON.stringify(value);
-        }
-
-        function deserializeValue(value) {
-            if(value == null || value == "") return value;
-
-            var formatType = value.charAt(0);
-            var message = value.substr(1);
-
-            if(formatType == "S") return message;
-            if(formatType == "J") return JSON.parse(message);
-
-            throw new Error("Unexpected message format: '" + formatType + "', for message: " + message);
-        }
-
         this.createEntry = function(key, value) {
             validateKey(key);
 
-            return webSocketRpc.call("CREATE-ENTRY", key.collection + "\n" + key.name + "\n" + serializeValue(value))
+            return webSocketRpc.call("CREATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value))
             .then(function(evt) {
                 if(evt.data == Global.OK) {
                     putToCache(key, value);
@@ -79,7 +61,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
         this.createOrUpdate = function(key, value) {
             validateKey(key);
 
-            return webSocketRpc.call("CREATE-OR-UPDATE-ENTRY", key.collection + "\n" + key.name + "\n" + serializeValue(value))
+            return webSocketRpc.call("CREATE-OR-UPDATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value))
             .then(function(evt) {
                 if(evt.data == Global.OK) {
                     putToCache(key, value);
@@ -94,7 +76,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
 
             return webSocketRpc.call("GET-ENTRY", key.collection + "\n" + key.name)
             .then(function(evt) {
-                return deserializeValue(evt.data);
+                return VnfSerializer.deserializeValue(evt.data);
             })
         }
 
@@ -122,7 +104,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
                         throw new Error("WebSocketStore Malformed response for getEntriesWithBody from server, response: " + message);
                     }
 
-                    result[entryName] = deserializeValue(entryValue);
+                    result[entryName] = VnfSerializer.deserializeValue(entryValue);
                 }
 
                 return result;
