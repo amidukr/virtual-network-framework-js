@@ -82,7 +82,7 @@ function(Log,
 
                 connected[vip] = true;
 
-                webSocketRpc.call("SEND_TO_ENDPOINT",  vip + "\nMESSAGE\n" + VnfSerializer.serializeValue(message), {retryResend: true});
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  vip + "\nMESSAGE\n" + VnfSerializer.serializeValue(message), {retryResend: true});
             }
 
             var parentDestroy = self.destroy;
@@ -111,7 +111,7 @@ function(Log,
                 delete connected[targetVip];
                 self.__fireConnectionLost.bind(null, targetVip);
 
-                webSocketRpc.call("SEND_TO_ENDPOINT",  targetVip + "\nCLOSE-CONNECTION", {retryResend: true});
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  targetVip + "\nCLOSE-CONNECTION", {retryResend: true});
             }
         }
     };

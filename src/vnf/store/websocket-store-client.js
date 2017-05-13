@@ -48,7 +48,7 @@ define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, U
         this.createEntry = function(key, value) {
             validateKey(key);
 
-            return webSocketRpc.call("CREATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value))
+            return webSocketRpc.invoke("CREATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value))
             .then(function(evt) {
                 if(evt.data == Global.OK) {
                     putToCache(key, value);
@@ -61,7 +61,7 @@ define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, U
         this.createOrUpdate = function(key, value) {
             validateKey(key);
 
-            return webSocketRpc.call("CREATE-OR-UPDATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value))
+            return webSocketRpc.invoke("CREATE-OR-UPDATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value))
             .then(function(evt) {
                 if(evt.data == Global.OK) {
                     putToCache(key, value);
@@ -74,7 +74,7 @@ define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, U
         this.getEntry = function(key, value) {
             validateKey(key);
 
-            return webSocketRpc.call("GET-ENTRY", key.collection + "\n" + key.name)
+            return webSocketRpc.invoke("GET-ENTRY", key.collection + "\n" + key.name)
             .then(function(evt) {
                 return VnfSerializer.deserializeValue(evt.data);
             })
@@ -83,7 +83,7 @@ define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, U
         this.getEntriesWithBody = function(collection) {
             if(collection.indexOf("\n") != -1) throw new Error("EOL character isn't supported in collection name");
 
-            return webSocketRpc.call("GET-ENTRIES-WITH-BODY", collection)
+            return webSocketRpc.invoke("GET-ENTRIES-WITH-BODY", collection)
             .then(function(evt){
                 var result = {};
 
@@ -114,7 +114,7 @@ define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, U
         this.deleteEntry = function(key) {
             validateKey(key);
 
-            return webSocketRpc.call("DELETE-ENTRY", key.collection + "\n" + key.name)
+            return webSocketRpc.invoke("DELETE-ENTRY", key.collection + "\n" + key.name)
             .then(function(evt) {
                 if(evt.data == Global.OK) {
                     deleteFromCache(key);

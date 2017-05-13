@@ -101,7 +101,7 @@ function(Log, Observable, Utils, Global) {
             webSocket.onopen = function() {
                 if(destroyed) return;
 
-                webSocketRpc.call("LOGIN", vip, {immediateSend: true})
+                webSocketRpc.invoke("LOGIN", vip, {immediateSend: true})
                 .then(function(result){
                     if(result.data != "OK") {
                         window.setTimeout(recreateWebSocket, loginRecreateInterval);
@@ -210,10 +210,10 @@ function(Log, Observable, Utils, Global) {
         }
 
         this.verifyConnection = function() {
-            webSocketRpc.call("PING", null, {retryResend: true});
+            webSocketRpc.invoke("PING", null, {retryResend: true});
         }
 
-        this.call = function(method, valueArgument, callParameters) {
+        this.invoke = function(method, valueArgument, callParameters) {
             if(destroyed) {
                 return Promise.reject(Global.INSTANCE_DESTROYED);
             }
