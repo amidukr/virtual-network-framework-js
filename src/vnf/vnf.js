@@ -15,7 +15,6 @@ define(["vnf/global",
         "vnf/system/system",
 
         "utils/arrays"],
-//TODO: check gather todo
 //TODO: renamve VNF to Vnf
 
   function(Global,
