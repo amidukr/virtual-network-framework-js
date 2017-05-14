@@ -91,20 +91,20 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
             }
 
             function inMemoryFactory() {return new Vnf.InBrowserHub();};
-            function rtcHubFactory() {return new Vnf.RTCHub(new Vnf.InBrowserHub());};
+            function rtcHubFactory() {return new Vnf.RtcHub(new Vnf.InBrowserHub());};
 
             function reliableRtcHubFactory() {
-                var reliableRTC = new Vnf.ReliableRTCHub(new Vnf.InBrowserHub());
+                var reliableRtc = new Vnf.ReliableRtcHub(new Vnf.InBrowserHub());
 
-                reliableRTC.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCHeartbeatInterval"));
-                reliableRTC.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCConnectionInvalidateInterval"));
-                reliableRTC.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCConnectionLostTimeout"));
-                reliableRTC.setHandshakeRetryInterval(            TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCHandshakeRetryInterval"));
-                reliableRTC.setKeepAliveHandshakingChannelTimeout(TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCKeepAliveHandshakingChannelTimeout"));
+                reliableRtc.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHeartbeatInterval"));
+                reliableRtc.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionInvalidateInterval"));
+                reliableRtc.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionLostTimeout"));
+                reliableRtc.setHandshakeRetryInterval(            TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHandshakeRetryInterval"));
+                reliableRtc.setKeepAliveHandshakingChannelTimeout(TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcKeepAliveHandshakingChannelTimeout"));
 
-                reliableRTC.setHandshakeRetries(10);
+                reliableRtc.setHandshakeRetries(10);
 
-                return reliableRTC;
+                return reliableRtc;
             };
 
             var proxyCallback = function proxyCallback(assert, args) {
@@ -112,8 +112,8 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
             };
 
             VnfTestUtils.test("root:InMemory",    description, {rootHubFactory: inMemoryFactory},       proxyCallback);
-            VnfTestUtils.test("root:RTC",         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
-            VnfTestUtils.test("root:ReliableRTC", description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
+            VnfTestUtils.test("root:Rtc",         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
+            VnfTestUtils.test("root:ReliableRtc", description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
 
         },
 

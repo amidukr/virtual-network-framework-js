@@ -32,7 +32,7 @@ function(  Vnf,
         }
 
         runTest("InBrowserHub",  description, Vnf.InBrowserHub,  callback);
-        runTest("RTCHub",        description, Vnf.RTCHub,        callback);
+        runTest("RtcHub",        description, Vnf.RtcHub,        callback);
         runTest("UnreliableHub", description, Vnf.UnreliableHub, callback);
         runTest("ReliableHub",   description, Vnf.ReliableHub,   callback, configureReliableHub);
     };

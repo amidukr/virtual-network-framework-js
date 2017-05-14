@@ -13,7 +13,7 @@ function(  Vnf,
     //        wait heartbeat, open another endpoint, send message
     //           onHeartbeat - listener would be helpful
     //
-    //TODO: multiple channel - WebRTC vs WebSocket - multiple chanmel it is different hub implementation
+    //TODO: multiple channel - WebRtc vs WebSocket - multiple chanmel it is different hub implementation
 
      QUnit.module("Reliable Channel Tests");
      QUnit.test("[Unreliable Hub]: Testing Unreliable hub", function(assert){
@@ -216,12 +216,12 @@ function(  Vnf,
             .then(done);
     });
 
-    QUnit.test("[Reliable Hub]: RTC Connection restore test", function(assert){
-        Log.info("test", "[Reliable Hub]: RTC Connection restore test");
+    QUnit.test("[Reliable Hub]: Rtc Connection restore test", function(assert){
+        Log.info("test", "[Reliable Hub]: Rtc Connection restore test");
 
         var done = assert.async(1);
 
-        var rtcHub = new Vnf.RTCHub(new Vnf.InBrowserHub(), {heartbeatsToInvalidate: 3000});
+        var rtcHub = new Vnf.RtcHub(new Vnf.InBrowserHub(), {heartbeatsToInvalidate: 3000});
         var reliableHub = new Vnf.ReliableHub(rtcHub);
 
         var endpoint1 = reliableHub.openEndpoint("vip-1");
@@ -242,7 +242,7 @@ function(  Vnf,
                             "from vip-1: rtc-message-2",
                             "from vip-1: rtc-message-3"])
 
-        .then(function(){  rtcEndpoint1.getRTCConnection("vip-2").close(); })
+        .then(function(){  rtcEndpoint1.getRtcConnection("vip-2").close(); })
 
         .then(endpoint1.send.bind(null, "vip-2", "[rtc1-close]rtc-message-4"))
         .then(endpoint1.send.bind(null, "vip-2", "[rtc1-close]rtc-message-5"))
@@ -250,7 +250,7 @@ function(  Vnf,
         .then(capture2.assertSignals.bind(null, ["from vip-1: [rtc1-close]rtc-message-4",
                                              "from vip-1: [rtc1-close]rtc-message-5"]))
 
-        .then(function(){ rtcEndpoint2.getRTCConnection("vip-1").close(); })
+        .then(function(){ rtcEndpoint2.getRtcConnection("vip-1").close(); })
 
         .then(endpoint1.send.bind(null, "vip-2", "[rtc2-close]rtc-message-6"))
         .then(endpoint1.send.bind(null, "vip-2", "[rtc2-close]rtc-message-7"))

@@ -24,10 +24,10 @@ define(["vnf/global",
            WebSocketStoreClient,
 
            InBrowserHub,
-           RTCHub,
+           RtcHub,
            UnreliableHub,
            ReliableHub,
-           ReliableRTCHub,
+           ReliableRtcHub,
            WebSocketHub,
 
            VnfSystem){
@@ -42,8 +42,8 @@ define(["vnf/global",
       InBrowserHub:   InBrowserHub,
       UnreliableHub:  UnreliableHub,
       ReliableHub:    ReliableHub,
-      RTCHub:         RTCHub,
-      ReliableRTCHub: ReliableRTCHub,
+      RtcHub:         RtcHub,
+      ReliableRtcHub: ReliableRtcHub,
       WebSocketHub:   WebSocketHub,
 
 

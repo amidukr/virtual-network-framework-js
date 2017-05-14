@@ -4,7 +4,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
     var RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
     var RTCIceCandidate       = window.RTCIceCandidate       || window.mozRTCIceCandidate       || window.webkitRTCIceCandidate;
 
-    window.vnfRTCServers = {
+    window.vnfRtcServers = {
         iceServers: [
             //{url: "stun:23.21.150.121"},
             //{url: "stun:stun.1.google.com:19302"},
@@ -26,8 +26,8 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
     function logErrorCallback(instanceId){
         var stacktrace = new Error();
         return function(e) {
-            window.RTCDebugLastError = e;
-            Log.error(instanceId, "webrtc-logerror", e + " see RTCDebugLastError for details");
+            window.RtcDebugLastError = e;
+            Log.error(instanceId, "webrtc-logerror", e + " see RtcDebugLastError for details");
             console.error(stacktrace);
         }
         
@@ -37,7 +37,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
 
     var connectionNextId = 0;
 
-    function VnfRTCConnection(rtcEndpoint, targetVip, signalingEndpoint) {
+    function VnfRtcConnection(rtcEndpoint, targetVip, signalingEndpoint) {
         var connectionIndex = connectionNextId++;
         
         var self = this;
@@ -124,8 +124,8 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
             acceptIce(message.ice);
         }
 
-        function createRTCConnection() {
-            connection = new RTCPeerConnection(vnfRTCServers);
+        function createRtcConnection() {
+            connection = new RTCPeerConnection(vnfRtcServers);
 
             ice = {candidate: []};
             self.isReady = false;
@@ -170,7 +170,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
             }
         }
 
-        self.getRTCConnection = function() {
+        self.getRtcConnection = function() {
             return connection;
         }
 
@@ -185,7 +185,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
             Log.debug(instanceId, "webrtc-connecting", "startCaller");
             self.isCaller = true;
 
-            createRTCConnection();
+            createRtcConnection();
 
             onChannelCreated(connection.createDataChannel("data"));
 
@@ -196,7 +196,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
             Log.debug(instanceId, "webrtc-connecting", "startCallee: " + JSON.stringify(message));
             self.isCaller = false;
 
-            createRTCConnection();
+            createRtcConnection();
 
             connection.setRemoteDescription(new RTCSessionDescription(message.ice.sdp), logSuccess, logErrorCallback(instanceId));
 
@@ -220,7 +220,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
             try{
                 connection.close();
             }catch(e) {
-                Log.warn(instanceId, "web-rtc", ["Unable to destroy RTC endpoint", e]);
+                Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc endpoint", e]);
             }
         }
 
@@ -254,7 +254,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
         }
     }
 
-    return function RTCHub(signalingHub){
+    return function RtcHub(signalingHub){
         var selfHub = this;
         ProxyHub.call(selfHub, signalingHub);
 
@@ -282,7 +282,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                             return;
                         }
 
-                        connectionSet[targetVip] = new VnfRTCConnection(self, targetVip, signalingEndpoint);
+                        connectionSet[targetVip] = new VnfRtcConnection(self, targetVip, signalingEndpoint);
                         connectionSet[targetVip].startCallee(message);
                     }else{
                         connectionSet[targetVip].acceptCalleeResponse(event);
@@ -306,8 +306,8 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                }
            }
 
-           self.getRTCConnection = function(vip) {
-               return connectionSet[vip].getRTCConnection();
+           self.getRtcConnection = function(vip) {
+               return connectionSet[vip].getRtcConnection();
            }
 
            self.send = function(targetVip, message) {
@@ -333,7 +333,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                if(!connection) {
                    Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "new-vnf-rtc-connection: " + targetVip);
 
-                   connection = new VnfRTCConnection(self, targetVip, signalingEndpoint);
+                   connection = new VnfRtcConnection(self, targetVip, signalingEndpoint);
 
                    connectionSet[targetVip] = connection;
 

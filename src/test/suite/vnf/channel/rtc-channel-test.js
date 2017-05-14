@@ -16,8 +16,8 @@ function(  Vnf,
     function logErrorCallback(){
         var stacktrace = new Error();
         return function(e) {
-            window.RTCDebugLastError = e;
-            Log.error("test-error", e + " see RTCDebugLastError for details");
+            window.RtcDebugLastError = e;
+            Log.error("test-error", e + " see RtcDebugLastError for details");
             console.error(stacktrace);
         }
 
@@ -32,9 +32,9 @@ function(  Vnf,
         }
     }
 
-    QUnit.module("RTCHub Unit")
-    QUnit.test("[RTCHub Unit]: synchronous connect stress test", function(assert){
-        Log.info("test", "[RTCHub Unit]: synchronous connect stress test");
+    QUnit.module("RtcHub Unit")
+    QUnit.test("[RtcHub Unit]: synchronous connect stress test", function(assert){
+        Log.info("test", "[RtcHub Unit]: synchronous connect stress test");
 
         if(!VnfTestUtils.isTestingLevelEnabled(TESTING_LEVEL_STRESS)) {
             assert.ok(true, "Skipping test due to testing level");
@@ -50,7 +50,7 @@ function(  Vnf,
         function doTest() {
             n++;
 
-            var rtcHub = new Vnf.RTCHub(new Vnf.InBrowserHub());
+            var rtcHub = new Vnf.RtcHub(new Vnf.InBrowserHub());
             var endpoint1 = rtcHub.openEndpoint("vip-1");
             var endpoint2 = rtcHub.openEndpoint("vip-2");
 
@@ -95,11 +95,11 @@ function(  Vnf,
 
     })
 
-    VnfTestUtils.vnfTest("[RTCHub Unit]: rtc initiate connection test", function(assert, argument){
+    VnfTestUtils.vnfTest("[RtcHub Unit]: rtc initiate connection test", function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
-        var rtcHub = new Vnf.RTCHub(rootHub);
+        var rtcHub = new Vnf.RtcHub(rootHub);
 
         var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
         var rootEndpoint = rootHub.openEndpoint("root-endpoint");
@@ -121,7 +121,7 @@ function(  Vnf,
             assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
             assert.equal(message[0].requestForNewConnection, true, "Asserting requestForNewConnection");
 
-            rtcConnection = new RTCPeerConnection(vnfRTCServers);
+            rtcConnection = new RTCPeerConnection(vnfRtcServers);
 
             var ice = {candidate: [], sdp: null}
 
@@ -180,11 +180,11 @@ function(  Vnf,
          .then(done);
     });
 
-    VnfTestUtils.vnfTest("[RTCHub Unit]: rtc accept connection test", function(assert, argument){
+    VnfTestUtils.vnfTest("[RtcHub Unit]: rtc accept connection test", function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
-        var rtcHub = new Vnf.RTCHub(rootHub);
+        var rtcHub = new Vnf.RtcHub(rootHub);
 
         var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
         var rootEndpoint = rootHub.openEndpoint("root-endpoint");
@@ -195,7 +195,7 @@ function(  Vnf,
         rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
         rootEndpoint.onMessage = captureMessage(rootCaptor);
 
-        var rtcConnection = new RTCPeerConnection(vnfRTCServers);
+        var rtcConnection = new RTCPeerConnection(vnfRtcServers);
         var ice = {candidate: [], sdp: null}
 
         var ice = {candidate: [], sdp: null}
@@ -257,11 +257,11 @@ function(  Vnf,
          .then(done);
     });
 
-    VnfTestUtils.vnfTest("[RTCHub Unit]: rtc synchronous connection establish test", function(assert, argument){
+    VnfTestUtils.vnfTest("[RtcHub Unit]: rtc synchronous connection establish test", function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
-        var rtcHub = new Vnf.RTCHub(rootHub);
+        var rtcHub = new Vnf.RtcHub(rootHub);
 
         var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
         var rootEndpoint = rootHub.openEndpoint("root-endpoint");
@@ -283,7 +283,7 @@ function(  Vnf,
             assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
             assert.equal(message[0].requestForNewConnection, true, "Asserting requestForNewConnection");
 
-            rtcConnection = new RTCPeerConnection(vnfRTCServers);
+            rtcConnection = new RTCPeerConnection(vnfRtcServers);
             var ice = {candidate: [], sdp: null}
 
             rtcConnection.onicecandidate = function(evt){
