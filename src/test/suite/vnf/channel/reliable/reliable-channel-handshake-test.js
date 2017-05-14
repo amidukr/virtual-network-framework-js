@@ -100,10 +100,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    //TODO: reliable-channel-connection-lost-test.js: TODO: connection lost by destroy method
     //TODO: phantoms
     //TODO: out buffs test/test handling for cleaned-up handshake messages
-
-    //TODO: integration test
     //TODO: stress tests
 })
