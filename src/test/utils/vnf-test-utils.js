@@ -25,9 +25,9 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
             QUnit.test(description, function(assert){
                 Log.info("test", description);
                 runningTest = description;
+                var profileKey = [description, testProfile];
 
-                QUnit.config.testTimeout   = TestingProfiles.getInterval(testProfile, "qunitTestTimeout");
-                Timeouts.logCaptureTimeout = TestingProfiles.getInterval(testProfile, "logCaptureTimeout");
+                var arguments = {}
 
                 if(window.vnfActiveEndpoints.length > 0) {
                     Log.warn("test", ["Active endpoints left: ", window.vnfActiveEndpoints]);
@@ -40,6 +40,25 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                         }
                     }
                 }
+
+
+
+                function getInterval(config) {
+                    return TestingProfiles.getInterval(profileKey, config)
+                }
+
+                function toAbsoluteInterval(timePoints) {
+                    return TestingProfiles.toAbsoluteInterval(profileKey, timePoints)
+                }
+
+                arguments = Object.assign(arguments, {testProfile: testProfile,
+                                                      testDescription: description,
+                                                      profileKey:  profileKey,
+                                                      getInterval: getInterval,
+                                                      toAbsoluteInterval: toAbsoluteInterval})
+
+                QUnit.config.testTimeout   = arguments.getInterval("qunitTestTimeout");
+                Timeouts.logCaptureTimeout = arguments.getInterval("logCaptureTimeout");
 
                 var assertAsync = assert.async;
                 assert.async = function(num) {
@@ -54,32 +73,20 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                     }
                 }
 
-
-
                 if(callback == undefined) {
                     callback = args;
                     args = {};
-                }
-
-                function getInterval(config) {
-                    return TestingProfiles.getInterval(testProfile, config)
-                }
-
-                function toAbsoluteInterval(timePoints) {
-                    return TestingProfiles.toAbsoluteInterval(testProfile, timePoints)
                 }
 
                 if(typeof args == 'function') {
                     args = args();
                 }
 
-                args = Object.assign({}, {testProfile: testProfile,
-                                          testDescription: description,
-                                          getInterval: getInterval,
-                                          toAbsoluteInterval: toAbsoluteInterval},
-                                     args)
+                arguments = Object.assign(arguments, args);
 
-                return callback(assert, args);
+
+
+                return callback(assert, arguments);
             });
         },
 

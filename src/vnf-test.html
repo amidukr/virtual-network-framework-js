@@ -23,15 +23,16 @@
 
     TestingProfiles = {
         rate: 1,
-        qunitTestTimeout: 3000,
-        logCaptureTimeout: 3000,
         testLevel: TESTING_LEVEL_SMOKE,
 
-        reliableFastHeartbeatInterval: 20,
-        reliableFastConnectionInvalidateInterval: 200,
-        reliableFastConnectionLostTimeout: 600,
-        reliableFastHandshakeRetryInterval: 60,
-        reliableFastKeepAliveHandshakingChannelTimeout: 240,
+        relative__qunitTestTimeout: 3000,
+        relative__logCaptureTimeout: 3000,
+
+        relative__reliableFastHeartbeatInterval: 20,
+        relative__reliableFastConnectionInvalidateInterval: 200,
+        relative__reliableFastConnectionLostTimeout: 600,
+        relative__reliableFastHandshakeRetryInterval: 60,
+        relative__reliableFastKeepAliveHandshakingChannelTimeout: 240,
 
         reliableRtcHeartbeatInterval: 1,
         reliableRtcConnectionInvalidateInterval: 10,
@@ -63,6 +64,43 @@
             logCaptureTimeout: 30000
         },
 
+        "[root:ReliableRtc]-[Reliable Hub v0.2] Connection Lost: by timeout" : {
+            qunitTestTimeout:  60000,
+            logCaptureTimeout: 60000
+        },
+
+        "[root:ReliableRtc]-[Reliable Hub v0.2] Connection Lost: by timeout v2" : {
+            rate: 20,
+        },
+
+        getValue: function(profileKey, config) {
+
+            if(profileKey == null) {
+                return TestingProfiles.getValue([], config);
+            }
+
+            if(typeof profileKey == "string") {
+                return TestingProfiles.getValue([profileKey], config);
+            }
+
+
+            if(profileKey.constructor !== Array) throw new Error("Unexpected profile type: '" + profileKey + "'");
+
+
+            for(var i = 0; i < profileKey.length; i++) {
+
+                var profileConfigurations = TestingProfiles[profileKey[i]];
+
+                if(!profileConfigurations) continue;
+
+                var value = profileConfigurations[config];
+
+                if(value != undefined) return value;
+            }
+
+            return TestingProfiles[config];
+        },
+
         toAbsoluteInterval: function(profile, timePoints) {
             if(!timePoints) return;
 
@@ -71,27 +109,18 @@
         },
 
         getInterval: function(profile, config) {
-            var profileConfigurations = TestingProfiles[profile];
-            var defaultPointsValue = TestingProfiles[config];
+            var absoluteIntervalValue = TestingProfiles.getValue(profile, config);
 
-            var defaultInterval = TestingProfiles.toAbsoluteInterval(profile, defaultPointsValue);
+            if(absoluteIntervalValue) return absoluteIntervalValue;
 
-            return (profileConfigurations && profileConfigurations[config]) || defaultInterval;
-        },
+            var relativeIntervalValue = TestingProfiles.getValue(profile, "relative__" + config);
 
-        getValue: function(profile, config) {
-            var profileConfigurations = TestingProfiles[profile];
-
-            if(!profileConfigurations) {
-                return TestingProfiles[config];
-            }
-
-            return profileConfigurations[config] != undefined ? profileConfigurations[config] : TestingProfiles[config];
+            return TestingProfiles.toAbsoluteInterval(profile, relativeIntervalValue);
         }
     }
 
-    QUnit.config.testTimeout = TestingProfiles.qunitTestTimeout;
-    Timeouts.logCaptureTimeout = TestingProfiles.logCaptureTimeout;
+    QUnit.config.testTimeout   = TestingProfiles.getInterval(null, "qunitTestTimeout");
+    Timeouts.logCaptureTimeout = TestingProfiles.getInterval(null, "logCaptureTimeout");
 
 
     Timeouts.iceSendTimeout = Math.min(Timeouts.logCaptureTimeout/10, 1000);
