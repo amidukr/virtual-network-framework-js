@@ -15,7 +15,7 @@ define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHu
                 if(self.onMessage) {
                     self.onMessage({
                         message:   event.message,
-                        sourceVIP: event.sourceVIP,
+                        sourceVip: event.sourceVip,
                         endpoint:   self
                     });
                 }
@@ -33,8 +33,8 @@ define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHu
                  return self.parentEndpoint.isConnected(targetVip);
             }
 
-            self.parentEndpoint.onConnectionLost(function(targetVIP){
-                self.__fireConnectionLost(targetVIP);
+            self.parentEndpoint.onConnectionLost(function(targetVip){
+                self.__fireConnectionLost(targetVip);
             });
         }
 

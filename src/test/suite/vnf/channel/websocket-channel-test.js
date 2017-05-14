@@ -63,7 +63,7 @@ function(  Vnf,
 
         argument.webSocketEndpoint.onMessage = function(event) {
             assert.equal(event.message, "endpoint-message", "verifying connection");
-            assert.equal(event.sourceVIP, "from-endpoint-vip", "verifying source");
+            assert.equal(event.sourceVip, "from-endpoint-vip", "verifying source");
             done()
         }
 
@@ -77,7 +77,7 @@ function(  Vnf,
 
         argument.webSocketEndpoint.onMessage = function(event) {
             assert.deepEqual(event.message, {"json":"value"}, "verifying connection");
-            assert.equal(event.sourceVIP, "from-endpoint-vip", "verifying source");
+            assert.equal(event.sourceVip, "from-endpoint-vip", "verifying source");
             done()
         }
 
@@ -91,7 +91,7 @@ function(  Vnf,
 
         argument.webSocketEndpoint.onMessage = function(event) {
             assert.equal(event.message, "endpoint-message", "verifying connection");
-            assert.equal(event.sourceVIP, "from-endpoint-vip", "verifying source");
+            assert.equal(event.sourceVip, "from-endpoint-vip", "verifying source");
             done()
         }
 
@@ -167,8 +167,8 @@ function(  Vnf,
     webSocketHubTest("onConnectionClose by closeConnection test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.onConnectionLost(function(targetVIP){
-            assert.equal(targetVIP, "external-vip");
+        argument.webSocketEndpoint.onConnectionLost(function(targetVip){
+            assert.equal(targetVip, "external-vip");
             done();
         })
 

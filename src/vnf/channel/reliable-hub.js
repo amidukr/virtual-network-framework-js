@@ -100,11 +100,11 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             var activeChannels = [];
             var endpointId = Random.random6();
 
-            function getChannel(targetVIP) {
-                var channel = channels[targetVIP];
+            function getChannel(targetVip) {
+                var channel = channels[targetVip];
                 if(!channel) {
                     channel = {
-                        targetVIP: targetVIP,
+                        targetVip: targetVip,
                         suspended: true,
                         connected: false,
 
@@ -132,7 +132,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         firstMessageNumberInReceivedBuffer: -1,
                         receivedMessages: new CycleBuffer()
                     };
-                    channels[targetVIP] = channel;
+                    channels[targetVip] = channel;
                 }
 
                 return channel;
@@ -158,27 +158,27 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     channel.connected = false;
                     channel.state = STATE_HANDSHAKING;
                     channel.keepAliveHandshakingCounter = 0;
-                    self.__fireConnectionLost(channel.targetVIP);
+                    self.__fireConnectionLost(channel.targetVip);
                 }
             }
 
-            function parentSend(targetVIP, message) {
+            function parentSend(targetVip, message) {
                 try{
-                    parentEndpoint.send(targetVIP, message);
+                    parentEndpoint.send(targetVip, message);
                 }catch(error) {
                     Log.warn(self.vip, "reliable-hub", [new Error("Unable to send message"), error]);
                 }
             }
 
             function sendHandshakeMessage(channel, messageIndex, message) {
-                parentSend(channel.targetVIP, {type:         MESSAGE_HANDSHAKE,
+                parentSend(channel.targetVip, {type:         MESSAGE_HANDSHAKE,
                                                sessionId:    channel.sessionId,
                                                messageIndex: messageIndex,
                                                payload:      message});
             }
 
             function sendAcceptMessage(channel, messageIndex, message) {
-                parentSend(channel.targetVIP, {type:         MESSAGE_ACCEPT,
+                parentSend(channel.targetVip, {type:         MESSAGE_ACCEPT,
                                                sessionId:    channel.sessionId,
                                                toSID:        channel.remoteSessionId,
                                                mqStartFrom:  channel.connectionMqStartFrom,
@@ -187,14 +187,14 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
             function sendRegularMessage(channel, messageIndex, message) {
-                parentSend(channel.targetVIP, {type:         MESSAGE_REGULAR,
+                parentSend(channel.targetVip, {type:         MESSAGE_REGULAR,
                                                toSID:        channel.remoteSessionId,
                                                messageIndex: messageIndex,
                                                payload:      message});
             }
 
             function sendAcceptHeartbeatMessage(channel, gapBegin, gapEnd) {
-                parentSend(channel.targetVIP, {type:         MESSAGE_HEARTBEAT_ACCEPT,
+                parentSend(channel.targetVip, {type:         MESSAGE_HEARTBEAT_ACCEPT,
                                                sessionId:    channel.sessionId,
                                                toSID:        channel.remoteSessionId,
                                                mqStartFrom:  channel.connectionMqStartFrom,
@@ -203,14 +203,14 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
             function sendRegularHeartbeatMessage(channel, gapBegin, gapEnd) {
-                parentSend(channel.targetVIP, {type:      MESSAGE_HEARTBEAT_REGULAR,
+                parentSend(channel.targetVip, {type:      MESSAGE_HEARTBEAT_REGULAR,
                                                toSID:     channel.remoteSessionId,
                                                gapBegin:  gapBegin,
                                                gapEnd:    gapEnd});
             }
 
             function sendCloseMessage(channel) {
-                parentSend(channel.targetVIP, {type: MESSAGE_CLOSE_CONNECTION,
+                parentSend(channel.targetVip, {type: MESSAGE_CLOSE_CONNECTION,
                                                sessionId:    channel.sessionId,
                                                toSID:        channel.remoteSessionId});
             }
@@ -224,7 +224,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
 
             function sendHeartbeat(channel) {
-                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVIP + "]";
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
 
                 channel.toInvalidateCounter++;
                 channel.keepAliveActiveConnectionCounter++;
@@ -239,13 +239,13 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                     Log.warn(instanceId, "reliable-channel-status", "connection closed due to silence in channel");
 
-                    self.closeConnection(channel.targetVIP);
+                    self.closeConnection(channel.targetVip);
                     return;
                 }
 
                 if(channel.toInvalidateCounter >= heartbeatsToInvalidate) {
                     channel.toInvalidateCounter = 0;
-                    parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVIP);
+                    parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVip);
 
                     Log.warn(instanceId, "reliable-channel-status", "re-creating connection due to silence");
 
@@ -285,7 +285,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
             function refreshHandshakingChannel(channel) {
-                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVIP + "]";
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
                 Log.debug(instanceId, "reliable-channel-status",
                 "handshake-retry-interval: " + (channel.handshakeRetriesIntervalCounter + 1) + "/" + heartbeatsToHandshakeRetry + ", "
                 + "handshake-retries: " + (channel.handshakeRetriesCounter + 1) + "/" + handshakeRetries + ","
@@ -304,7 +304,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                             channel.lastMessage = null;
                             channel.handshakeRetriesCounter = 0;
                         }else{
-                            parentEndpoint.closeConnection(channel.targetVIP);
+                            parentEndpoint.closeConnection(channel.targetVip);
                             sendHandshakeMessage(channel, channel.lastSentMessageNumber, channel.lastMessage);
                             Log.debug(instanceId, "reliable-channel-status", "handshake retry")
                         }
@@ -313,8 +313,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                 channel.keepAliveHandshakingCounter++;
                 if(channel.keepAliveHandshakingCounter >= heartbeatsToDropHandshakingConnection) {
-                    parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVIP);
-                    self.__fireConnectionLost(channel.targetVIP);
+                    parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVip);
+                    self.__fireConnectionLost(channel.targetVip);
                     channel.suspended = true;
                     Log.debug(instanceId, "reliable-channel-status", "closing connection")
                 }
@@ -480,7 +480,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     if(self.onMessage) {
                         self.onMessage({
                             message: message.payload,
-                            sourceVIP: event.sourceVIP,
+                            sourceVip: event.sourceVip,
                             endpoint: self
                         });
                     }
@@ -508,7 +508,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     if(self.onMessage) {
                         self.onMessage({
                             message: message.payload,
-                            sourceVIP: event.sourceVIP,
+                            sourceVip: event.sourceVip,
                             endpoint: self
                         });
                     }
@@ -557,7 +557,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 //Log.debug(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));
 
                 var message = event.message;
-                var channel = getChannel(event.sourceVIP);
+                var channel = getChannel(event.sourceVip);
 
                 var handler = handlers[event.message.type];
 
@@ -582,10 +582,10 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 endpointId = value;
             }
 
-            this.send = function(targetVIP, message) {
+            this.send = function(targetVip, message) {
                 if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 
-                var channel = getChannel(targetVIP);
+                var channel = getChannel(targetVip);
                 channel.connected = true;
 
                 channel.lastSentMessageNumber++;
@@ -603,20 +603,20 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 reactivateChannel(channel);
             }
 
-           self.isConnected = function(targetVIP) {
-                var channel = channels[targetVIP];        
-                return parentEndpoint.isConnected(targetVIP) && channel && channel.connected;
+           self.isConnected = function(targetVip) {
+                var channel = channels[targetVip];
+                return parentEndpoint.isConnected(targetVip) && channel && channel.connected;
            }
 
-            this.closeConnection = function(targetVIP) {
-                var channel = channels[targetVIP];
+            this.closeConnection = function(targetVip) {
+                var channel = channels[targetVip];
                 if(channel) {
-                    if(parentEndpoint.isConnected(targetVIP)) {
+                    if(parentEndpoint.isConnected(targetVip)) {
                         sendCloseMessage(channel);
                         channel.suspended = true;
                     }
 
-                    parentEndpoint.closeConnection(targetVIP);
+                    parentEndpoint.closeConnection(targetVip);
 
                     handleConnectionOnLost(channel);
                 }
@@ -624,8 +624,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
             var parentDestroy = self.destroy;
             self.destroy = function() {
-                for(var connectedVIP in channels){
-                    self.closeConnection(connectedVIP);
+                for(var connectedVip in channels){
+                    self.closeConnection(connectedVip);
                 }
 
                 activeChannels = [];

@@ -24,7 +24,7 @@ function(Log,
             function handleMessage(sourceVip, messageType, body) {
                 connected[sourceVip] = true;
 
-                self.onMessage && self.onMessage({sourceVIP: sourceVip,
+                self.onMessage && self.onMessage({sourceVip: sourceVip,
                                                   message:   VnfSerializer.deserializeValue(body),
                                                   endpoint:  self});
             }

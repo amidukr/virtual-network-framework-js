@@ -51,7 +51,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             }
 
             function sendResult(event, result) {
-                vnfEndpoint.send(event.sourceVIP, {
+                vnfEndpoint.send(event.sourceVip, {
                     type:   MESSAGE_TYPE_RESPONSE,
                     token:  event.message.token,
                     result: result
@@ -59,7 +59,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
             }
 
             function sendReject(event, reason) {
-                vnfEndpoint.send(event.sourceVIP, {
+                vnfEndpoint.send(event.sourceVip, {
                     type:   MESSAGE_TYPE_RESPONSE_FAIL,
                     token:  event.message.token,
                     reason: reason
@@ -78,7 +78,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
                 .then(handler.bind(null,
                         { message: message.argument,
                           method:  message.method,
-                          sourceVIP: event.sourceVIP,
+                          sourceVip: event.sourceVip,
                           endpoint: vnfEndpoint }))
                 .then(function(value){
                     if(value instanceof Error) {
@@ -93,7 +93,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
 
             function handleResponse(event) {
                 var message = event.message;
-                var vipCallbacks = callbackMap[event.sourceVIP];
+                var vipCallbacks = callbackMap[event.sourceVip];
                 var callbacks = vipCallbacks && vipCallbacks[message.token];
                 if(callbacks) {
                     delete vipCallbacks[message.token];
@@ -103,7 +103,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
 
             function handleResponseFailed(event) {
                 var message = event.message;
-                var vipCallbacks = callbackMap[event.sourceVIP];
+                var vipCallbacks = callbackMap[event.sourceVip];
                 var callbacks = vipCallbacks && vipCallbacks[message.token];
                 if(callbacks) {
                     delete vipCallbacks[message.token];

@@ -150,7 +150,7 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                 if(version) {
                     description += version +": ";
                 }
-                description += "from " + event.sourceVIP + ": " + message;
+                description += "from " + event.sourceVip + ": " + message;
 
                 Log.info(instance, "message-test-handler", description);
                 captor.signal(description);
@@ -158,9 +158,9 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
         },
 
         newConnectionLostPrintCallback: function (captor, instance) {
-            return function onConnectionLost(targetVIP) {
+            return function onConnectionLost(targetVip) {
 
-                description = "from " + targetVIP + " connection lost";
+                description = "from " + targetVip + " connection lost";
 
                 Log.info(instance, "connection-lost-handler", description);
                 captor.signal(description);
@@ -170,7 +170,7 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
         newHeartbeatPrintCallback: function (captor, instance) {
             return function onHeartbeat(event) {
 
-                description = event.sourceVIP + " heartbeat message";
+                description = event.sourceVip + " heartbeat message";
 
                 Log.info(instance, "connection-lost-handler", description);
                 captor.signal(description);

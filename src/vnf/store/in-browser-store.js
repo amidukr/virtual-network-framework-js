@@ -118,7 +118,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
                     var errorCode = removeEntry(key);
 
                     if(!errorCode) {
-                        resolve(Global.OL);
+                        resolve(Global.OK);
 
                     }else{
                         reject(errorCode);

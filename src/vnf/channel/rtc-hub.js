@@ -91,7 +91,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                     var message = messageType == "J" ? JSON.parse(messageFragment) : messageFragment;
                     
                     rtcEndpoint.onMessage({message: message,
-                                          sourceVIP: targetVip,
+                                          sourceVip: targetVip,
                                           endpoint: rtcEndpoint});
 
                     messageFragment = null;
@@ -273,7 +273,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                if(event.message.type == "rtc-connection") {
                     Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
 
-                    var targetVip = event.sourceVIP;
+                    var targetVip = event.sourceVip;
                     var message = event.message;
 
                     if(event.message.requestForNewConnection) {
@@ -320,7 +320,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub"], 
                    if(self.onMessage){
                        window.setTimeout(function(){
                            self.onMessage({message: message,
-                                           sourceVIP: selfVip,
+                                           sourceVip: selfVip,
                                            endpoint: self});
                        }, 0);
 

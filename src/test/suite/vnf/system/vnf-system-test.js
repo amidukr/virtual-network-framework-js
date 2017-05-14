@@ -81,7 +81,7 @@ function(  Vnf,
                 "test-method": function(event) {
                     assert.equal(event.message,      "test-method-argument-" + i++, "asserting event message");
                     assert.equal(event.method,       "test-method",                 "asserting event method");
-                    assert.equal(event.sourceVIP,    "root-endpoint",               "asserting event sourceVIP");
+                    assert.equal(event.sourceVip,    "root-endpoint",               "asserting event sourceVip");
                     assert.equal(event.endpoint,     endpoint,                      "asserting event endpoint");
                     assert.equal(event.endpoint.vip, "vnf-endpoint",                "asserting event endpoint vip");
 
@@ -207,8 +207,8 @@ function(  Vnf,
                 }
             }
 
-            this.onConnectionLost = function(targetVIP) {
-                captor.signal("connection-lost: " + targetVIP);
+            this.onConnectionLost = function(targetVip) {
+                captor.signal("connection-lost: " + targetVip);
             };
         }
 

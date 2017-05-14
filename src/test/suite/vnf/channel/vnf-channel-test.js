@@ -65,7 +65,7 @@ function(  Vnf,
             Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
  
             assert.equal(event.message,   "vip-1 to vip-2 message");
-            assert.equal(event.sourceVIP, "vip-1");
+            assert.equal(event.sourceVip, "vip-1");
             assert.equal(event.endpoint, endpoint2);
             assert.equal(event.endpoint.vip, "vip-2");
 
@@ -163,10 +163,10 @@ function(  Vnf,
  
          function newPingPongCallback(captor, instance) {
              return function onMessage(event) {
-                 var message = "from " + event.sourceVIP + ": " + event.message;
+                 var message = "from " + event.sourceVip + ": " + event.message;
                  Log.info(instance, "message-test-handler", message);
                  captor.signal(message);
-                 event.endpoint.send(event.sourceVIP, "pong from " + instance + "[" + event.message + "]");
+                 event.endpoint.send(event.sourceVip, "pong from " + instance + "[" + event.message + "]");
              }
          }
  

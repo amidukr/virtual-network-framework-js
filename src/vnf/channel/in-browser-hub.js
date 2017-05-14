@@ -37,16 +37,16 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
                 var handler = remoteEndpoint.onMessage;
 
                 if(!connectionDropped && handler) {
-                    handler({sourceVIP: selfVip, message: message, endpoint: remoteEndpoint});
+                    handler({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
                 }
              }, 0)
          }
 
          var parentDestroy = self.destroy;
          self.destroy = function() {
-            for(var connectedVIP in connections){
+            for(var connectedVip in connections){
                 try{
-                    self.closeConnection(connectedVIP);
+                    self.closeConnection(connectedVip);
                 }catch(e){
                     Log.error(selfVip, "in-browser-hub", ["Error closing connection", e]);
                 }
