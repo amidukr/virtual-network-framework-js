@@ -7,13 +7,14 @@ function(  Vnf,
            Log,
            VnfTestUtils){
 
-    //TODO: suspend
-    //TODO: verify new reliable channel, destroyed previously - this test should fail
-    //        open two endpoints, send couple message, drop one endpoint,
-    //        wait heartbeat, open another endpoint, send message
-    //           onHeartbeat - listener would be helpful
-    //
-    //TODO: multiple channel - WebRtc vs WebSocket - multiple chanmel it is different hub implementation
+    //TODO: to support IE, which do not support WebRTC
+    //   Fallbak to websocket
+    //   IE and Chrome
+    //TODO: phantoms
+    //   gaps - done
+    //   session checks
+    //   channel state and message types
+    //TODO: out buffs test/test handling for cleaned-up handshake messages
 
      QUnit.module("Reliable Channel Tests");
      QUnit.test("[Unreliable Hub]: Testing Unreliable hub", function(assert){

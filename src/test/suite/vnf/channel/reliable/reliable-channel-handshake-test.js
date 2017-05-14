@@ -99,8 +99,4 @@ function( ReliableTestUtils){
         .then(argument.destroy)
         .then(done);
     });
-
-    //TODO: phantoms
-    //TODO: out buffs test/test handling for cleaned-up handshake messages
-    //TODO: stress tests
 })
