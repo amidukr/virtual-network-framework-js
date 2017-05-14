@@ -16,6 +16,8 @@ define(["vnf/global",
 
         "utils/arrays"],
 
+//TODO: VIP -> Vip
+
   function(Global,
 
            WebSocketRpc,

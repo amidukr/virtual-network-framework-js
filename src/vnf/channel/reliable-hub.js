@@ -139,7 +139,6 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
             function handleConnectionOnLost(channel) {
-                channel.connected = false;
                 channel.sessionIndex = channel.sessionIndex + 1;
                 channel.connectionMqStartFrom = -1;
                 channel.sessionId = endpointId + "-" + channel.sessionIndex;
@@ -155,7 +154,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 channel.firstMessageNumberInReceivedBuffer = -1;
                 channel.receivedMessages = new CycleBuffer();
 
-                if(channel.state != STATE_HANDSHAKING) {
+                if(channel.connected || channel.state != STATE_HANDSHAKING) {
+                    channel.connected = false;
                     channel.state = STATE_HANDSHAKING;
                     channel.keepAliveHandshakingCounter = 0;
                     self.__fireConnectionLost(channel.targetVIP);
@@ -368,7 +368,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 "HEARTBEAT-ACCEPT":  {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true},
                 "REGULAR":           {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true},
                 "HEARTBEAT-REGULAR": {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true},
-                "CLOSE-CONNECTION":  {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true}
+                "CLOSE-CONNECTION":  {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true}
             };
 
             var verifyRemoteSession = {

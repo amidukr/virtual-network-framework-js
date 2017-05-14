@@ -114,12 +114,27 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                 return reliableRtc;
             };
 
+            function reliableHubFactory() {
+                var reliableRtc = new Vnf.ReliableHub(new Vnf.InBrowserHub());
+
+                reliableRtc.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHeartbeatInterval"));
+                reliableRtc.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionInvalidateInterval"));
+                reliableRtc.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionLostTimeout"));
+                reliableRtc.setHandshakeRetryInterval(            TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHandshakeRetryInterval"));
+                reliableRtc.setKeepAliveHandshakingChannelTimeout(TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcKeepAliveHandshakingChannelTimeout"));
+
+                reliableRtc.setHandshakeRetries(10);
+
+                return reliableRtc;
+            };
+
             var proxyCallback = function proxyCallback(assert, args) {
                 return callback(assert, Object.assign({}, argumentProcessor(assert, args), args));
             };
 
             VnfTestUtils.test("root:InMemory",    description, {rootHubFactory: inMemoryFactory},       proxyCallback);
             VnfTestUtils.test("root:Rtc",         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
+            VnfTestUtils.test("root:Reliable",    description, {rootHubFactory: reliableHubFactory},    proxyCallback);
             VnfTestUtils.test("root:ReliableRtc", description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
 
         },

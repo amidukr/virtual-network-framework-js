@@ -39,9 +39,10 @@ function(  Vnf,
 
                 return Promise.resolve()
 
+                .then(rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"utils-message-1"}']))
+
                 .then(rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":0,"messageIndex":0,"payload":"utils-message-2"}))
 
-                .then(rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"utils-message-1"}']))
                 .then(reliableCapture.assertSignals.bind(null, ['from root-endpoint: utils-message-2']))
             }
 

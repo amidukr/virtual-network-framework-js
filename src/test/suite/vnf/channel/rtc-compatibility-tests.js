@@ -8,13 +8,15 @@ function(  Vnf,
     function hubQUnitTest(description, callback) {
         function prepareArgs(hubName, hubConstructor, configureHubCallback) {
             return function(assert, args) {
-                args.hubName = hubName;
+                
+                function hubFactory(){
+                     hub = new hubConstructor(args.rootHubFactory())
+                    if(configureHubCallback) configureHubCallback(hub);
+                    return hub;
+                }
 
-                return {hubFactory: function(){
-                            var hub = new hubConstructor(args.rootHubFactory())
-                            if(configureHubCallback) configureHubCallback(hub);
-                            return hub;
-                       }};
+                return {hubName: hubName, 
+                        hubFactory: hubFactory};
             }
         }
 
@@ -32,7 +34,11 @@ function(  Vnf,
         }
 
         runTest("InBrowserHub",  description, Vnf.InBrowserHub,  callback);
-        runTest("RtcHub",        description, Vnf.RtcHub,        callback);
+
+        if(VnfTestUtils.isTestingLevelEnabled(TESTING_LEVEL_3RD_PARTY_UNRELIABLE)) {
+            runTest("RtcHub",        description, Vnf.RtcHub,        callback);
+        }
+
         runTest("UnreliableHub", description, Vnf.UnreliableHub, callback);
         runTest("ReliableHub",   description, Vnf.ReliableHub,   callback, configureReliableHub);
     };

@@ -113,6 +113,26 @@ function( ReliableTestUtils){
         .then(done);
     });
 
+    ReliableTestUtils.reliableVnfTest("Connection Lost: Reply with CLOSE-CONNECTION to HANDSHAKE", function(assert, argument) {
+        var done = assert.async(1);
+
+        argument.reliableEndpoint.send('root-endpoint', "message-1");
+        argument.reliableEndpoint.send('root-endpoint', "message-2");
+
+        Promise.resolve()
+        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HANDSHAKE","sessionId":"rel1-1","messageIndex":0,"payload":"message-1"}']))
+        .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"CLOSE-CONNECTION","sessionId":"root1-1","toSID":"rel1-1"}))
+
+        .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
+
+        .then(argument.destroy)
+        .then(done);
+    });
+
+
+
+
+
     ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout", function(assert, argument) {
         var done = assert.async(1);
 
@@ -156,7 +176,7 @@ function( ReliableTestUtils){
 
         argument.fastHeartbeats();
 
-         Promise.resolve()
+        Promise.resolve()
 
         .then(argument.makeConnection)
 
