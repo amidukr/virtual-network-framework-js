@@ -1,8 +1,8 @@
-define(["vnf/vnf", "utils/logger"], function(VNF, Log){
+define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
 
     var runningTest = "";
 
-    var VNFTestUtils = {
+    var VnfTestUtils = {
 
         isTestingLevelEnabled: function(testLevel, testProfile) {
             var activeTestingLevel = TestingProfiles.getValue(testProfile, "activeTestingLevel");
@@ -12,13 +12,13 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
         isTestEnabled: function(testProfile) {
             var testLevel = TestingProfiles.getValue(testProfile, "testLevel");
 
-            return VNFTestUtils.isTestingLevelEnabled(testLevel, testProfile);
+            return VnfTestUtils.isTestingLevelEnabled(testLevel, testProfile);
         },
 
         test: function(testProfile, shortDescription, args, callback) {
             var description = "["+testProfile+"]-" + shortDescription;
 
-            if(!VNFTestUtils.isTestEnabled(testProfile)) {
+            if(!VnfTestUtils.isTestEnabled(testProfile)) {
                 return;
             }
 
@@ -90,11 +90,11 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                 argumentProcessor = function(value){return value;};
             }
 
-            function inMemoryFactory() {return new VNF.InBrowserHub();};
-            function rtcHubFactory() {return new VNF.RTCHub(new VNF.InBrowserHub());};
+            function inMemoryFactory() {return new Vnf.InBrowserHub();};
+            function rtcHubFactory() {return new Vnf.RTCHub(new Vnf.InBrowserHub());};
 
             function reliableRtcHubFactory() {
-                var reliableRTC = new VNF.ReliableRTCHub(new VNF.InBrowserHub());
+                var reliableRTC = new Vnf.ReliableRTCHub(new Vnf.InBrowserHub());
 
                 reliableRTC.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCHeartbeatInterval"));
                 reliableRTC.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRTC", "reliableRTCConnectionInvalidateInterval"));
@@ -111,9 +111,9 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
                 return callback(assert, Object.assign({}, argumentProcessor(assert, args), args));
             };
 
-            VNFTestUtils.test("root:InMemory",    description, {rootHubFactory: inMemoryFactory},       proxyCallback);
-            VNFTestUtils.test("root:RTC",         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
-            VNFTestUtils.test("root:ReliableRTC", description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
+            VnfTestUtils.test("root:InMemory",    description, {rootHubFactory: inMemoryFactory},       proxyCallback);
+            VnfTestUtils.test("root:RTC",         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
+            VnfTestUtils.test("root:ReliableRTC", description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
 
         },
 
@@ -176,9 +176,9 @@ define(["vnf/vnf", "utils/logger"], function(VNF, Log){
             var args = [Cls];
             [].push.apply(args, arguments);
 
-            return VNFTestUtils.newInstance.bind.apply(VNFTestUtils.newInstance, args);
+            return VnfTestUtils.newInstance.bind.apply(VnfTestUtils.newInstance, args);
         }
     };
 
-    return VNFTestUtils;
+    return VnfTestUtils;
 });

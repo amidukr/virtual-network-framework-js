@@ -4,18 +4,18 @@ requirejs(["vnf/vnf",
            "test/utils/vnf-test-utils",
            "test/utils/websocket-rpc-test-utils",
            "lib/bluebird"],
-function(  VNF,
+function(  Vnf,
            SignalCaptor,
            Log,
-           VNFTestUtils,
+           VnfTestUtils,
            WebSocketRpcTestUtils,
            Promise){
 
     function webSocketStoreTest(description, callback) {
-        VNFTestUtils.test("WebSocketStoreClient", description, {}, function(assert, argument){
+        VnfTestUtils.test("WebSocketStoreClient", description, {}, function(assert, argument){
             WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument);
 
-            argument.storeClient = new VNF.WebSocketStoreClient(argument.webSocketRpc);
+            argument.storeClient = new Vnf.WebSocketStoreClient(argument.webSocketRpc);
 
             return callback(assert, argument);
         });

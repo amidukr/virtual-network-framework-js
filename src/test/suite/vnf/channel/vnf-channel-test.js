@@ -2,10 +2,10 @@ requirejs(["vnf/vnf",
            "utils/signal-captor",
            "utils/logger",
            "test/utils/vnf-test-utils"],
-function(  VNF,
+function(  Vnf,
            SignalCaptor,
            Log,
-           VNFTestUtils){
+           VnfTestUtils){
 
     function hubQUnitTest(description, callback) {
         function prepareArgs(hubConstructor, configureHubCallback) {
@@ -20,8 +20,8 @@ function(  VNF,
 
 
         function runTest(hubName, description, hub, callback, configureHubCallback) {
-            QUnit.module(hubName + " Generic VNF Tests");
-            VNFTestUtils.vnfTest("[" + hubName + "] Generic VNF Tests: "  + description, prepareArgs(hub, configureHubCallback),  callback);
+            QUnit.module(hubName + " Generic Vnf Tests");
+            VnfTestUtils.vnfTest("[" + hubName + "] Generic Vnf Tests: "  + description, prepareArgs(hub, configureHubCallback),  callback);
         }
 
         function configureReliableHub(reliableHub) {
@@ -31,10 +31,10 @@ function(  VNF,
             reliableHub.setKeepAliveHandshakingChannelTimeout(2000);
         }
 
-        runTest("InBrowserHub",  description, VNF.InBrowserHub,  callback);
-        runTest("RTCHub",        description, VNF.RTCHub,        callback);
-        runTest("UnreliableHub", description, VNF.UnreliableHub, callback);
-        runTest("ReliableHub",   description, VNF.ReliableHub,   callback, configureReliableHub);
+        runTest("InBrowserHub",  description, Vnf.InBrowserHub,  callback);
+        runTest("RTCHub",        description, Vnf.RTCHub,        callback);
+        runTest("UnreliableHub", description, Vnf.UnreliableHub, callback);
+        runTest("ReliableHub",   description, Vnf.ReliableHub,   callback, configureReliableHub);
     };
 
 
@@ -111,7 +111,7 @@ function(  VNF,
  
         var capture2 = new SignalCaptor(assert);
  
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
  
         endpoint1.send("vip-2", "message-sequence-1-from-vip1-to-vip2");
         
@@ -136,7 +136,7 @@ function(  VNF,
  
          var capture2 = new SignalCaptor(assert);
  
-         endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+         endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
  
  
          endpoint1.send("vip-2", "double-message-1-from-vip1-to-vip2");
@@ -174,7 +174,7 @@ function(  VNF,
          var capture2 = new SignalCaptor(assert);
          var capture3 = new SignalCaptor(assert);
  
-         endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
+         endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
          endpoint2.onMessage = newPingPongCallback(capture2, "vip-2");
          endpoint3.onMessage = newPingPongCallback(capture3, "vip-3");
  
@@ -201,8 +201,8 @@ function(  VNF,
          var capture1 = new SignalCaptor(assert);
          var capture2 = new SignalCaptor(assert);
  
-         endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
-         endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+         endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
+         endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
  
          endpoint1.send("vip-2", "concurrent-vip1-to-vip2-message");
          endpoint2.send("vip-1", "concurrent-vip2-to-vip1-message");
@@ -222,7 +222,7 @@ function(  VNF,
 
          var capture1 = new SignalCaptor(assert);
  
-         endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
+         endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
 
  
          endpoint1.send("vip-1", "loopback-message-to-vip1");
@@ -244,9 +244,9 @@ function(  VNF,
         var capture2 = new SignalCaptor(assert);
         var capture3 = new SignalCaptor(assert);
  
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
-        endpoint3.onMessage = VNFTestUtils.newPrintCallback(capture3, "vip-3");
+        endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint3.onMessage = VnfTestUtils.newPrintCallback(capture3, "vip-3");
 
         endpoint1.send("vip-2", "message-from-vip1-to-vip2");
         endpoint1.send("vip-3", "message-from-vip1-to-vip3");
@@ -320,8 +320,8 @@ function(  VNF,
         var capture1 = new SignalCaptor(assert);
         var capture2 = new SignalCaptor(assert);
 
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
         endpoint1.send("vip-2", "message-1");
 
@@ -351,11 +351,11 @@ function(  VNF,
         var capture1 = new SignalCaptor(assert);
         var capture2 = new SignalCaptor(assert);
 
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
-        endpoint1.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(capture1, "vip-1"));
-        endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
+        endpoint1.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(capture1, "vip-1"));
+        endpoint2.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
 
         endpoint1.send("vip-2", "message-1");
 
@@ -387,11 +387,11 @@ function(  VNF,
         var capture1 = new SignalCaptor(assert);
         var capture2 = new SignalCaptor(assert);
 
-        endpoint1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1");
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
-        endpoint1.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(capture1, "vip-1"));
-        endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
+        endpoint1.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(capture1, "vip-1"));
+        endpoint2.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
 
         endpoint1.send("vip-2", "message-1");
 
@@ -434,8 +434,8 @@ function(  VNF,
         var capture2 = new SignalCaptor(assert);
         var capture3 = new SignalCaptor(assert);
  
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
-        endpoint3.onMessage = VNFTestUtils.newPrintCallback(capture3, "vip-3");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint3.onMessage = VnfTestUtils.newPrintCallback(capture3, "vip-3");
  
         endpoint1.send("vip-2", "send-to-destroyed message-1 to vip-2");
         capture2.assertSignals(["from vip-1: send-to-destroyed message-1 to vip-2"])
@@ -474,8 +474,8 @@ function(  VNF,
         var endpoint1V2;
         var endpoint2V2;
  
-        endpoint1V1.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1", "V1");
-        endpoint2V1.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2", "V1");
+        endpoint1V1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1", "V1");
+        endpoint2V1.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V1");
  
         endpoint1V1.send("vip-2", "destroy-test message-1-v1-to-vip-2");
         endpoint2V1.send("vip-1", "destroy-test message-2-v1-to-vip-1");
@@ -490,8 +490,8 @@ function(  VNF,
             endpoint1V2 = vnfHub.openEndpoint("vip-1");
             endpoint2V2 = vnfHub.openEndpoint("vip-2");
  
-            endpoint1V2.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-1", "V2");
-            endpoint2V2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2", "V2");
+            endpoint1V2.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1", "V2");
+            endpoint2V2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V2");
  
             endpoint1V2.send("vip-2", "destroy-test message-3-v2-to-vip-2");
             endpoint2V2.send("vip-1", "destroy-test message-4-v2-to-vip-1");
@@ -521,8 +521,8 @@ function(  VNF,
  
         var endpoint2V2;
  
-        endpoint1.onMessage   = VNFTestUtils.newPrintCallback(capture1, "vip-1", "V1");
-        endpoint2V1.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2", "V1");
+        endpoint1.onMessage   = VnfTestUtils.newPrintCallback(capture1, "vip-1", "V1");
+        endpoint2V1.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V1");
  
         endpoint1.send("vip-2", "message-1-v1-to-vip-2");
         endpoint2V1.send("vip-1", "message-2-v1-to-vip-1");
@@ -537,7 +537,7 @@ function(  VNF,
  
             endpoint2V2 = vnfHub.openEndpoint("vip-2");
  
-            endpoint2V2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2", "V2");
+            endpoint2V2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V2");
  
             endpoint1.send("vip-2", "message-3-v2-to-vip-2");
             endpoint2V2.send("vip-1", "message-4-v2-to-vip-1");

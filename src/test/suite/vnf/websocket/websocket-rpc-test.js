@@ -4,22 +4,22 @@ requirejs(["vnf/vnf",
            "test/utils/vnf-test-utils",
            "test/utils/websocket-rpc-test-utils",
            "lib/bluebird"],
-function(  VNF,
+function(  Vnf,
            SignalCaptor,
            Log,
-           VNFTestUtils,
+           VnfTestUtils,
            WebSocketRpcTestUtils,
            Promise){
 
     function webSocketTest(description, callback) {
 
-        VNFTestUtils.test("WebSocketTest", description, {}, function(assert, argument){
+        VnfTestUtils.test("WebSocketTest", description, {}, function(assert, argument){
             WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument)
 
             return callback(assert, argument);
         });
 
-        VNFTestUtils.test("WebSocketTest", "Exception failover: "+ description, {}, function(assert, argument){
+        VnfTestUtils.test("WebSocketTest", "Exception failover: "+ description, {}, function(assert, argument){
             WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument)
 
             argument.mockWebSocketFactory.setExceptionOnCall("Testing unexpected exception fail-overs");
@@ -621,7 +621,7 @@ function(  VNF,
             assert.notOk("call fulfilled, while rejection by timeout is exepcted");
         },
         function(reason){
-            assert.equal(reason, VNF.Global.REJECTED_BY_TIMEOUT, "asserting call rejection reason");
+            assert.equal(reason, Vnf.Global.REJECTED_BY_TIMEOUT, "asserting call rejection reason");
         })
         .then(done)
     });
@@ -669,7 +669,7 @@ function(  VNF,
             assert.notOk("Web socket should be destroyed, successful response instead" + evt);
         },
         function(reason){
-            assert.equal(reason, VNF.Global.INSTANCE_DESTROYED, "asserting call rejection reason - called after destroy");
+            assert.equal(reason, Vnf.Global.INSTANCE_DESTROYED, "asserting call rejection reason - called after destroy");
         })
         .then(argument.webSocketCaptor.assertSilence.bind(null, 600))
         .then(done);
@@ -683,7 +683,7 @@ function(  VNF,
             assert.notOk("Silence is expected after destroy, but resolved with" + evt);
         },
         function(reason){
-            assert.equal(reason, VNF.Global.INSTANCE_DESTROYED, "asserting call rejection reason - called before destroy");
+            assert.equal(reason, Vnf.Global.INSTANCE_DESTROYED, "asserting call rejection reason - called before destroy");
         })
         .then(done);
 
@@ -692,7 +692,7 @@ function(  VNF,
             assert.notOk("Silence is expected after destroy, but resolved with" + evt);
         },
         function(reason){
-            assert.equal(reason, VNF.Global.INSTANCE_DESTROYED, "asserting call rejection reason - called before destroy - with retry");
+            assert.equal(reason, Vnf.Global.INSTANCE_DESTROYED, "asserting call rejection reason - called before destroy - with retry");
         })
         .then(done);
     });

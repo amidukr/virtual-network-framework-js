@@ -15,7 +15,6 @@ define(["vnf/global",
         "vnf/system/system",
 
         "utils/arrays"],
-//TODO: renamve VNF to Vnf
 
   function(Global,
 
@@ -31,7 +30,7 @@ define(["vnf/global",
            ReliableRTCHub,
            WebSocketHub,
 
-           VNFSystem){
+           VnfSystem){
     return {
       Global: Global,
 
@@ -48,7 +47,7 @@ define(["vnf/global",
       WebSocketHub:   WebSocketHub,
 
 
-      System: VNFSystem
+      System: VnfSystem
     }
 });
 

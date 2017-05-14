@@ -1,10 +1,10 @@
 requirejs(["test/utils/reliable-test-utils",
            "test/utils/vnf-test-utils"],
 function( ReliableTestUtils,
-          VNFTestUtils){
+          VnfTestUtils){
 
     QUnit.module("ReliableHub Handshake with heartbeats");
-    ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable<--Root) Catch accept heartbeat", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Heartbeats Handshakes: (Reliable<--Root) Catch accept heartbeat", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -30,7 +30,7 @@ function( ReliableTestUtils,
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint with heartbeats", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Heartbeats Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint with heartbeats", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -52,7 +52,7 @@ function( ReliableTestUtils,
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Heartbeats Handshakes: (Reliable-->Root) Test handshake initiation sequence by reliable endpoint with heartbeats", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Heartbeats Handshakes: (Reliable-->Root) Test handshake initiation sequence by reliable endpoint with heartbeats", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -64,7 +64,7 @@ function( ReliableTestUtils,
 
         .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", {"type":"HEARTBEAT-ACCEPT","sessionId":"root1-1","toSID":"rel1-1","mqStartFrom":7,"gapBegin":2,"gapEnd":-1}))
 
-        .then(VNFTestUtils.onHeartbeatPromise.bind(null, argument.reliableEndpoint))
+        .then(VnfTestUtils.onHeartbeatPromise.bind(null, argument.reliableEndpoint))
 
         .then(argument.reliableEndpoint.send.bind(null, 'root-endpoint', "message-3"))
 

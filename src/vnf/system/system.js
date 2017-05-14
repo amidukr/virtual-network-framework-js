@@ -8,20 +8,20 @@ define(["vnf/global",
         function(Global,
         Log,
 
-        VNFCoreService,
+        VnfCoreService,
         ServiceCallService,
 
         ChannelHubService,
         StoreService) {
 
 
-    function VNFSystem() {
+    function VnfSystem() {
         var vnfSystem = this;
 
         var endpoints = {}
         var serviceFactories = [];
 
-        function VNFSystemEndpoint(vip) {
+        function VnfSystemEndpoint(vip) {
             var vnfEndpoint = this;
             vnfEndpoint.vip = vip;
 
@@ -54,7 +54,7 @@ define(["vnf/global",
                             }
                         }
                     }catch(e) {
-                        Log.error(vip, "VNFSystem", ["Service lookup call failed", e]);
+                        Log.error(vip, "VnfSystem", ["Service lookup call failed", e]);
                     }
                 }
 
@@ -78,18 +78,18 @@ define(["vnf/global",
         this.openEndpoint = function(vip) {
             var endpoint = endpoints[vip];
             if(!endpoint) {
-                endpoint = new VNFSystemEndpoint(vip);
+                endpoint = new VnfSystemEndpoint(vip);
                 endpoints[vip] = endpoint;
             }
             return endpoint;
         }
 
-        this.registerService(new VNFCoreService())
+        this.registerService(new VnfCoreService())
         this.registerService(new ServiceCallService())
     }
 
-    VNFSystem.ChannelHubService = ChannelHubService;
-    VNFSystem.StoreService      = StoreService;
+    VnfSystem.ChannelHubService = ChannelHubService;
+    VnfSystem.StoreService      = StoreService;
 
-    return VNFSystem;
+    return VnfSystem;
 })

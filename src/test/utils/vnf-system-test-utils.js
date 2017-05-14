@@ -1,34 +1,34 @@
 define(["vnf/vnf",
         "test/utils/vnf-test-utils",
         "utils/signal-captor"],
-function(  VNF,
-           VNFTestUtils,
+function(  Vnf,
+           VnfTestUtils,
            SignalCaptor){
 
     function vfnSystemTest(description, callback) {
 
 
-        //VNF.System.registerWebSocket(vnfSystem, "http://....");
-        //VNF.System.registerInBrowser(vnfSystem, inBrowserHub, inBrowserStore);
+        //Vnf.System.registerWebSocket(vnfSystem, "http://....");
+        //Vnf.System.registerInBrowser(vnfSystem, inBrowserHub, inBrowserStore);
 
         //argument.vnfEndpoint = .... //vnf-endpoint
         //argument.rootEndpoint = .... //root-endpoint
 
         function prepareArguments(assert, args) {
-            var vnfSystem = new VNF.System();
+            var vnfSystem = new Vnf.System();
 
             var rootHub  = args.rootHubFactory();
 
-            vnfSystem.registerService(new VNF.System.ChannelHubService(rootHub))
-            vnfSystem.registerService(new VNF.System.StoreService(new VNF.InBrowserStore()))
+            vnfSystem.registerService(new Vnf.System.ChannelHubService(rootHub))
+            vnfSystem.registerService(new Vnf.System.StoreService(new Vnf.InBrowserStore()))
 
             var rootCapture = new SignalCaptor(assert);
 
             var rootEndpoint = rootHub.openEndpoint("root-endpoint");
 
-            rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback(rootCapture,      "root-endpoint");
+            rootEndpoint.onMessage     = VnfTestUtils.newPrintCallback(rootCapture,      "root-endpoint");
 
-            rootEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(rootCapture, "root-endpoint"));
+            rootEndpoint.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(rootCapture, "root-endpoint"));
 
             function destroy() {
                 rootEndpoint.destroy();
@@ -44,7 +44,7 @@ function(  VNF,
                            args);
         }
 
-        VNFTestUtils.vnfTest("[VNF System Tests]-" + description, prepareArguments, callback);
+        VnfTestUtils.vnfTest("[Vnf System Tests]-" + description, prepareArguments, callback);
     }
 
     return {vfnSystemTest: vfnSystemTest};

@@ -2,7 +2,7 @@ requirejs(["test/utils/reliable-test-utils"],
 function( ReliableTestUtils){
 
     QUnit.module("ReliableHub Handshake Retry");
-    ReliableTestUtils.reliableVNFTest("ReliableHub Handshake Retry test", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("ReliableHub Handshake Retry test", function(assert, argument) {
         var done = assert.async(1);
 
         argument.fastHeartbeats();

@@ -89,7 +89,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             updateHeartbeatCounters();
         }
 
-        selfHub.VNFEndpoint = function ReliableEndpoint(vip) {
+        selfHub.VnfEndpoint = function ReliableEndpoint(vip) {
             var self = this;
             selfHub.ProxyEndpoint.call(self, vip);
 

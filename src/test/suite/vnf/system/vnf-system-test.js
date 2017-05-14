@@ -2,13 +2,13 @@ requirejs(["vnf/vnf",
            "lib/bluebird",
            "test/utils/vnf-system-test-utils",
            "utils/signal-captor"],
-function(  VNF,
+function(  Vnf,
            Promise,
-           VNFSystemTestUtils,
+           VnfSystemTestUtils,
            SignalCaptor){
 
     function vfnSystemUnitTest(description, callback) {
-        VNFSystemTestUtils.vfnSystemTest("[Unit] " + description, callback);
+        VnfSystemTestUtils.vfnSystemTest("[Unit] " + description, callback);
     }
 
     vfnSystemUnitTest("Consume side test: Service call test",  function(assert, argument){
@@ -240,7 +240,7 @@ function(  VNF,
          .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.FAILED_DUE_TO_CONNECTION_LOST, "asserting error reason");
+            assert.equal(reason, Vnf.Global.FAILED_DUE_TO_CONNECTION_LOST, "asserting error reason");
         })
 
         .then(argument.destroy)
@@ -262,7 +262,7 @@ function(  VNF,
          .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.REJECTED_BY_TIMEOUT, "asserting error reason");
+            assert.equal(reason, Vnf.Global.REJECTED_BY_TIMEOUT, "asserting error reason");
         })
 
         .then(argument.destroy)

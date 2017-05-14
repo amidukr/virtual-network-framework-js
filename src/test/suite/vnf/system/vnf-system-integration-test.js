@@ -2,14 +2,14 @@ requirejs(["vnf/vnf",
            "lib/bluebird",
            "test/utils/vnf-system-test-utils",
            "utils/signal-captor"],
-function(  VNF,
+function(  Vnf,
            Promise,
-           VNFSystemTestUtils,
+           VnfSystemTestUtils,
            SignalCaptor){
 
 
     function vnfSystemIntegrationTest(description, callback) {
-        VNFSystemTestUtils.vfnSystemTest("[Integration] " + description, callback);
+        VnfSystemTestUtils.vfnSystemTest("[Integration] " + description, callback);
     }
 
     vnfSystemIntegrationTest("Service call test",  function(assert, argument){
@@ -103,7 +103,7 @@ function(  VNF,
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.CALL_FAILED_UNKNOWN_METHOD, "asserting error reason");
+            assert.equal(reason, Vnf.Global.CALL_FAILED_UNKNOWN_METHOD, "asserting error reason");
         })
         .then(done);
     });
@@ -129,7 +129,7 @@ function(  VNF,
          .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.CALL_FAILED_UNEXPECTED_EXCEPTION, "asserting error reason");
+            assert.equal(reason, Vnf.Global.CALL_FAILED_UNEXPECTED_EXCEPTION, "asserting error reason");
         })
         .then(done);
     });

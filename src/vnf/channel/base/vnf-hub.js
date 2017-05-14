@@ -2,7 +2,7 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
 
    window.vnfActiveEndpoints = [];
 
-   return function VNFHub(){
+   return function VnfHub(){
       var self = this;
 
       var hub = {};
@@ -47,7 +47,7 @@ define(["utils/logger", "utils/observable"], function(Log, Observable) {
       self.openEndpoint = function openEndpoint(vip) {
           var endpoint = hub[vip];
           if(!endpoint) {
-              endpoint = new self.VNFEndpoint(vip);
+              endpoint = new self.VnfEndpoint(vip);
               hub[vip] = endpoint;
           }
 

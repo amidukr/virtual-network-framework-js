@@ -2,7 +2,7 @@ requirejs(["test/utils/reliable-test-utils"],
 function( ReliableTestUtils){
 
     QUnit.module("ReliableHub Connection Lost");
-    ReliableTestUtils.reliableVNFTest("Connection Lost: Close connection by reliable endpoint", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Connection Lost: Close connection by reliable endpoint", function(assert, argument) {
         var done = assert.async(1);
 
         argument.fastHeartbeats();
@@ -23,7 +23,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Connection Lost: Close connection by root endpoint", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Connection Lost: Close connection by root endpoint", function(assert, argument) {
         var done = assert.async(1);
 
         argument.fastHeartbeats();
@@ -45,7 +45,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Connection Lost: ignore close connection without special message", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Connection Lost: ignore close connection without special message", function(assert, argument) {
         var done = assert.async(1);
 
         argument.fastHeartbeats();
@@ -68,7 +68,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Connection Lost: send message after closeConnection call", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Connection Lost: send message after closeConnection call", function(assert, argument) {
         var done = assert.async(1);
 
         Promise.resolve()
@@ -88,7 +88,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Connection Lost: send message after connection lost message", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Connection Lost: send message after connection lost message", function(assert, argument) {
         var done = assert.async(1);
 
         argument.fastHeartbeats();
@@ -113,7 +113,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Connection Lost: by timeout", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(argument.toAbsoluteInterval(300));
@@ -151,7 +151,7 @@ function( ReliableTestUtils){
     });
 
 
-    ReliableTestUtils.reliableVNFTest("Connection Lost: by timeout v2", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout v2", function(assert, argument) {
         var done = assert.async(1);
 
         argument.fastHeartbeats();

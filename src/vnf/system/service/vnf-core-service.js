@@ -1,6 +1,6 @@
 define([], function() {
 
-    return function VNFCoreService() {
+    return function VnfCoreService() {
         return function(vnfEndpoint) {
             var parentEndpoint;
             var storeClient;

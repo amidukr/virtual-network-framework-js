@@ -1,8 +1,8 @@
-define(["vnf/vnf", "test/mock/mock-websocket-factory"], function(VNF, MockWebSocketFactory){
+define(["vnf/vnf", "test/mock/mock-websocket-factory"], function(Vnf, MockWebSocketFactory){
 
     function setupWebSocketRpcMocks(assert, argument) {
         argument.mockWebSocketFactory = new MockWebSocketFactory(assert);
-        argument.webSocketRpc = new VNF.WebSocketRpc("endpoint-vip", argument.mockWebSocketFactory);
+        argument.webSocketRpc = new Vnf.WebSocketRpc("endpoint-vip", argument.mockWebSocketFactory);
         argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
 
         argument.webSocketRpc.setBusyTimerInterval(200);

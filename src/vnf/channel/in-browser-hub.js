@@ -1,11 +1,11 @@
-define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
+define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
 
    return function InBrowserHub(){
       var selfHub = this;
 
-      VNFHub.call(selfHub);
+      VnfHub.call(selfHub);
 
-      selfHub.VNFEndpoint = function InBrowserEndpoint(selfVip) {
+      selfHub.VnfEndpoint = function InBrowserEndpoint(selfVip) {
          var self = this;
          selfHub.BaseEndPoint.call(this, selfVip);
 

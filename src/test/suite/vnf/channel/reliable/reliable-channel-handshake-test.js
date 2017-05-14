@@ -2,7 +2,7 @@ requirejs(["test/utils/reliable-test-utils"],
 function( ReliableTestUtils){
 
     QUnit.module("ReliableHub Handshake");
-    ReliableTestUtils.reliableVNFTest("Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint", function(assert, argument) {
         var done = assert.async(1);
 
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":2,"payload":"message-1"});
@@ -32,7 +32,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Handshakes: (Reliable-->Root) Test handshake initiation sequence by reliable endpoint", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable-->Root) Test handshake initiation sequence by reliable endpoint", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");
@@ -61,7 +61,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Handshakes: (Reliable<->Root) Test concurrent synchronous handshake-accept sequence initiation", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<->Root) Test concurrent synchronous handshake-accept sequence initiation", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableEndpoint.send('root-endpoint', "message-1");

@@ -3,10 +3,10 @@ requirejs(["vnf/vnf",
            "utils/logger",
            "test/utils/vnf-test-utils",
            "lib/bluebird"],
-function(  VNF,
+function(  Vnf,
            SignalCaptor,
            Log,
-           VNFTestUtils,
+           VnfTestUtils,
            Promise){
 
     var RTCPeerConnection     = window.RTCPeerConnection     || window.mozRTCPeerConnection     || window.webkitRTCPeerConnection;
@@ -36,7 +36,7 @@ function(  VNF,
     QUnit.test("[RTCHub Unit]: synchronous connect stress test", function(assert){
         Log.info("test", "[RTCHub Unit]: synchronous connect stress test");
 
-        if(!VNFTestUtils.isTestingLevelEnabled(TESTING_LEVEL_STRESS)) {
+        if(!VnfTestUtils.isTestingLevelEnabled(TESTING_LEVEL_STRESS)) {
             assert.ok(true, "Skipping test due to testing level");
             return;
         }
@@ -50,15 +50,15 @@ function(  VNF,
         function doTest() {
             n++;
 
-            var rtcHub = new VNF.RTCHub(new VNF.InBrowserHub());
+            var rtcHub = new Vnf.RTCHub(new Vnf.InBrowserHub());
             var endpoint1 = rtcHub.openEndpoint("vip-1");
             var endpoint2 = rtcHub.openEndpoint("vip-2");
 
             var captor1 = new SignalCaptor(assert);
             var captor2 = new SignalCaptor(assert);
 
-            endpoint1.onMessage = VNFTestUtils.newPrintCallback(captor1, "vip-1");
-            endpoint2.onMessage = VNFTestUtils.newPrintCallback(captor2, "vip-2");
+            endpoint1.onMessage = VnfTestUtils.newPrintCallback(captor1, "vip-1");
+            endpoint2.onMessage = VnfTestUtils.newPrintCallback(captor2, "vip-2");
 
             endpoint1.send("vip-2", "message-to-vip-2");
             endpoint2.send("vip-1", "message-to-vip-1");
@@ -95,11 +95,11 @@ function(  VNF,
 
     })
 
-    VNFTestUtils.vnfTest("[RTCHub Unit]: rtc initiate connection test", function(assert, argument){
+    VnfTestUtils.vnfTest("[RTCHub Unit]: rtc initiate connection test", function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
-        var rtcHub = new VNF.RTCHub(rootHub);
+        var rtcHub = new Vnf.RTCHub(rootHub);
 
         var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
         var rootEndpoint = rootHub.openEndpoint("root-endpoint");
@@ -180,11 +180,11 @@ function(  VNF,
          .then(done);
     });
 
-    VNFTestUtils.vnfTest("[RTCHub Unit]: rtc accept connection test", function(assert, argument){
+    VnfTestUtils.vnfTest("[RTCHub Unit]: rtc accept connection test", function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
-        var rtcHub = new VNF.RTCHub(rootHub);
+        var rtcHub = new Vnf.RTCHub(rootHub);
 
         var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
         var rootEndpoint = rootHub.openEndpoint("root-endpoint");
@@ -257,11 +257,11 @@ function(  VNF,
          .then(done);
     });
 
-    VNFTestUtils.vnfTest("[RTCHub Unit]: rtc synchronous connection establish test", function(assert, argument){
+    VnfTestUtils.vnfTest("[RTCHub Unit]: rtc synchronous connection establish test", function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
-        var rtcHub = new VNF.RTCHub(rootHub);
+        var rtcHub = new Vnf.RTCHub(rootHub);
 
         var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
         var rootEndpoint = rootHub.openEndpoint("root-endpoint");

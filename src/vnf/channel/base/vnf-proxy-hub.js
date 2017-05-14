@@ -1,4 +1,4 @@
-define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
+define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
     return function ProxyHub(parentHub){
         var selfHub = this;
 
@@ -6,7 +6,7 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VNFHub) {
             throw new Error("Unable to create instnce of ProxyHub, argument 'parentHub' shouldn't be null");
         }
 
-        VNFHub.call(selfHub);
+        VnfHub.call(selfHub);
 
         selfHub.ProxyEndpoint = function InBrowserEndpoint(selfVip) {
             var self = this;

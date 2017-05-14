@@ -2,7 +2,7 @@ requirejs(["test/utils/reliable-test-utils"],
 function( ReliableTestUtils){
 
     QUnit.module("ReliableHub Message Order Correction");
-    ReliableTestUtils.reliableVNFTest("Order Correction: Test send first message after mqStartFrom", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Order Correction: Test send first message after mqStartFrom", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -24,7 +24,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Order Correction: Test send first message before mqStartFrom", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Order Correction: Test send first message before mqStartFrom", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -47,7 +47,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Order Correction: mqStartFrom Test send shuffled messages", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Order Correction: mqStartFrom Test send shuffled messages", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -70,7 +70,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Order Correction: Double message send", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Order Correction: Double message send", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -97,7 +97,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Order Correction: Shuffled messages", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Order Correction: Shuffled messages", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);

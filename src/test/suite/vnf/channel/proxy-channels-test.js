@@ -1,7 +1,7 @@
 requirejs(["vnf/vnf",
            "test/utils/vnf-test-utils"],
-function(  VNF,
-           VNFTestUtils){
+function(  Vnf,
+           VnfTestUtils){
 
     // invalidate
     // destroy
@@ -10,7 +10,7 @@ function(  VNF,
     //UnreliableHub: UnreliableHub,
     //ReliableHub: ReliableHub,
     
-    function proxyVNFTest(description, callback) {
+    function proxyVnfTest(description, callback) {
         function prepareArguments(hubConstructor) {
             return function(assert, args) {
                 var rootHub  = args.rootHubFactory();
@@ -20,11 +20,11 @@ function(  VNF,
             }
         }
 
-        VNFTestUtils.vnfTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(VNF.UnreliableHub), callback);
+        VnfTestUtils.vnfTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(Vnf.UnreliableHub), callback);
     };
 
     QUnit.module("Proxy Channels Tests");
-    proxyVNFTest("closeConnection", function(assert, args){
+    proxyVnfTest("closeConnection", function(assert, args){
         var done = assert.async(1);
 
         var endPointInBrowser = args.rootHub.openEndpoint("vip-1");
@@ -41,7 +41,7 @@ function(  VNF,
         endPointProxy.closeConnection("target-vip-2");
     })
 
-    proxyVNFTest("destroy", function(assert, args){
+    proxyVnfTest("destroy", function(assert, args){
         var endPointInBrowser = args.rootHub.openEndpoint("vip-1");
         var endPointProxy     = args.proxyHub.openEndpoint("vip-1");
 

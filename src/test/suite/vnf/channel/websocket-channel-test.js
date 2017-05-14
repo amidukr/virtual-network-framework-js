@@ -4,20 +4,20 @@ requirejs(["vnf/vnf",
            "test/utils/vnf-test-utils",
            "test/utils/websocket-rpc-test-utils",
            "lib/bluebird"],
-function(  VNF,
+function(  Vnf,
            SignalCaptor,
            Log,
-           VNFTestUtils,
+           VnfTestUtils,
            WebSocketRpcTestUtils,
            Promise){
 
     function webSocketHubTest(description, callback) {
-        VNFTestUtils.test("WebSocketHub", description, {}, function(assert, argument){
+        VnfTestUtils.test("WebSocketHub", description, {}, function(assert, argument){
 
             argument.mockWebSocketFactory = new WebSocketRpcTestUtils.MockWebSocketFactory(assert);
             argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
 
-            var webSocketHub = new VNF.WebSocketHub(argument.mockWebSocketFactory);
+            var webSocketHub = new Vnf.WebSocketHub(argument.mockWebSocketFactory);
             argument.webSocketEndpoint = webSocketHub.openEndpoint("endpoint-vip");
 
             var webSocketRpc = argument.webSocketEndpoint.getWebSocketRpc();

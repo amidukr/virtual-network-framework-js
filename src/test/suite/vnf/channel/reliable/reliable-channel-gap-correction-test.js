@@ -2,7 +2,7 @@ requirejs(["test/utils/reliable-test-utils"],
 function( ReliableTestUtils){
 
     QUnit.module("ReliableHub Message Gap Correction");
-    ReliableTestUtils.reliableVNFTest("Gap Correction: Gap Detection", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Gap Correction: Gap Detection", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -19,7 +19,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Gap Correction: gap response in middle", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Gap Correction: gap response in middle", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);
@@ -47,7 +47,7 @@ function( ReliableTestUtils){
         .then(done);
     });
 
-    ReliableTestUtils.reliableVNFTest("Gap Correction: gap response in end", function(assert, argument) {
+    ReliableTestUtils.reliableVnfTest("Gap Correction: gap response in end", function(assert, argument) {
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(300);

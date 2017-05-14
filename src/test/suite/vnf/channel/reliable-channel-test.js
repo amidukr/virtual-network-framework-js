@@ -2,10 +2,10 @@ requirejs(["vnf/vnf",
            "utils/signal-captor",
            "utils/logger",
            "test/utils/vnf-test-utils"],
-function(  VNF,
+function(  Vnf,
            SignalCaptor,
            Log,
-           VNFTestUtils){
+           VnfTestUtils){
 
     //TODO: suspend
     //TODO: verify new reliable channel, destroyed previously - this test should fail
@@ -21,14 +21,14 @@ function(  VNF,
 
             var done = assert.async(1);
 
-            var unreliableHub = new VNF.UnreliableHub(new VNF.InBrowserHub());
+            var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
 
             var endpoint1 = unreliableHub.openEndpoint("vip-1");
             var endpoint2 = unreliableHub.openEndpoint("vip-2");
 
             var capture1 = new SignalCaptor(assert);
 
-            endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture1, "vip-2");
+            endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-2");
 
 
 
@@ -48,15 +48,15 @@ function(  VNF,
 
         var done = assert.async(1);
 
-        var unreliableHub = new VNF.UnreliableHub(new VNF.InBrowserHub());
-        var reliableHub = new VNF.ReliableHub(unreliableHub);
+        var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
+        var reliableHub = new Vnf.ReliableHub(unreliableHub);
 
         var endpoint1 = reliableHub.openEndpoint("vip-1");
         var endpoint2 = reliableHub.openEndpoint("vip-2");
 
         var capture2 = new SignalCaptor(assert);
 
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
         endpoint1.send("vip-2", "vip-1-to-vip-2-message-delivered-1");
         unreliableHub.blockChannel("vip-1", "vip-2");
@@ -79,15 +79,15 @@ function(  VNF,
 
         var done = assert.async(1);
 
-        var unreliableHub = new VNF.UnreliableHub(new VNF.InBrowserHub());
-        var reliableHub = new VNF.ReliableHub(unreliableHub);
+        var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
+        var reliableHub = new Vnf.ReliableHub(unreliableHub);
 
         var endpoint1 = reliableHub.openEndpoint("vip-1");
         var endpoint2 = reliableHub.openEndpoint("vip-2");
 
         var capture2 = new SignalCaptor(assert);
 
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
         endpoint1.send("vip-2", "vip-1-to-vip-2-message-delivered-1");
         unreliableHub.blockChannel("vip-1", "vip-2");
@@ -108,15 +108,15 @@ function(  VNF,
 
         var done = assert.async(1);
 
-        var unreliableHub = new VNF.UnreliableHub(new VNF.InBrowserHub());
-        var reliableHub = new VNF.ReliableHub(unreliableHub);
+        var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
+        var reliableHub = new Vnf.ReliableHub(unreliableHub);
 
         var endpoint1 = reliableHub.openEndpoint("vip-1");
         var endpoint2 = reliableHub.openEndpoint("vip-2");
 
         var capture2 = new SignalCaptor(assert);
 
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
         endpoint1.send("vip-2", "vip-1-to-vip-2-message-1");
         unreliableHub.blockChannel("vip-1", "vip-2");
@@ -152,21 +152,21 @@ function(  VNF,
     QUnit.test("[Reliable Hub]: Send message to existing peer", function(assert){
         var done = assert.async(1);
 
-        var reliableHub = new VNF.ReliableHub(new VNF.InBrowserHub());
+        var reliableHub = new Vnf.ReliableHub(new Vnf.InBrowserHub());
 
         var endpoint1 = reliableHub.openEndpoint("vip-1");
         var endpoint2 = reliableHub.openEndpoint("vip-2");
 
         var capture2 = new SignalCaptor(assert);
 
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
 
         endpoint1.send("vip-2", "send-to-existing-connection-message-1");
 
         capture2.assertSignals(["from vip-1: send-to-existing-connection-message-1"])
-        .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint1))
-        .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint2))
+        .then(VnfTestUtils.onHeartbeatPromise.bind(null, endpoint1))
+        .then(VnfTestUtils.onHeartbeatPromise.bind(null, endpoint2))
         .then(function(){
             endpoint1.destroy();
 
@@ -182,7 +182,7 @@ function(  VNF,
     QUnit.test("[Reliable Hub]: Receive message from existing peer", function(assert){
             var done = assert.async(1);
 
-            var reliableHub = new VNF.ReliableHub(new VNF.InBrowserHub());
+            var reliableHub = new Vnf.ReliableHub(new Vnf.InBrowserHub());
 
             var endpoint1V1 = reliableHub.openEndpoint("vip-1");
             var endpoint1V2;
@@ -192,22 +192,22 @@ function(  VNF,
             var capture1V2 = new SignalCaptor(assert);
             var capture2 = new SignalCaptor(assert);
 
-            endpoint1V1.onMessage = VNFTestUtils.newPrintCallback(capture1V1, "vip-1-original");
-            endpoint2.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
+            endpoint1V1.onMessage = VnfTestUtils.newPrintCallback(capture1V1, "vip-1-original");
+            endpoint2.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
 
 
             endpoint2.send("vip-1", "receive-from-existing-connection-message-1");
 
             capture1V1.assertSignals(["from vip-2: receive-from-existing-connection-message-1"])
-            .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint1V1))
-            .then(VNFTestUtils.onHeartbeatPromise.bind(null, endpoint2))
+            .then(VnfTestUtils.onHeartbeatPromise.bind(null, endpoint1V1))
+            .then(VnfTestUtils.onHeartbeatPromise.bind(null, endpoint2))
             .then(endpoint1V1.destroy)
             .then(capture2.assertSignals.bind(null, ["from vip-1 connection lost"]))
             .then(function(){
 
                 endpoint1V2 = reliableHub.openEndpoint("vip-1");
 
-                endpoint1V2.onMessage = VNFTestUtils.newPrintCallback(capture1V2, "vip-1-new");
+                endpoint1V2.onMessage = VnfTestUtils.newPrintCallback(capture1V2, "vip-1-new");
 
                 endpoint2.send("vip-1", "receive-from-existing-connection-message-2");
             }).then(capture1V2.assertSignals.bind(null, ["from vip-2: receive-from-existing-connection-message-2"]))
@@ -221,8 +221,8 @@ function(  VNF,
 
         var done = assert.async(1);
 
-        var rtcHub = new VNF.RTCHub(new VNF.InBrowserHub(), {heartbeatsToInvalidate: 3000});
-        var reliableHub = new VNF.ReliableHub(rtcHub);
+        var rtcHub = new Vnf.RTCHub(new Vnf.InBrowserHub(), {heartbeatsToInvalidate: 3000});
+        var reliableHub = new Vnf.ReliableHub(rtcHub);
 
         var endpoint1 = reliableHub.openEndpoint("vip-1");
         var endpoint2 = reliableHub.openEndpoint("vip-2");
@@ -231,7 +231,7 @@ function(  VNF,
         var rtcEndpoint2 = rtcHub.openEndpoint("vip-2");
 
         var capture2 = new SignalCaptor(assert);
-        endpoint2.onMessage = VNFTestUtils.newPrintCallback(capture2, "vip-2");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
 
         endpoint1.send("vip-2", "rtc-message-1");

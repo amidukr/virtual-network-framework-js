@@ -2,15 +2,15 @@ define(["vnf/vnf",
            "utils/signal-captor",
            "test/utils/vnf-test-utils",
            "utils/signal-captor"],
-function(  VNF,
+function(  Vnf,
            Log,
-           VNFTestUtils,
+           VnfTestUtils,
            SignalCaptor){
 
-    function reliableVNFTest(description, callback) {
+    function reliableVnfTest(description, callback) {
         function prepareArguments(assert, args) {
             var rootHub  = args.rootHubFactory();
-            var reliableHub = new VNF.ReliableHub(rootHub);
+            var reliableHub = new Vnf.ReliableHub(rootHub);
 
             var reliableCapture = new SignalCaptor(assert);
             var rootCapture     = new SignalCaptor(assert);
@@ -18,11 +18,11 @@ function(  VNF,
             var reliableEndpoint = reliableHub.openEndpoint("reliable-endpoint");
             var rootEndpoint = rootHub.openEndpoint("root-endpoint");
 
-            reliableEndpoint.onMessage = VNFTestUtils.newPrintCallback(reliableCapture, "reliable-endpoint");
-            rootEndpoint.onMessage     = VNFTestUtils.newPrintCallback(rootCapture,      "root-endpoint");
+            reliableEndpoint.onMessage = VnfTestUtils.newPrintCallback(reliableCapture, "reliable-endpoint");
+            rootEndpoint.onMessage     = VnfTestUtils.newPrintCallback(rootCapture,      "root-endpoint");
 
-            reliableEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(reliableCapture, "reliable-endpoint"));
-            rootEndpoint.onConnectionLost(VNFTestUtils.newConnectionLostPrintCallback(rootCapture, "root-endpoint"));
+            reliableEndpoint.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(reliableCapture, "reliable-endpoint"));
+            rootEndpoint.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(rootCapture, "root-endpoint"));
 
             reliableEndpoint.setEndpointId("rel1");
             reliableHub.setHeartbeatInterval(10000);
@@ -67,8 +67,8 @@ function(  VNF,
                            args);
         }
 
-        VNFTestUtils.vnfTest("[Reliable Hub v0.2] " + description, prepareArguments, callback);
+        VnfTestUtils.vnfTest("[Reliable Hub v0.2] " + description, prepareArguments, callback);
     };
 
-    return {reliableVNFTest: reliableVNFTest};
+    return {reliableVnfTest: reliableVnfTest};
 })

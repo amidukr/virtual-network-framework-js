@@ -5,15 +5,15 @@ define(["utils/logger",
 
 function(Log,
          WebSocketRpc,
-         VNFHub,
+         VnfHub,
          VnfSerializer) {
 
     return function WebSocketHub(webSocketFactory){
         var selfHub = this;
 
-        VNFHub.call(selfHub);
+        VnfHub.call(selfHub);
 
-        selfHub.VNFEndpoint = function WebSocketEndpoint(selfVip) {
+        selfHub.VnfEndpoint = function WebSocketEndpoint(selfVip) {
             var self = this;
             selfHub.BaseEndPoint.call(this, selfVip);
 

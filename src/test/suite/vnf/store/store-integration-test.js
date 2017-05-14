@@ -3,10 +3,10 @@ requirejs(["vnf/vnf",
            "utils/logger",
            "test/utils/vnf-test-utils",
            "lib/bluebird"],
-function(  VNF,
+function(  Vnf,
            SignalCaptor,
            Log,
-           VNFTestUtils,
+           VnfTestUtils,
            Promise){
 
     //TODO: web socket store
@@ -14,7 +14,8 @@ function(  VNF,
     function storeIntegrationTest(description, callback) {
 
         function inBrowserArgumentFactory() {
-            var sharedStore = new VNF.InBrowserStore();
+
+            var sharedStore = new Vnf.InBrowserStore();
 
             function newInBrowserClient(vip) {
                 return sharedStore.connect(vip);
@@ -27,9 +28,9 @@ function(  VNF,
         /*function webSocketArgument() {
             var webSocketFactory = ...;
             function newWebSocketClient(vip) {
-                var client = new VNF.WebSocketClientStore(new VNF.WebSocketRpc(vip, webSocketFactory));
+                var client = new Vnf.WebSocketClientStore(new Vnf.WebSocketRpc(vip, webSocketFactory));
 
-                VNFTestUtils.onTearDown(function(){
+                VnfTestUtils.onTearDown(function(){
                     client.destroy();
                 })
 
@@ -41,7 +42,7 @@ function(  VNF,
             }
         }*/
 
-        VNFTestUtils.test("store:InBrowser", "[Store Integration tests]: " + description, inBrowserArgumentFactory, callback);
+        VnfTestUtils.test("store:InBrowser", "[Store Integration tests]: " + description, inBrowserArgumentFactory, callback);
     }
 
 
@@ -54,7 +55,7 @@ function(  VNF,
         Promise.resolve()
         .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value"))
         .then(function(status) {
-            assert.equal(status, VNF.Global.OK, "asserting status");
+            assert.equal(status, Vnf.Global.OK, "asserting status");
         })
         .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
         .then(function(value){
@@ -71,7 +72,7 @@ function(  VNF,
         Promise.resolve()
         .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, {"key":"value"}))
         .then(function(status) {
-            assert.equal(status, VNF.Global.OK, "asserting status");
+            assert.equal(status, Vnf.Global.OK, "asserting status");
         })
         .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
         .then(function(value){
@@ -107,13 +108,13 @@ function(  VNF,
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
+            assert.equal(reason, Vnf.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
         .then(storeClient.deleteEntry.bind(null, {collection: "collection1", name:"entry1"}))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.DELETE_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
+            assert.equal(reason, Vnf.Global.DELETE_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
         .then(done);
     })
@@ -128,7 +129,7 @@ function(  VNF,
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
+            assert.equal(reason, Vnf.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
         .then(done);
 
@@ -145,7 +146,7 @@ function(  VNF,
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.CREATE_FAILED_ENTRY_ALREADY_EXISTS, "asserting error reason");
+            assert.equal(reason, Vnf.Global.CREATE_FAILED_ENTRY_ALREADY_EXISTS, "asserting error reason");
         })
         .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
         .then(function(value){
@@ -164,7 +165,7 @@ function(  VNF,
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.DELETE_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
+            assert.equal(reason, Vnf.Global.DELETE_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
         .then(done);
     })
@@ -187,7 +188,7 @@ function(  VNF,
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
-            assert.equal(reason, VNF.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
+            assert.equal(reason, Vnf.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
 
         .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value 2"))
@@ -201,7 +202,7 @@ function(  VNF,
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
-           assert.equal(reason, VNF.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
+           assert.equal(reason, Vnf.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
 
         .then(done);
@@ -221,7 +222,7 @@ function(  VNF,
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
-           assert.equal(reason, VNF.Global.CREATE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
+           assert.equal(reason, Vnf.Global.CREATE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
         })
 
         .then(storeClient1.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
@@ -251,7 +252,7 @@ function(  VNF,
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
-           assert.equal(reason, VNF.Global.DELETE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
+           assert.equal(reason, Vnf.Global.DELETE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
         })
 
         .then(storeClient1.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
@@ -349,7 +350,7 @@ function(  VNF,
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
-           assert.equal(reason, VNF.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
+           assert.equal(reason, Vnf.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
 
         .then(done);
