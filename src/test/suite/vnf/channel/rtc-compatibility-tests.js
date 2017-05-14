@@ -112,7 +112,6 @@ function(  Vnf,
 
         .then(capture2.assertSignalsUnordered.bind(null, ["from vip-1: message-3", "from vip-1 connection lost"]))
         .then(capture1.assertSignals.bind(null, ["from vip-2 connection lost"]))
-        .then(capture1.assertSilence.bind(null, 2000))
 
         .then(function(){
             assert.equal(endpoint2.isConnected("vip-1"), false, "Verifying vip-1 connection closed for vip-2");

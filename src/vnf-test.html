@@ -33,37 +33,34 @@
         reliableFastHandshakeRetryInterval: 60,
         reliableFastKeepAliveHandshakingChannelTimeout: 240,
 
-        reliableRTCHeartbeatInterval: 1,
-        reliableRTCConnectionInvalidateInterval: 10,
-        reliableRTCConnectionLostTimeout: 100,
-        reliableRTCHandshakeRetryInterval: 10,
-        reliableRTCKeepAliveHandshakingChannelTimeout: 100,
+        reliableRtcHeartbeatInterval: 1,
+        reliableRtcConnectionInvalidateInterval: 10,
+        reliableRtcConnectionLostTimeout: 100,
+        reliableRtcHandshakeRetryInterval: 10,
+        reliableRtcKeepAliveHandshakingChannelTimeout: 100,
 
         //activeTestingLevel: TESTING_LEVEL_SMOKE,
         activeTestingLevel: TESTING_LEVEL_RELEASE,
         //activeTestingLevel: TESTING_LEVEL_DEBUG,
         //activeTestingLevel: TESTING_LEVEL_STRESS,
 
-
-
-
         "root:InMemory": {
             rate: 2,
             testLevel: TESTING_LEVEL_SMOKE
         },
 
-        "root:RTC": {
+        "root:Rtc": {
             rate: 50,
             testLevel: TESTING_LEVEL_DEBUG
         },
 
-        "root:ReliableRTC": {
+        "root:ReliableRtc": {
             rate: 100,
 
             testLevel: TESTING_LEVEL_RELEASE,
 
-            qunitTestTimeout:  500000,
-            logCaptureTimeout: 500000
+            qunitTestTimeout:  30000,
+            logCaptureTimeout: 30000
         },
 
         toAbsoluteInterval: function(profile, timePoints) {

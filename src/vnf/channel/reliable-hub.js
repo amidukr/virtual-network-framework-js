@@ -106,6 +106,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     channel = {
                         targetVIP: targetVIP,
                         suspended: true,
+                        connected: false,
 
                         state: STATE_HANDSHAKING,
                         sessionIndex: 1,
@@ -138,6 +139,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
             function handleConnectionOnLost(channel) {
+                channel.connected = false;
                 channel.sessionIndex = channel.sessionIndex + 1;
                 channel.connectionMqStartFrom = -1;
                 channel.sessionId = endpointId + "-" + channel.sessionIndex;
@@ -399,6 +401,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             function updateChannelState(channel, message) {
                 if(channel.state == STATE_CONNECTED) return;
 
+                channel.connected = true;
+
                 if(channel.state == STATE_HANDSHAKING) {
                     if(message.type == MESSAGE_HANDSHAKE) {
                         channel.state = STATE_ACCEPTING;
@@ -582,6 +586,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 
                 var channel = getChannel(targetVIP);
+                channel.connected = true;
 
                 channel.lastSentMessageNumber++;
                 channel.sentMessages.push(message);
@@ -599,7 +604,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             }
 
            self.isConnected = function(targetVIP) {
-                return parentEndpoint.isConnected(targetVIP);
+                var channel = channels[targetVIP];        
+                return parentEndpoint.isConnected(targetVIP) && channel && channel.connected;
            }
 
             this.closeConnection = function(targetVIP) {
