@@ -38,23 +38,23 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 INVOKE-TEST-METHOD\nMy\ntest\ndata-2"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 INVOKE-TEST-METHOD\nresponse\nto call - 1"))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nresponse\nto call - 0"))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 INVOKE-TEST-COMMAND\nMy\ntest\ndata-2"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 INVOKE-TEST-COMMAND\nresponse\nto call - 1"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nresponse\nto call - 0"))
 
 
-        Promise.all([argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1"),
-                     argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-2")])
+        Promise.all([argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1"),
+                     argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-2")])
 
         .then(function(responseEvents){
-            assert.equal(responseEvents[0].data, "response\nto call - 0",  "asserting call-0 response data")
-            assert.equal(responseEvents[0].method, "INVOKE-TEST-METHOD",   "asserting call-0 response method")
-            assert.equal(responseEvents[0].callId, "1",                    "asserting call-0 response callId")
+            assert.equal(responseEvents[0].data,    "response\nto call - 0", "asserting call-0 response data")
+            assert.equal(responseEvents[0].command, "INVOKE-TEST-COMMAND",   "asserting call-0 response command")
+            assert.equal(responseEvents[0].callId,  "1",                     "asserting call-0 response callId")
 
-            assert.equal(responseEvents[1].data, "response\nto call - 1",  "asserting call-1 response data")
-            assert.equal(responseEvents[1].method, "INVOKE-TEST-METHOD",   "asserting call-1 response method")
-            assert.equal(responseEvents[1].callId, "2",                    "asserting call-1 response callId")
+            assert.equal(responseEvents[1].data,    "response\nto call - 1", "asserting call-1 response data")
+            assert.equal(responseEvents[1].command, "INVOKE-TEST-COMMAND",   "asserting call-1 response command")
+            assert.equal(responseEvents[1].callId,  "2",                     "asserting call-1 response callId")
         })
 
         .then(done);
@@ -69,18 +69,18 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-2"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-2"]))
 
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 INVOKE-TEST-METHOD\nresponse\nto deferred call - 0"))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nresponse\nto deferred call - 1"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 INVOKE-TEST-COMMAND\nresponse\nto deferred call - 0"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nresponse\nto deferred call - 1"))
 
 
 
         var callPromises = []
 
-        callPromises[0] = argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1");
-        callPromises[1] = argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-2");
+        callPromises[0] = argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1");
+        callPromises[1] = argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-2");
 
         argument.mockWebSocketFactory.fireOnopen();
 
@@ -103,11 +103,11 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD"))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND"))
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD")
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND")
         .then(function(responseEvents){
             assert.equal(responseEvents.data, null, "asserting null response data")
         })
@@ -122,10 +122,10 @@ function(  Vnf,
 
         var i = 0;
 
-        argument.webSocketRpc.registerPushHandler("PUSH-TEST-METHOD", function(event){
+        argument.webSocketRpc.registerPushHandler("PUSH-TEST-COMMAND", function(event){
             i++;
-            assert.equal(event.data, "push\ntest\ndata-" + i)
-            assert.equal(event.method, "PUSH-TEST-METHOD")
+            assert.equal(event.data,    "push\ntest\ndata-" + i)
+            assert.equal(event.command, "PUSH-TEST-COMMAND")
 
             done();
         })
@@ -135,9 +135,9 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(function(){
-            argument.mockWebSocketFactory.fireOnmessage("PUSH-TEST-METHOD\npush\ntest\ndata-1");
-            argument.mockWebSocketFactory.fireOnmessage("PUSH-TEST-METHOD\npush\ntest\ndata-2");
-            argument.mockWebSocketFactory.fireOnmessage("PUSH-TEST-METHOD\npush\ntest\ndata-3");
+            argument.mockWebSocketFactory.fireOnmessage("PUSH-TEST-COMMAND\npush\ntest\ndata-1");
+            argument.mockWebSocketFactory.fireOnmessage("PUSH-TEST-COMMAND\npush\ntest\ndata-2");
+            argument.mockWebSocketFactory.fireOnmessage("PUSH-TEST-COMMAND\npush\ntest\ndata-3");
         })
     });
 
@@ -150,14 +150,14 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(function(){
-            argument.mockWebSocketFactory.fireOnmessage("1 INVOKE-TEST-METHOD\nfirst response");
-            argument.mockWebSocketFactory.fireOnmessage("1 INVOKE-TEST-METHOD\nsecond response");
+            argument.mockWebSocketFactory.fireOnmessage("1 INVOKE-TEST-COMMAND\nfirst response");
+            argument.mockWebSocketFactory.fireOnmessage("1 INVOKE-TEST-COMMAND\nsecond response");
         });
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1")
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1")
         .then(function(responseEvent){
             assert.equal(responseEvent.data, "first response", "Asserting call response dat")
         })
@@ -174,7 +174,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
 
@@ -195,11 +195,11 @@ function(  Vnf,
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nfirst response"));
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nfirst response"));
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1", {retryResend: true})
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true})
         .then(function(responseEvent){
             assert.equal(responseEvent.data, "first response", "Asserting call response dat")
         })
@@ -219,7 +219,7 @@ function(  Vnf,
         .then(function(){mockWebSocket = argument.mockWebSocketFactory.getMockWebSocket()})
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         //... timeout ...
 
@@ -239,11 +239,11 @@ function(  Vnf,
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nsuccessful-response"));
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nsuccessful-response"));
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1", {retryResend: true})
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true})
         .then(function(responseEvent){
             assert.equal(responseEvent.data, "successful-response", "Asserting call response dat")
         })
@@ -263,7 +263,7 @@ function(  Vnf,
         .then(function(){mockWebSocket = argument.mockWebSocketFactory.getMockWebSocket()})
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         //... timeout ...
 
@@ -273,14 +273,14 @@ function(  Vnf,
         .then(function(){mockWebSocket.fireOnclose()})
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nsuccessful-response"))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nsuccessful-response"))
 
         .then(function(){
-            return Promise.all([argument.webSocketRpc.invoke("INVOKE-TEST-METHOD-2", "My\ntest\ndata-2"),
+            return Promise.all([argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND-2", "My\ntest\ndata-2"),
                                 Promise.resolve()
-                                    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 INVOKE-TEST-METHOD-2\nMy\ntest\ndata-2"]))
-                                    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 INVOKE-TEST-METHOD-2\nsuccessful-response-2"))
+                                    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 INVOKE-TEST-COMMAND-2\nMy\ntest\ndata-2"]))
+                                    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 INVOKE-TEST-COMMAND-2\nsuccessful-response-2"))
                                 ])
                     .then(function(argument){
                         assert.equal(argument[0].data, "successful-response-2", "Asserting seocnd call response data")
@@ -291,7 +291,7 @@ function(  Vnf,
         .then(done);
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1", {retryResend: true})
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true})
         .then(function(responseEvent){
             assert.equal(responseEvent.data, "successful-response", "Asserting call response dat")
         })
@@ -309,7 +309,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         //... timeout ...
 
@@ -319,7 +319,7 @@ function(  Vnf,
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         //... timeout ...
 
@@ -329,11 +329,11 @@ function(  Vnf,
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nsuccessful-response"));
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nsuccessful-response"));
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1", {retryResend: true})
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true})
         .then(function(responseEvent){
             assert.equal(responseEvent.data, "successful-response", "Asserting call response dat")
         })
@@ -369,11 +369,11 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 LOGIN\nOK"))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nfirst response"));
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nfirst response"));
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1", {retryResend: true})
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true})
         .then(function(responseEvent){
             assert.equal(responseEvent.data, "first response", "Asserting call response dat")
         })
@@ -390,25 +390,25 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-METHOD\nresponse\nto call - 0"))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nresponse\nto call - 0"))
 
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1", {retryResend: true})
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true})
         .then(function(responseEvent){
             assert.equal(responseEvent.data, "response\nto call - 0",  "asserting call-0 response data after retries")
         })
@@ -566,10 +566,10 @@ function(  Vnf,
 
 
         .then(function(){
-            return Promise.all([argument.webSocketRpc.invoke("INVOKE-TEST-METHOD-2", "My\ntest\ndata-2"),
+            return Promise.all([argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND-2", "My\ntest\ndata-2"),
                                 Promise.resolve()
-                                    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 7 INVOKE-TEST-METHOD-2\nMy\ntest\ndata-2"]))
-                                    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "7 INVOKE-TEST-METHOD-2\nsuccessful-response-after-reconnects"))
+                                    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 7 INVOKE-TEST-COMMAND-2\nMy\ntest\ndata-2"]))
+                                    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "7 INVOKE-TEST-COMMAND-2\nsuccessful-response-after-reconnects"))
                                 ])
                     .then(function(argument){
                         assert.equal(argument[0].data, "successful-response-after-reconnects", "Asserting seocnd call response data")
@@ -616,7 +616,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1")
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1")
         .then(function(){
             assert.notOk("call fulfilled, while rejection by timeout is exepcted");
         },
@@ -635,10 +635,10 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-FAIL-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n1 INVOKE-FAIL-METHOD\nSERVER_SIDE_FAILURE_CODE"))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-FAIL-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n1 INVOKE-FAIL-COMMAND\nSERVER_SIDE_FAILURE_CODE"))
 
-        argument.webSocketRpc.invoke("INVOKE-FAIL-METHOD", "My\ntest\ndata-1")
+        argument.webSocketRpc.invoke("INVOKE-FAIL-COMMAND", "My\ntest\ndata-1")
         .then(function(){
             assert.notOk("call fulfilled, while rejection by timeout is exepcted");
         },
@@ -657,14 +657,14 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-METHOD\nMy\ntest\ndata-1"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 INVOKE-TEST-METHOD\nMy\ntest\ndata for retry"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 INVOKE-TEST-COMMAND\nMy\ntest\ndata for retry"]))
         .then(argument.webSocketRpc.destroy.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "PUSH-METHOD\nargument"))
-        .then(argument.webSocketRpc.invoke.bind("INVOKE-TEST-METHOD", "My\ntest\ndata-2"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "PUSH-COMMAND\nargument"))
+        .then(argument.webSocketRpc.invoke.bind("INVOKE-TEST-COMMAND", "My\ntest\ndata-2"))
         .then(function(evt){
             assert.notOk("Web socket should be destroyed, successful response instead" + evt);
         },
@@ -674,11 +674,11 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSilence.bind(null, 600))
         .then(done);
 
-        argument.webSocketRpc.registerPushHandler("PUSH-METHOD", function(){
+        argument.webSocketRpc.registerPushHandler("PUSH-COMMAND", function(){
             assert.notOk("Push handler shouldn't be invoked for destroy webrpc");
         });
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata-1")
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1")
         .then(function(evt){
             assert.notOk("Silence is expected after destroy, but resolved with" + evt);
         },
@@ -687,7 +687,7 @@ function(  Vnf,
         })
         .then(done);
 
-        argument.webSocketRpc.invoke("INVOKE-TEST-METHOD", "My\ntest\ndata for retry", {retryResend: true})
+        argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata for retry", {retryResend: true})
         .then(function(evt){
             assert.notOk("Silence is expected after destroy, but resolved with" + evt);
         },

@@ -172,15 +172,15 @@ function(Log, Observable, Utils, Global) {
 
         function handleCallResponse(callAction, header, argument) {
             var callIdBreakIndex = header.indexOf(' ');
-            var callId = header.substr(0, callIdBreakIndex);
-            var method = header.substr(callIdBreakIndex + 1);
+            var callId  = header.substr(0, callIdBreakIndex);
+            var command = header.substr(callIdBreakIndex + 1);
 
             delete callMap[header];
 
             callAction.resolve({
-                data: argument,
-                method: method,
-                callId: callId
+                data:    argument,
+                command: command,
+                callId:  callId
             });
         }
 
@@ -198,13 +198,13 @@ function(Log, Observable, Utils, Global) {
 
         this.onConnectionOpen = connectionOpenListeners.addListener;
 
-        this.registerPushHandler = function(method, callback) {
+        this.registerPushHandler = function(command, callback) {
             if(destroyed) return;
 
-            handlers[method] = function(header, argument) {
+            handlers[command] = function(header, argument) {
                 callback({
                     data: argument,
-                    method: header
+                    command: header
                 })
             }
         }
@@ -213,7 +213,7 @@ function(Log, Observable, Utils, Global) {
             webSocketRpc.invoke("PING", null, {retryResend: true});
         }
 
-        this.invoke = function(method, valueArgument, callParameters) {
+        this.invoke = function(command, valueArgument, callParameters) {
             if(destroyed) {
                 return Promise.reject(Global.INSTANCE_DESTROYED);
             }
@@ -223,7 +223,7 @@ function(Log, Observable, Utils, Global) {
             return new Promise(function(resolve, reject){
                 var callId = nextCallId++;
 
-                var header = callId + " " + method;
+                var header = callId + " " + command;
 
                 var message;
                 if(valueArgument === null | valueArgument === undefined) {
