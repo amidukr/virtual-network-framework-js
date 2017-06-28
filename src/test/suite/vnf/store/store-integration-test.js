@@ -222,7 +222,7 @@ function(  Vnf,
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
-           assert.equal(reason, Vnf.Global.CREATE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
+           assert.equal(reason, Vnf.Global.UPDATE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
         })
 
         .then(storeClient1.getEntry.bind(null, {collection: "collection1", name:"entry1"}))

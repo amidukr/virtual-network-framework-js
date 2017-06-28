@@ -40,7 +40,7 @@ function(  Vnf,
         Promise.resolve()
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nSstring-value"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT\nSUCCESS"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
 
         .then(done)
     })
@@ -53,7 +53,7 @@ function(  Vnf,
         Promise.resolve()
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nJ{"json":"value"}']))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT\nSUCCESS"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
 
         .then(done);
     })
@@ -128,11 +128,11 @@ function(  Vnf,
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\nexternal-endpoint-vip\nMESSAGE\nSestablish-connection']))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT\nSUCCESS"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
 
         .then(argument.webSocketEndpoint.closeConnection.bind(null, "external-endpoint-vip"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 2 SEND_TO_ENDPOINT\nexternal-endpoint-vip\nCLOSE-CONNECTION']))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT\nSUCCESS"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 PING"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 PING"))
 
@@ -149,14 +149,14 @@ function(  Vnf,
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 2))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\nvip-1\nMESSAGE\nSmessage-1']))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nvip-2\nMESSAGE\nSmessage-2']))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT\nSUCCESS"))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 SEND_TO_ENDPOINT\nSUCCESS"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 SEND_TO_ENDPOINT"))
 
         .then(argument.webSocketEndpoint.destroy.bind("external-endpoint-vip"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 3 SEND_TO_ENDPOINT\nvip-1\nCLOSE-CONNECTION']))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 4 SEND_TO_ENDPOINT\nvip-2\nCLOSE-CONNECTION']))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 SEND_TO_ENDPOINT\nSUCCESS"))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 SEND_TO_ENDPOINT\nSUCCESS"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 SEND_TO_ENDPOINT"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 SEND_TO_ENDPOINT"))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
 

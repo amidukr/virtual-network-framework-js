@@ -31,7 +31,7 @@ define(["vnf/global", "utils/utils"], function(Global, Utils) {
                         }
 
                         if(oldValue.owner != vip) {
-                            reject(Global.CREATE_FAILED_DUE_TO_OWNERSHIP_CHECK);
+                            reject(Global.UPDATE_FAILED_DUE_TO_OWNERSHIP_CHECK);
                             return;
                         }
                     }
