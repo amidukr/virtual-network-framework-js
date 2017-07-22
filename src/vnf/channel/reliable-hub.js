@@ -108,7 +108,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         suspended: true,
                         connected: false,
 
-                        state: STATE_HANDSHAKING,
+                        state: null,
                         sessionIndex: 1,
                         connectionMqStartFrom: -1,
                         sessionId: endpointId + "-1",
@@ -132,6 +132,9 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         firstMessageNumberInReceivedBuffer: -1,
                         receivedMessages: new CycleBuffer()
                     };
+                    
+                    setChannelState(channel, STATE_HANDSHAKING);
+
                     channels[targetVip] = channel;
                 }
 
@@ -156,7 +159,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                 if(channel.connected || channel.state != STATE_HANDSHAKING) {
                     channel.connected = false;
-                    channel.state = STATE_HANDSHAKING;
+                    setChannelState(channel, STATE_HANDSHAKING);
                     channel.keepAliveHandshakingCounter = 0;
                     self.__fireConnectionLost(channel.targetVip);
                 }
@@ -320,7 +323,7 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 }
             }
 
-            function onTimeEvent() {
+             function onTimeEvent() {
                 var channelsToDeactivate = [];
 
                 for(var i = 0; i < activeChannels.length; i++) {
@@ -339,7 +342,10 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 }
 
                 for(var i = 0; i < channelsToDeactivate.length; i++) {
-                    activeChannels.removeValue(channelsToDeactivate[i]);
+                    var channel = channelsToDeactivate[i];
+                    var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
+                    Log.debug(instanceId, "reliable-channel-status", "deactivate channel");
+                    activeChannels.removeValue(channel);
                 }
 
                 if(activeChannels.length > 0) {
@@ -398,6 +404,14 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 return false;
             }
 
+            function setChannelState(channel, newState) {
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
+                
+                channel.state = newState;
+
+                Log.debug(instanceId, "reliable-channel-status", "channel state changed to: " + channel.state);
+            }
+
             function updateChannelState(channel, message) {
                 if(channel.state == STATE_CONNECTED) return;
 
@@ -405,14 +419,14 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                 if(channel.state == STATE_HANDSHAKING) {
                     if(message.type == MESSAGE_HANDSHAKE) {
-                        channel.state = STATE_ACCEPTING;
+                        setChannelState(channel, STATE_ACCEPTING);
 
                         newConnection(channel, message, message.messageIndex);
                         return;
                     }
 
                     if(message.type == MESSAGE_ACCEPT || message.type == MESSAGE_HEARTBEAT_ACCEPT) {
-                        channel.state = STATE_CONNECTED;
+                        setChannelState(channel, STATE_CONNECTED)
 
                         newConnection(channel, message, message.mqStartFrom);
                         return;
@@ -423,14 +437,19 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                 if(channel.state == STATE_ACCEPTING) {
                     if(message.type == MESSAGE_ACCEPT  || message.type == MESSAGE_HEARTBEAT_ACCEPT
                     || message.type == MESSAGE_REGULAR || message.type == MESSAGE_HEARTBEAT_REGULAR) {
-                        channel.state = STATE_CONNECTED;
+                        setChannelState(channel, STATE_CONNECTED);
                         return;
                     }
                 }
+
+                
             }
 
             function reactivateChannel(channel) {
                 if(channel.suspended) {
+                    var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
+                    Log.debug(instanceId, "reliable-channel-status", "reactivate channel");
+
                     channel.suspended = false;
                     channel.keepAliveHandshakingCounter = 0;
                     activeChannels.push(channel);
@@ -624,6 +643,9 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
             var parentDestroy = self.destroy;
             self.destroy = function() {
+                var instanceId = "reliable[" + endpointId + ":" + vip + "-> ... ]";
+                Log.debug(instanceId, "reliable-channel-status", "destroy endpoint");
+
                 for(var connectedVip in channels){
                     self.closeConnection(connectedVip);
                 }
