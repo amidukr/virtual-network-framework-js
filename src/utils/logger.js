@@ -19,6 +19,7 @@ define([], function(){
     }
 
     var categoryLogLevel = {
+        //"reliable-channel-status": DEBUG
         //"webrtc-connecting": INFO,
         //"webrtc-oniceconnectionstatechange": INFO,
         //"webrtc-onsignalingstatechange": INFO
@@ -44,14 +45,17 @@ define([], function(){
             listeners[i](event);
           }
 
-          allowedLogLevel = categoryLogLevel[category] || TRACE;
+          allowedLogLevel = categoryLogLevel[category] || INFO;
           currentLogLevel = logLevelMap[level];
 
           if(allowedLogLevel >= currentLogLevel) {
+
+              var formattedDate = Date.prototype.toISOString ? new Date().toISOString() : "";
+
               if(instance) {
-                console[level]("[" + category + "] - [" + instance  + "]: ", message);
+                console[level](formattedDate + " [" + category + "] - [" + instance  + "]: ", message);
               }else{
-                console[level]("[" + category + "]: ", message);
+                console[level](formattedDate + " [" + category + "]: ", message);
               }
           }
         },
