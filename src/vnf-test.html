@@ -25,6 +25,8 @@
         rate: 1,
         testLevel: TESTING_LEVEL_RELEASE,
 
+        vnfWebSocketUrl: "ws://localhost:8080/vnf-ws",
+
         relative__qunitTestTimeout: 3000,
         relative__logCaptureTimeout: 3000,
 
@@ -76,6 +78,8 @@
             logCaptureTimeout: 30000
         },
 
+
+
         "[root:ReliableRtc]-[Reliable Hub v0.2] Connection Lost: by timeout v2" : {
             rate: 1
         },
@@ -98,9 +102,45 @@
             rate: 20
         },
 
-        "[root:ReliableRtc]-[UnreliableHub] Generic Vnf Tests: Channel Verify Synchronous Destroy-Invalidate Call" : {
+        "[root:ReliableRtc, UnreliableHub] Generic Vnf Tests: Channel Verify Synchronous Destroy-Invalidate Call - Concurrent Join" : {
             rate: 30
         },
+
+        "root:InMemory, ReliableWebSocketHub" : {
+            qunitTestTimeout:  10000,
+            logCaptureTimeout: 10000
+        },
+
+
+
+        "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Channel Double Message Send Test" : {
+            enabled: false
+        },
+
+        "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Concurrent Connection Estabilish Test" : {
+            enabled: false
+        },
+
+        "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Multiple/Loopback Channels Send Test" : {
+            enabled: false
+        },
+
+        "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Channel Verify Synchronous Destroy Call - Concurrent Join" : {
+            enabled: false
+        },
+
+        "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Channel Verify Synchronous Destroy-Invalidate Call - Concurrent Join" : {
+            enabled: false
+        },
+
+        "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Channel Big Message Test" : {
+            enabled: false
+        },
+
+        "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Channel Verify Synchronous Send" : {
+            enabled: false
+        },
+
 
         getValue: function(profileKey, config) {
 
