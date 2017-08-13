@@ -1,6 +1,7 @@
 define(["vnf/global",
 
         "vnf/websocket/websocket-rpc",
+        "vnf/websocket/websocket-facrory",
 
         "vnf/store/in-browser-store",
         "vnf/store/websocket-store-client",
@@ -19,6 +20,7 @@ define(["vnf/global",
   function(Global,
 
            WebSocketRpc,
+           WebSocketFactory,
 
            InBrowserStore,
            WebSocketStoreClient,
@@ -34,7 +36,8 @@ define(["vnf/global",
     return {
       Global: Global,
 
-      WebSocketRpc: WebSocketRpc,
+      WebSocketRpc:     WebSocketRpc,
+      WebSocketFactory: WebSocketFactory,
 
       InBrowserStore:       InBrowserStore,
       WebSocketStoreClient: WebSocketStoreClient,
