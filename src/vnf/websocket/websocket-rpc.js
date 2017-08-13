@@ -104,6 +104,7 @@ function(Log, Observable, Utils, Global) {
                 webSocketRpc.invoke("LOGIN", vip, {immediateSend: true})
                 .then(function(result){
                     if(result.data != "OK") {
+                        Log.warn(vip, "websocket-rtc", [new Error("Login failed, retrying, error reason is '" +  result.data + "'")]);
                         window.setTimeout(recreateWebSocket, loginRecreateInterval);
                     }
 
