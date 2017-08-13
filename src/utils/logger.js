@@ -18,6 +18,8 @@ define([], function(){
         "trace": TRACE
     }
 
+    var defaultLevel = TRACE;
+
     var categoryLogLevel = {
         //"reliable-channel-status": DEBUG
         //"webrtc-connecting": INFO,
@@ -45,7 +47,7 @@ define([], function(){
             listeners[i](event);
           }
 
-          allowedLogLevel = categoryLogLevel[category] || INFO;
+          allowedLogLevel = categoryLogLevel[category] || defaultLevel;
           currentLogLevel = logLevelMap[level];
 
           if(allowedLogLevel >= currentLogLevel) {
