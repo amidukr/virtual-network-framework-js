@@ -23,7 +23,7 @@ function(  Vnf,
 
         function runTest(hubName, description, hub, callback, configureHubCallback) {
             QUnit.module(hubName + " Compatibility Tests");
-            VnfTestUtils.vnfTest("[" + hubName + "] Compatibility Tests: "  + description, prepareArgs(hubName, hub, configureHubCallback),  callback);
+            VnfTestUtils.vnfTest({description: "[" + hubName + "] Compatibility Tests: "  + description, argumentProcessor:prepareArgs(hubName, hub, configureHubCallback),  callback:callback});
         }
 
         function configureReliableHub(reliableHub) {

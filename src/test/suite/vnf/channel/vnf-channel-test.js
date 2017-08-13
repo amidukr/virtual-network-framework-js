@@ -8,10 +8,29 @@ function(  Vnf,
            VnfTestUtils){
 
     function hubQUnitTest(description, callback) {
-        function prepareArgs(hubConstructor, configureHubCallback) {
+
+        function factoryFromConstructor(hubConstructor){
+            return function(args) {
+                return new hubConstructor(args.rootHubFactory())
+            }
+        }
+
+        function webSocketFactory() {
+            return VnfTestUtils.newWebSocketHub();
+        }
+
+        function rtcWebSocketFactory() {
+            return new Vnf.RtcHub(VnfTestUtils.newWebSocketHub());
+        }
+
+        function reliableWebSocketFactory() {
+            return new Vnf.ReliableHub(VnfTestUtils.newWebSocketHub());
+        }
+
+        function prepareArgs(hubFactory, configureHubCallback) {
             return function(assert, args) {
                 return {hubFactory: function(){
-                            var hub = new hubConstructor(args.rootHubFactory())
+                            var hub = hubFactory(args);
                             if(configureHubCallback) configureHubCallback(hub);
                             return hub;
                        }};
@@ -21,7 +40,10 @@ function(  Vnf,
 
         function runTest(hubName, description, hub, callback, configureHubCallback) {
             QUnit.module(hubName + " Generic Vnf Tests");
-            VnfTestUtils.vnfTest("[" + hubName + "] Generic Vnf Tests: "  + description, prepareArgs(hub, configureHubCallback),  callback);
+            VnfTestUtils.vnfTest({description: "Generic Vnf Tests: "  + description,
+                                  profileKey: hubName,
+                                  argumentProcessor:prepareArgs(hub, configureHubCallback),
+                                  callback:callback});
         }
 
         function configureReliableHub(reliableHub) {
@@ -31,10 +53,13 @@ function(  Vnf,
             reliableHub.setKeepAliveHandshakingChannelTimeout(2000);
         }
 
-        runTest("InBrowserHub",  description, Vnf.InBrowserHub,  callback);
-        runTest("RtcHub",        description, Vnf.RtcHub,        callback);
-        runTest("UnreliableHub", description, Vnf.UnreliableHub, callback);
-        runTest("ReliableHub",   description, Vnf.ReliableHub,   callback, configureReliableHub);
+        runTest("InBrowserHub",          description, factoryFromConstructor(Vnf.InBrowserHub),  callback);
+        runTest("RtcHub",                description, factoryFromConstructor(Vnf.RtcHub),        callback);
+        runTest("UnreliableHub",         description, factoryFromConstructor(Vnf.UnreliableHub), callback);
+        runTest("ReliableHub",           description, factoryFromConstructor(Vnf.ReliableHub),   callback, configureReliableHub);
+        runTest("WebSocketHub",          description, webSocketFactory,                          callback);
+        runTest("RtcWebSocketHub",       description, rtcWebSocketFactory,                       callback);
+        runTest("ReliableWebSocketHub",  description, reliableWebSocketFactory,                  callback);
     };
 
 
@@ -125,8 +150,8 @@ function(  Vnf,
         .then(done);
     });
  
-    hubQUnitTest("Channel Double Message Send  Test", function(assert, arguments) {
- 
+    hubQUnitTest("Channel Double Message Send Test", function(assert, arguments) {
+
          var done = assert.async(1);
  
          var vnfHub = arguments.hubFactory();
@@ -153,7 +178,7 @@ function(  Vnf,
  
     hubQUnitTest("Channel Callback Test", function(assert, arguments) {
  
-         var done = assert.async(3);
+         var done = assert.async(1);
  
          var vnfHub = arguments.hubFactory();
  
@@ -173,6 +198,8 @@ function(  Vnf,
          var capture1 = new SignalCaptor(assert);
          var capture2 = new SignalCaptor(assert);
          var capture3 = new SignalCaptor(assert);
+
+         var doneCaptor = new SignalCaptor(assert);
  
          endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
          endpoint2.onMessage = newPingPongCallback(capture2, "vip-2");
@@ -183,15 +210,23 @@ function(  Vnf,
  
          capture1.assertSignalsUnordered(["from vip-2: pong from vip-2[message-from-vip1-to-vip2]",
                                       "from vip-3: pong from vip-3[message-from-vip1-to-vip3]"])
-                 .then(done);
+                .then(doneCaptor.signal.bind(null, "done-1"));
  
-         capture2.assertSignals("from vip-1: message-from-vip1-to-vip2").then(done);
-         capture3.assertSignals("from vip-1: message-from-vip1-to-vip3").then(done);
+         capture2.assertSignals("from vip-1: message-from-vip1-to-vip2")
+                .then(doneCaptor.signal.bind(null, "done-2"));
+         capture3.assertSignals("from vip-1: message-from-vip1-to-vip3")
+                .then(doneCaptor.signal.bind(null, "done-3"));
+
+         doneCaptor.assertSignalsUnordered(["done-1", "done-2", "done-3"])
+         .then(endpoint1.destroy)
+         .then(endpoint2.destroy)
+         .then(endpoint3.destroy)
+         .then(done);
      });
  
      hubQUnitTest("Concurrent Connection Estabilish Test", function(assert, arguments) {
  
-         var done = assert.async(2);
+         var done = assert.async(1);
  
          var vnfHub = arguments.hubFactory();
  
@@ -200,6 +235,8 @@ function(  Vnf,
 
          var capture1 = new SignalCaptor(assert);
          var capture2 = new SignalCaptor(assert);
+
+         var doneCaptor = new SignalCaptor(assert);
  
          endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
          endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
@@ -207,8 +244,15 @@ function(  Vnf,
          endpoint1.send("vip-2", "concurrent-vip1-to-vip2-message");
          endpoint2.send("vip-1", "concurrent-vip2-to-vip1-message");
  
-         capture1.assertSignals("from vip-2: concurrent-vip2-to-vip1-message").then(done);
-         capture2.assertSignals("from vip-1: concurrent-vip1-to-vip2-message").then(done);
+         capture1.assertSignals("from vip-2: concurrent-vip2-to-vip1-message")
+                .then(doneCaptor.signal.bind(null, "done-1"));
+         capture2.assertSignals("from vip-1: concurrent-vip1-to-vip2-message")
+                .then(doneCaptor.signal.bind(null, "done-2"));
+
+         doneCaptor.assertSignalsUnordered(["done-1", "done-2"])
+         .then(endpoint1.destroy)
+         .then(endpoint2.destroy)
+         .then(done);
      });
  
      hubQUnitTest("Channel Loopback Test", function(assert, arguments) {
@@ -227,12 +271,17 @@ function(  Vnf,
  
          endpoint1.send("vip-1", "loopback-message-to-vip1");
  
-         capture1.assertSignals("from vip-1: loopback-message-to-vip1").then(done);
+         capture1.assertSignals("from vip-1: loopback-message-to-vip1")
+
+         .then(endpoint1.destroy)
+         .then(endpoint2.destroy)
+
+         .then(done);
      });
  
      hubQUnitTest("Multiple/Loopback Channels Send Test", function(assert, arguments) {
  
-        var done = assert.async(3);
+        var done = assert.async(1);
  
         var vnfHub = arguments.hubFactory();
  
@@ -243,6 +292,8 @@ function(  Vnf,
         var capture1 = new SignalCaptor(assert);
         var capture2 = new SignalCaptor(assert);
         var capture3 = new SignalCaptor(assert);
+
+        var doneCaptor = new SignalCaptor(assert);
  
         endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
         endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
@@ -261,17 +312,26 @@ function(  Vnf,
  
         capture1.assertSignalsUnordered(["from vip-2: message-from-vip2-to-vip1",
                                      "from vip-3: message-from-vip3-to-vip1"])
-                 .then(done);
+
+                 .then(doneCaptor.signal.bind(null, "done-1"));
  
         capture2.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip2",
                                      "from vip-3: message-from-vip3-to-vip2"])
-                .then(done);
+
+                .then(doneCaptor.signal.bind(null, "done-2"));
  
         capture3.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip3",
                                      "from vip-2: 1st-message-from-vip2-to-vip3",
                                      "from vip-2: 2nd-message-from-vip2-to-vip3",
                                      "from vip-3: message-from-vip3-to-vip3"])
-                .then(done);
+
+                .then(doneCaptor.signal.bind(null, "done-3"));
+
+        doneCaptor.assertSignalsUnordered(["done-1", "done-2", "done-3"])
+        .then(endpoint1.destroy)
+        .then(endpoint2.destroy)
+        .then(endpoint3.destroy)
+        .then(done);
      });
  
      hubQUnitTest("Channel Big Message Test", function(assert, arguments) {
@@ -419,6 +479,8 @@ function(  Vnf,
          var endpointV2 = vnfHub.openEndpoint("vip-1");
  
          assert.ok(endpointV1 != endpointV2, "Verifying new endpoint retrieved after destroy different")
+
+         endpointV2.destroy();
     });
  
     hubQUnitTest("Channel Send to Destroyed", function(assert, arguments) {
@@ -459,8 +521,36 @@ function(  Vnf,
  
         .then(done);
     });
+
+    hubQUnitTest("Channel Verify Synchronous Send", function(assert, arguments) {
+        var done = assert.async(1);
+
+        var vnfHub = arguments.hubFactory();
+
+        var capture1 = new SignalCaptor(assert);
+        var capture2 = new SignalCaptor(assert);
+
+        var endpoint1 = vnfHub.openEndpoint("vip-1");
+        var endpoint2 = vnfHub.openEndpoint("vip-2");
+
+        endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
+        endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
+
+        endpoint1.send("vip-2", "synchronous-message-1-to-vip-2");
+        endpoint2.send("vip-1", "synchronous-message-2-to-vip-1");
+
+        Promise.resolve()
+        .then(capture2.assertSignals.bind(null, ["from vip-1: synchronous-message-1-to-vip-2"]))
+        .then(capture1.assertSignals.bind(null, ["from vip-2: synchronous-message-2-to-vip-1"]))
+
+        .then(function(){
+            endpoint1.destroy();
+            endpoint2.destroy();
+        })
+        .then(done);
+    });
  
-    hubQUnitTest("Channel Verify Synchronous Destroy Call", function(assert, arguments) {
+    hubQUnitTest("Channel Verify Synchronous Destroy Call - Concurrent Join", function(assert, arguments) {
         var done = assert.async(1);
  
         var vnfHub = arguments.hubFactory();
@@ -507,7 +597,7 @@ function(  Vnf,
         .then(done);
     });
  
-    hubQUnitTest("Channel Verify Synchronous Destroy-Invalidate Call", function(assert, arguments) {
+    hubQUnitTest("Channel Verify Synchronous Destroy-Invalidate Call - Concurrent Join", function(assert, arguments) {
         var done = assert.async(1);
  
         var vnfHub = arguments.hubFactory();
@@ -552,4 +642,153 @@ function(  Vnf,
         })
         .then(done);
     });
+
+
+    hubQUnitTest("Channel Verify Synchronous Destroy Call", function(assert, arguments) {
+            var done = assert.async(1);
+
+            var vnfHub = arguments.hubFactory();
+
+            var capture1 = new SignalCaptor(assert);
+            var capture2 = new SignalCaptor(assert);
+
+            var endpoint1V1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2V1 = vnfHub.openEndpoint("vip-2");
+
+            var endpoint1V2;
+            var endpoint2V2;
+
+            endpoint1V1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1", "V1");
+            endpoint2V1.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V1");
+
+            endpoint1V1.send("vip-2", "destroy-test message-1-v1-to-vip-2");
+
+            Promise.resolve()
+            .then(capture2.assertSignals.bind(null, ["V1: from vip-1: destroy-test message-1-v1-to-vip-2"]))
+            .then(function(){
+                endpoint1V1.destroy();
+                endpoint2V1.destroy();
+
+                endpoint1V2 = vnfHub.openEndpoint("vip-1");
+                endpoint2V2 = vnfHub.openEndpoint("vip-2");
+
+                endpoint1V2.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1", "V2");
+                endpoint2V2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V2");
+
+                endpoint1V2.send("vip-2", "destroy-test message-2-v2-to-vip-2");
+            })
+
+            .then(capture2.assertSignals.bind(null, ["V2: from vip-1: destroy-test message-2-v2-to-vip-2"]))
+
+            .then(function(){
+                endpoint2V2.send("vip-1", "destroy-test message-3-v2-to-vip-1");
+            })
+
+            .then(capture1.assertSignals.bind(null, ["V2: from vip-2: destroy-test message-3-v2-to-vip-1"]))
+
+            .then(function(){
+                endpoint1V2.destroy();
+                endpoint2V2.destroy();
+            })
+            .then(done);
+        });
+
+        hubQUnitTest("Channel Verify Synchronous Destroy-Invalidate Call - Destroyed Sends Join", function(assert, arguments) {
+            var done = assert.async(1);
+
+            var vnfHub = arguments.hubFactory();
+
+            var capture1 = new SignalCaptor(assert);
+            var capture2 = new SignalCaptor(assert);
+
+
+            var endpoint1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2V1 = vnfHub.openEndpoint("vip-2");
+
+            var endpoint2V2;
+
+            endpoint1.onMessage   = VnfTestUtils.newPrintCallback(capture1, "vip-1", "V1");
+            endpoint2V1.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V1");
+
+            endpoint1.send("vip-2", "message-1-v1-to-vip-2");
+
+            Promise.resolve()
+            .then(capture2.assertSignals.bind(null, ["V1: from vip-1: message-1-v1-to-vip-2"]))
+            .then(function(){
+
+                endpoint2V1.destroy();
+                endpoint1.closeConnection("vip-2");
+
+                endpoint2V2 = vnfHub.openEndpoint("vip-2");
+
+                endpoint2V2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V2");
+
+                endpoint2V2.send("vip-1", "message-2-v2-to-vip-1");
+            })
+
+
+            .then(capture1.assertSignals.bind(null, ["V1: from vip-2: message-2-v2-to-vip-1"]))
+
+            .then(function(){
+                endpoint1.send("vip-2", "message-3-v2-to-vip-2");
+            })
+
+            .then(capture2.assertSignals.bind(null, ["V2: from vip-1: message-3-v2-to-vip-2"]))
+
+            .then(function(){
+                endpoint1.destroy();
+                endpoint2V2.destroy();
+            })
+            .then(done);
+        });
+
+
+        hubQUnitTest("Channel Verify Synchronous Destroy-Invalidate Call - Invalidated Sends Join", function(assert, arguments) {
+            var done = assert.async(1);
+
+            var vnfHub = arguments.hubFactory();
+
+            var capture1 = new SignalCaptor(assert);
+            var capture2 = new SignalCaptor(assert);
+
+
+            var endpoint1 = vnfHub.openEndpoint("vip-1");
+            var endpoint2V1 = vnfHub.openEndpoint("vip-2");
+
+            var endpoint2V2;
+
+            endpoint1.onMessage   = VnfTestUtils.newPrintCallback(capture1, "vip-1", "V1");
+            endpoint2V1.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V1");
+
+            endpoint1.send("vip-2", "message-1-v1-to-vip-2");
+
+            Promise.resolve()
+            .then(capture2.assertSignals.bind(null, ["V1: from vip-1: message-1-v1-to-vip-2"]))
+            .then(function(){
+
+                endpoint2V1.destroy();
+                endpoint1.closeConnection("vip-2");
+
+                endpoint2V2 = vnfHub.openEndpoint("vip-2");
+
+                endpoint2V2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2", "V2");
+
+                endpoint1.send("vip-2", "message-2-v2-to-vip-2");
+
+            })
+
+            .then(capture2.assertSignals.bind(null, ["V2: from vip-1: message-2-v2-to-vip-2"]))
+
+            .then(function(){
+                endpoint2V2.send("vip-1", "message-3-v2-to-vip-1");
+            })
+
+            .then(capture1.assertSignals.bind(null, ["V1: from vip-2: message-3-v2-to-vip-1"]))
+
+            .then(function(){
+                endpoint1.destroy();
+                endpoint2V2.destroy();
+            })
+            .then(done);
+        });
 })

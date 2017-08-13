@@ -68,7 +68,7 @@ function(  Vnf,
                            args);
         }
 
-        VnfTestUtils.vnfTest("[Reliable Hub v0.2] " + description, prepareArguments, callback);
+        VnfTestUtils.vnfTest({description: "[Reliable Hub v0.2] " + description, argumentProcessor:prepareArguments,  callback:callback});
     };
 
     return {reliableVnfTest: reliableVnfTest};

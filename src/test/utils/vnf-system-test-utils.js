@@ -44,7 +44,7 @@ function(  Vnf,
                            args);
         }
 
-        VnfTestUtils.vnfTest("[Vnf System Tests]-" + description, prepareArguments, callback);
+        VnfTestUtils.vnfTest({description: "[Vnf System Tests]-" + description, argumentProcessor:prepareArguments, callback:callback});
     }
 
     return {vfnSystemTest: vfnSystemTest};

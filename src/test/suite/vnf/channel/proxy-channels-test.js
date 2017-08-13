@@ -20,7 +20,7 @@ function(  Vnf,
             }
         }
 
-        VnfTestUtils.vnfTest("[UnreliableHub]: Proxy-Testing " + description, prepareArguments(Vnf.UnreliableHub), callback);
+        VnfTestUtils.vnfTest({description: "[UnreliableHub]: Proxy-Testing " + description, argumentProcessor:prepareArguments(Vnf.UnreliableHub), callback:callback});
     };
 
     QUnit.module("Proxy Channels Tests");

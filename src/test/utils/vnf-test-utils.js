@@ -11,26 +11,57 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
 
         isTestEnabled: function(testProfile) {
             var testLevel = TestingProfiles.getValue(testProfile, "testLevel");
+            var enabled = TestingProfiles.getValue(testProfile, "enabled");
 
-            return VnfTestUtils.isTestingLevelEnabled(testLevel, testProfile);
+            if(enabled === undefined) {
+                enabled  = true;
+            }
+
+            return enabled && VnfTestUtils.isTestingLevelEnabled(testLevel, testProfile);
         },
 
         test: function(testProfile, shortDescription, args, callback) {
-            var description = "["+testProfile+"]-" + shortDescription;
 
-            if(!VnfTestUtils.isTestEnabled(testProfile)) {
+            var profileKey = [];
+            var profileKeyDescription;
+
+            if(testProfile.constructor === Array) {
+                var profileKey = [];
+                profileKeyDescription = "";
+
+                for(var i = 0; i < testProfile.length; i++) {
+                    if(i != 0) {
+                        profileKeyDescription += ", ";
+                    }
+                    profileKeyDescription += testProfile[i];
+
+                    profileKey.splice(0, 0, profileKeyDescription);
+                }
+            }else if(typeof testProfile == "string") {
+                profileKeyDescription = testProfile;
+                profileKey.splice(0, 0, profileKeyDescription);
+            }else{
+                throw new Error("testProfile argument unexpected type: " + testProfile);
+            }
+
+
+            var description = "["+profileKeyDescription+"] " + shortDescription;
+
+            profileKey.splice(0, 0, description);
+
+            if(!VnfTestUtils.isTestEnabled(profileKey)) {
                 return;
             }
 
             QUnit.test(description, function(assert){
                 Log.info("test", description);
+                var previousTest = runningTest;
                 runningTest = description;
-                var profileKey = [description, testProfile];
 
                 var arguments = {}
 
                 if(window.vnfActiveEndpoints.length > 0) {
-                    Log.warn("test", ["Active endpoints left: ", window.vnfActiveEndpoints]);
+                    Log.warn("test", ["Active endpoints left:", window.vnfActiveEndpoints.slice(), "test:", previousTest]);
                     var vnfActiveEndpointsClone = window.vnfActiveEndpoints.slice();
                     for(var i = 0; i < vnfActiveEndpointsClone.length; i++) {
                         try{
@@ -90,10 +121,13 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
             });
         },
 
-        vnfTest: function(description, argumentProcessor, callback) {
+        vnfTest: function(argument) {
 
-            if(callback == undefined) {
-                callback = argumentProcessor;
+            var description = argument.description;
+            var argumentProcessor = argument.argumentProcessor;
+            var callback = argument.callback;
+
+            if(argumentProcessor == undefined) {
                 argumentProcessor = function(value){return value;};
             }
 
@@ -132,11 +166,26 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                 return callback(assert, Object.assign({}, argumentProcessor(assert, args), args));
             };
 
-            VnfTestUtils.test("root:InMemory",    description, {rootHubFactory: inMemoryFactory},       proxyCallback);
-            VnfTestUtils.test("root:Rtc",         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
-            VnfTestUtils.test("root:Reliable",    description, {rootHubFactory: reliableHubFactory},    proxyCallback);
-            VnfTestUtils.test("root:ReliableRtc", description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
+            function generateProfileKey(rootHub) {
+                if(argument.profileKey == undefined) {
+                    return rootHub;
+                }else{
+                    return [rootHub, argument.profileKey];
+                }
+            }
 
+            VnfTestUtils.test(generateProfileKey("root:InMemory"),    description, {rootHubFactory: inMemoryFactory},       proxyCallback);
+            VnfTestUtils.test(generateProfileKey("root:Rtc"),         description, {rootHubFactory: rtcHubFactory},         proxyCallback);
+            VnfTestUtils.test(generateProfileKey("root:Reliable"),    description, {rootHubFactory: reliableHubFactory},    proxyCallback);
+            VnfTestUtils.test(generateProfileKey("root:ReliableRtc"), description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
+        },
+
+        newWebSocketFactory: function() {
+            return new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl"));
+        },
+
+        newWebSocketHub: function() {
+            return new Vnf.WebSocketHub(VnfTestUtils.newWebSocketFactory());
         },
 
         newPrintCallback: function (captor, instance, version) {

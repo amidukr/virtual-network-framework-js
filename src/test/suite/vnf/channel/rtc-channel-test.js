@@ -95,7 +95,7 @@ function(  Vnf,
 
     })
 
-    VnfTestUtils.vnfTest("[RtcHub Unit]: rtc initiate connection test", function(assert, argument){
+    VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test", callback: function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
@@ -178,9 +178,9 @@ function(  Vnf,
          .then(rtcEndpoint.destroy)
 
          .then(done);
-    });
+    }});
 
-    VnfTestUtils.vnfTest("[RtcHub Unit]: rtc accept connection test", function(assert, argument){
+    VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", callback: function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
@@ -255,9 +255,9 @@ function(  Vnf,
          .then(rtcEndpoint.destroy)
 
          .then(done);
-    });
+    }});
 
-    VnfTestUtils.vnfTest("[RtcHub Unit]: rtc synchronous connection establish test", function(assert, argument){
+    VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc synchronous connection establish test", callback: function(assert, argument){
         var done = assert.async(1);
 
         var rootHub = argument.rootHubFactory();
@@ -342,5 +342,5 @@ function(  Vnf,
          .then(rtcEndpoint.destroy)
 
          .then(done);
-    });
+    }});
 });
