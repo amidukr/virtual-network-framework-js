@@ -7,15 +7,6 @@ function(  Vnf,
            Log,
            VnfTestUtils){
 
-    //TODO: to support IE, which do not support WebRTC
-    //   Fallbak to websocket
-    //   IE and Chrome
-    //TODO: phantoms
-    //   gaps - done
-    //   session checks
-    //   channel state and message types
-    //TODO: out buffs test/test handling for cleaned-up handshake messages
-
      QUnit.module("Reliable Channel Tests");
      QUnit.test("[Unreliable Hub]: Testing Unreliable hub", function(assert){
             Log.info("test", "[Unreliable Hub]: Testing Unreliable hub");
