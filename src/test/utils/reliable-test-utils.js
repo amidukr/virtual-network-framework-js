@@ -9,7 +9,7 @@ function(  Vnf,
 
     function reliableVnfTest(description, callback) {
         function prepareArguments(assert, args) {
-            var rootHub  = args.rootHubFactory();
+            var rootHub  = new Vnf.InBrowserHub();
             var reliableHub = new Vnf.ReliableHub(rootHub);
 
             var reliableCapture = new SignalCaptor(assert);
@@ -68,7 +68,7 @@ function(  Vnf,
                            args);
         }
 
-        VnfTestUtils.vnfTest({description: "[Reliable Hub v0.2] " + description, argumentProcessor:prepareArguments,  callback:callback});
+        VnfTestUtils.test("Reliable Hub",  description, prepareArguments,  callback);
     };
 
     return {reliableVnfTest: reliableVnfTest};

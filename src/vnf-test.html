@@ -22,7 +22,7 @@
     var TESTING_LEVEL_STRESS = 3;
 
     TestingProfiles = {
-        rate: 1,
+        rate: 2,
         testLevel: TESTING_LEVEL_RELEASE,
 
         vnfWebSocketUrl: "ws://localhost:8080/vnf-ws",
@@ -42,10 +42,10 @@
         reliableRtcHandshakeRetryInterval: 500,
         reliableRtcKeepAliveHandshakingChannelTimeout: 20000,
 
-        activeTestingLevel: TESTING_LEVEL_RELEASE,
+        //activeTestingLevel: TESTING_LEVEL_RELEASE,
         //activeTestingLevel: TESTING_LEVEL_INTEGRATION,
         //activeTestingLevel: TESTING_LEVEL_3RD_PARTY_UNRELIABLE,
-        //activeTestingLevel: TESTING_LEVEL_STRESS,
+        activeTestingLevel: TESTING_LEVEL_STRESS,
 
         "root:InMemory": {
             rate: 2,

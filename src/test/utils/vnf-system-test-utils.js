@@ -17,7 +17,7 @@ function(  Vnf,
         function prepareArguments(assert, args) {
             var vnfSystem = new Vnf.System();
 
-            var rootHub  = args.rootHubFactory();
+            var rootHub  = new Vnf.InBrowserHub();
 
             vnfSystem.registerService(new Vnf.System.ChannelHubService(rootHub))
             vnfSystem.registerService(new Vnf.System.StoreService(new Vnf.InBrowserStore()))
@@ -44,7 +44,7 @@ function(  Vnf,
                            args);
         }
 
-        VnfTestUtils.vnfTest({description: "[Vnf System Tests]-" + description, argumentProcessor:prepareArguments, callback:callback});
+        VnfTestUtils.test("Vnf System Tests", description, prepareArguments, callback);
     }
 
     return {vfnSystemTest: vfnSystemTest};

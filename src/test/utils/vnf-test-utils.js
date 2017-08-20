@@ -111,7 +111,7 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                 }
 
                 if(typeof args == 'function') {
-                    args = args();
+                    args = args(assert, arguments);
                 }
 
                 arguments = Object.assign(arguments, args);

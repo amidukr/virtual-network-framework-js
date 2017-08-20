@@ -2,6 +2,7 @@ requirejs(
 [
 "unit-tests",
 
+"test/suite/vnf/channel/reliable-rtc-integration-test",
 "test/suite/vnf/channel/vnf-channel-test",
 "test/suite/vnf/channel/rtc-channel-test.js",
 "test/suite/vnf/channel/rtc-compatibility-tests.js",
