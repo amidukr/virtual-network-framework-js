@@ -8,9 +8,7 @@ function(  Vnf,
            VnfTestUtils){
 
 
-    QUnit.test("[Reliable-RTC]: Rtc Connection restore test", function(assert){
-        Log.info("test", "[Reliable-RTC]: Rtc Connection restore test");
-
+    VnfTestUtils.test("Reliable-RTC", "Rtc Connection restore test", function(assert){
         var done = assert.async(1);
 
         var rtcHub = new Vnf.RtcHub(new Vnf.InBrowserHub(), {heartbeatsToInvalidate: 3000});

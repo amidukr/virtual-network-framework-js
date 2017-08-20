@@ -181,14 +181,6 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
             VnfTestUtils.test(generateProfileKey("root:ReliableRtc"), description, {rootHubFactory: reliableRtcHubFactory}, proxyCallback);
         },
 
-        newWebSocketFactory: function() {
-            return new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl"));
-        },
-
-        newWebSocketHub: function() {
-            return new Vnf.WebSocketHub(VnfTestUtils.newWebSocketFactory());
-        },
-
         newPrintCallback: function (captor, instance, version) {
             return function onMessage(event) {
                 var message = event.message;
