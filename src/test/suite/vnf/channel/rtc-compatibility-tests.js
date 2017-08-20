@@ -5,6 +5,10 @@ function(  Vnf,
            SignalCaptor,
            VnfTestUtils){
 
+    //TODO: move to integration test
+    //TODO: edge cases for Reliability
+    //TODO: manually construct hub factories for tested scenarios
+
     function hubQUnitTest(description, callback) {
         function prepareArgs(hubName, hubConstructor, configureHubCallback) {
             return function(assert, args) {

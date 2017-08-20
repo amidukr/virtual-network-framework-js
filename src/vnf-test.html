@@ -10,7 +10,7 @@
 <div id="qunit"></div>
 <div id="qunit-fixture"></div>
 <script src="lib/qunit-2.1.1.js"></script>
-<script data-main="vnf-test.js" src="lib/require.js"></script>
+<script data-main="vnf-tests.js" src="lib/require.js"></script>
 
 <script type="text/javascript">
     Timeouts = {}
@@ -42,8 +42,8 @@
         reliableRtcHandshakeRetryInterval: 500,
         reliableRtcKeepAliveHandshakingChannelTimeout: 20000,
 
-        //activeTestingLevel: TESTING_LEVEL_RELEASE,
-        activeTestingLevel: TESTING_LEVEL_INTEGRATION,
+        activeTestingLevel: TESTING_LEVEL_RELEASE,
+        //activeTestingLevel: TESTING_LEVEL_INTEGRATION,
         //activeTestingLevel: TESTING_LEVEL_3RD_PARTY_UNRELIABLE,
         //activeTestingLevel: TESTING_LEVEL_STRESS,
 
@@ -80,25 +80,25 @@
 
 
 
-        "[root:ReliableRtc]-[Reliable Hub v0.2] Connection Lost: by timeout v2" : {
+        "[root:ReliableRtc] [Reliable Hub v0.2] Connection Lost: by timeout v2" : {
             rate: 1
         },
 
-        "ReliableHub Connection Lost: [root:Rtc]-[Reliable Hub v0.2] Connection Lost: by timeout" : {
+        "ReliableHub Connection Lost: [root:Rtc] [Reliable Hub v0.2] Connection Lost: by timeout" : {
             rate: 10
         },
 
-        "[root:ReliableRtc]-[Vnf System Tests]-[Unit] Service call failed: failed due to connection lost test" : {
+        "[root:ReliableRtc] [Vnf System Tests]-[Unit] Service call failed: failed due to connection lost test" : {
             qunitTestTimeout:  35000,
             logCaptureTimeout: 35000
         },
 
-        "[root:ReliableRtc]-[Vnf System Tests]-[Unit] Service call failed: failed due to connection lost test" : {
+        "[root:ReliableRtc] [Vnf System Tests]-[Unit] Service call failed: failed due to connection lost test" : {
             qunitTestTimeout:  40000,
             logCaptureTimeout: 40000
         },
 
-        "[root:ReliableRtc]-[Reliable Hub v0.2] ReliableHub Handshake Retry test" : {
+        "[root:ReliableRtc] [Reliable Hub v0.2] ReliableHub Handshake Retry test" : {
             rate: 20
         },
 
@@ -108,7 +108,9 @@
 
         "root:InMemory, ReliableWebSocketHub" : {
             qunitTestTimeout:  10000,
-            logCaptureTimeout: 10000
+            logCaptureTimeout: 10000,
+
+            testLevel: TESTING_LEVEL_INTEGRATION
         },
 
 

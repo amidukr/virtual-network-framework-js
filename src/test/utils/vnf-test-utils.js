@@ -91,6 +91,7 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                 QUnit.config.testTimeout   = arguments.getInterval("qunitTestTimeout");
                 Timeouts.logCaptureTimeout = arguments.getInterval("logCaptureTimeout");
 
+                //QUnit defect fix
                 var assertAsync = assert.async;
                 assert.async = function(num) {
                     var assertDone = assertAsync.call(assert, num);

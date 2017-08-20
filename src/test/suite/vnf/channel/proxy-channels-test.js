@@ -9,6 +9,10 @@ function(  Vnf,
     //InBrowserHub: InBrowserHub,
     //UnreliableHub: UnreliableHub,
     //ReliableHub: ReliableHub,
+
+    //TODO: this into  vnf-channel-test.js
+    //TODO: remove this test
+
     
     function proxyVnfTest(description, callback) {
         function prepareArguments(hubConstructor) {

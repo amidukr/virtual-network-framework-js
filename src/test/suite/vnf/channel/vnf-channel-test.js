@@ -15,10 +15,6 @@ function(  Vnf,
             }
         }
 
-        function webSocketFactory() {
-            return VnfTestUtils.newWebSocketHub();
-        }
-
         function rtcWebSocketFactory() {
             return new Vnf.RtcHub(VnfTestUtils.newWebSocketHub());
         }
@@ -57,9 +53,8 @@ function(  Vnf,
         runTest("RtcHub",                description, factoryFromConstructor(Vnf.RtcHub),        callback);
         runTest("UnreliableHub",         description, factoryFromConstructor(Vnf.UnreliableHub), callback);
         runTest("ReliableHub",           description, factoryFromConstructor(Vnf.ReliableHub),   callback, configureReliableHub);
-        runTest("WebSocketHub",          description, webSocketFactory,                          callback);
-        runTest("RtcWebSocketHub",       description, rtcWebSocketFactory,                       callback);
-        runTest("ReliableWebSocketHub",  description, reliableWebSocketFactory,                  callback);
+        //runTest("RtcWebSocketHub",       description, rtcWebSocketFactory,                       callback);
+        //runTest("ReliableWebSocketHub",  description, reliableWebSocketFactory,                  callback);
     };
 
 
