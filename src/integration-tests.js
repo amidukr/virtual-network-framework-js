@@ -1,9 +1,11 @@
 requirejs(
 [
 //Channel test
-"test/integration/basic-channel-test",
-"test/integration/reliable-rtc-connection-lost-integration-test"
+"test/integration/channels/basic-channel-test",
+"test/integration/channels/connection-close-channel-test",
+"test/integration/channels/extra-channel-test",
+"test/integration/channels/open-connection-channel-test",
 
-
+"test/integration/channels/reliable-rtc-connection-lost-integration-test"
 
 ], function(){})

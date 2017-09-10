@@ -107,10 +107,10 @@ function(  Vnf,
         args.endpointRecipient.onMessage = function(event) {
             Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
-            assert.equal(event.message,   "sender to recipient message");
-            assert.equal(event.sourceVip, "sender");
-            assert.equal(event.endpoint, args.endpointRecipient);
-            assert.equal(event.endpoint.vip, "recipient");
+            assert.equal(event.message,   "sender to recipient message", "Verifying message");
+            assert.equal(event.sourceVip, "sender", "Verifying sourceVip");
+            assert.equal(event.endpoint, args.endpointRecipient, "Verifying endpoint");
+            assert.equal(event.endpoint.vip, "recipient", "Verifying endpoint vip");
 
             args.endpointRecipient.destroy();
             args.endpointSender.destroy();
@@ -128,8 +128,8 @@ function(  Vnf,
         args.endpointRecipient.onMessage = function(event) {
             Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
-            assert.equal(event.message.value1,       "object-value-1");
-            assert.equal(event.message.sub.value2,   "object-sub-value-2");
+            assert.equal(event.message.value1,       "object-value-1", "Verifying message value1");
+            assert.equal(event.message.sub.value2,   "object-sub-value-2", "Verifying message value2");
 
             args.endpointRecipient.destroy();
             args.endpointSender.destroy();

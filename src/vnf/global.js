@@ -1,7 +1,9 @@
 define(["utils/logger", "utils/observable"], function(Log, Observable) {
 
     return {
-        OK : "OK",
+        OK :       "OK",
+        CONNECTED: "CONNECTED",
+        FAILED:    "FAILED",
 
         GET_FAILED_ENTRY_NOT_FOUND            : "GET_FAILED_ENTRY_NOT_FOUND",
         DELETE_FAILED_ENTRY_NOT_FOUND         : "DELETE_FAILED_ENTRY_NOT_FOUND",

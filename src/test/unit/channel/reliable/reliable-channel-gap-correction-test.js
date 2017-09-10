@@ -10,7 +10,6 @@ function( ReliableTestUtils){
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":1,"payload":"message-2"});
         argument.rootEndpoint.send('reliable-endpoint', {"type": "HANDSHAKE","sessionId":"root1-1","messageIndex":5,"payload":"message-2"});
 
-
         Promise.resolve()
 
         .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: {"type":"HEARTBEAT-ACCEPT","sessionId":"rel1-1","toSID":"root1-1","mqStartFrom":0,"gapBegin":2,"gapEnd":4}']))

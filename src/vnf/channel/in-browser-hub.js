@@ -1,76 +1,55 @@
 define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
 
-   return function InBrowserHub(){
-      var selfHub = this;
+    return function InBrowserHub(){
+        var selfHub = this;
 
-      VnfHub.call(selfHub);
+        VnfHub.call(selfHub);
 
-      selfHub.VnfEndpoint = function InBrowserEndpoint(selfVip) {
-         var self = this;
-         selfHub.BaseEndPoint.call(this, selfVip);
+        selfHub.VnfEndpoint = function InBrowserEndpoint(selfVip) {
+            var self = this;
+            selfHub.BaseEndPoint.call(this, selfVip);
 
-         var connections = {};
+            self.__doOpenConnection = function(connection) {
+                window.setTimeout(function(){
+                    var remoteEndpoint = selfHub.getEndPoint(connection.targetVip);
 
-         self.setConnection = function(targetVip, endpoint) {
-            connections[targetVip] = endpoint;
-         }
+                    if(remoteEndpoint) {
 
-         self.send = function(vip, message) {
-             if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
+                        connection.remoteEndpoint = remoteEndpoint;
 
-            var remoteEndpoint = connections[vip];
-            var connecting = false;
-            if(!remoteEndpoint) {
-                connecting = true;
-                remoteEndpoint = selfHub.getEndPoint(vip);
-                connections[vip] = remoteEndpoint;
+                        var remoteConnection = remoteEndpoint.__lazyNewConnection(selfVip);
+                        remoteConnection.remoteEndpoint = self;
+                        remoteEndpoint.__connectionOpened(selfVip);
+
+                        self.__connectionOpened(connection.targetVip);
+                    }else{
+                        self.__connectionOpenFailed(connection.targetVip);
+                    }
+                }, 0);
+
             }
 
-             window.setTimeout(function inBrowserSend() {
-                if(!remoteEndpoint) return;
+            self.__doSend = function(connection, message) {
+                window.setTimeout(function inBrowserSend() {
+                if(self.isDestroyed()) return;
+                    if(!connection.isConnected) return;
 
-                if(remoteEndpoint == connections[vip]) {
-                    remoteEndpoint.setConnection(selfVip, self);
-                }
+                    var remoteEndpoint = connection.remoteEndpoint;
+                    var onMessage = remoteEndpoint.onMessage;
+                    if(onMessage) {
+                        onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
+                    }
 
-                var connectionDropped = connecting && remoteEndpoint != connections[vip];
-                var handler = remoteEndpoint.onMessage;
-
-                if(!connectionDropped && handler) {
-                    handler({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
-                }
-             }, 0)
-         }
-
-         var parentDestroy = self.destroy;
-         self.destroy = function() {
-            for(var connectedVip in connections){
-                try{
-                    self.closeConnection(connectedVip);
-                }catch(e){
-                    Log.error(selfVip, "in-browser-hub", ["Error closing connection", e]);
-                }
+                }, 0);
             }
 
-            parentDestroy();
-         }
-
-        self.isConnected = function(targetVip) {
-             return connections[targetVip] != undefined;
+            self.__onConnectionClose = function(connection) {
+                 var remoteEndpoint = connection.remoteEndpoint;
+                 if(remoteEndpoint) {
+                    window.setTimeout(remoteEndpoint.closeConnection.bind(null, selfVip), 0);
+                 }
+            }
         }
-
-         self.closeConnection = function(targetVip) {
-            var remoteEndpoint = connections[targetVip];
-            if(!remoteEndpoint) return;
-
-            connections[targetVip] = undefined;
-            window.setTimeout(self.__fireConnectionLost.bind(null, targetVip), 0);
-
-            if(remoteEndpoint) {
-                remoteEndpoint.closeConnection(selfVip);
-            }
-         }
-      }
-   };
+    };
 });
 
