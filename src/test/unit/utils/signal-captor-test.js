@@ -150,6 +150,25 @@ function(SignalCaptor, Promise){
         .then(captor.signal.bind(null, "signal-1"));
     });
 
+
+    QUnit.test("[Signal Captor Test]: Timeout one instead two", function(assert){
+        var done = assert.async(1);
+
+        var captor = new SignalCaptor(assert);
+        captor.setTimeout(400);
+
+
+        Promise.resolve()
+        .then(captor.takeNext.bind(null, 2))
+        .then(function(signals){
+            assert.deepEqual(signals, ["signal-1", "<Captor timeout>"],  "Asserting captor");
+        })
+        .then(done);
+
+        Promise.resolve()
+        .then(captor.signal.bind(null, "signal-1"));
+    });
+
     QUnit.test("[Signal Captor Test]: Timeout after successfull captor", function(assert){
         var done = assert.async(1);
 

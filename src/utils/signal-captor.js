@@ -1,12 +1,12 @@
 define(["lib/bluebird", "utils/arrays"], function(Promise){
 
-    function promiseWithTimeout(timeout, value, callback) {
+    function promiseWithTimeout(timeout, getErrorValue, callback) {
       return new Promise(function(r){
         var timeoutFired = false;
         var timeoutHandle = window.setTimeout(function(){
           timeoutFired = true;
 
-          r(value);
+          r(getErrorValue());
         }, timeout);
 
         callback(function(v){
@@ -43,7 +43,13 @@ define(["lib/bluebird", "utils/arrays"], function(Promise){
         }
 
         self.takeNext = function takeNext(amount) {
-            return promiseWithTimeout(timeout, ["<Captor timeout>"], function(r){
+            function getStream() {
+                var signalStreamClone = signalStream.slice(0)
+                signalStreamClone.push("<Captor timeout>");
+                return signalStreamClone;
+            }
+
+            return promiseWithTimeout(timeout, getStream, function(r){
                 readers.push({amount: amount, callback: r});
                 fireCallbacks();
             });
