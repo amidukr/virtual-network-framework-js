@@ -95,10 +95,13 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                     return;
                 }
 
+                var isNewConnection = connections[targetVip] == null;
                 var connection = self.__lazyNewConnection(targetVip);
                 connection.callback = callback;
 
-                self.__doOpenConnection(connection);
+                if(isNewConnection) {
+                    self.__doOpenConnection(connection);
+                }
             }
 
             self.send = function(targetVip, message) {

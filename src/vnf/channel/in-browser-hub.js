@@ -19,8 +19,8 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
 
                         var remoteConnection = remoteEndpoint.__lazyNewConnection(selfVip);
                         remoteConnection.remoteEndpoint = self;
-
                         remoteEndpoint.__connectionOpened(selfVip);
+
                         self.__connectionOpened(connection.targetVip);
                     }else{
                         self.__connectionOpenFailed(connection.targetVip);
