@@ -43,7 +43,7 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
                 }, 0);
             }
 
-            self.__onConnectionClose = function(connection) {
+            self.__doReleaseConnection = function(connection) {
                  var remoteEndpoint = connection.remoteEndpoint;
                  if(remoteEndpoint) {
                     window.setTimeout(remoteEndpoint.closeConnection.bind(null, selfVip), 0);

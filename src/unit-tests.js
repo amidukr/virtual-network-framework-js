@@ -14,6 +14,9 @@ requirejs(
 "test/unit/channel/reliable/reliable-channel-connection-lost-test",
 "test/unit/channel/reliable/reliable-channel-handshake-retry",
 
+// Big Message Channel
+"test/unit/channel/big-message-channel-test",
+
 // WebSocket Channel
 "test/unit/channel/websocket-channel-test",
 

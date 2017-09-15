@@ -19,6 +19,10 @@ function(  Vnf,
         return new Vnf.RtcHub(new Vnf.InBrowserHub());
     }
 
+    function bigMessageFactory(){
+        return new Vnf.BigMessageHub(new Vnf.InBrowserHub());
+    }
+
     function reliableWebSocketFactory() {
         return new Vnf.ReliableHub(webSocketFactory());
     }
@@ -40,11 +44,11 @@ function(  Vnf,
         "InBrowser":              inBrowserFactory,
         "Reliable Rtc WebSocket": reliableRtcWebSocketFactory,
 
-
         // Misc
-        "Rtc":       rtcFactory,
-        "WebSocket": webSocketFactory,
-        "Reliable":  reliableFactory,
+        "Rtc":                    rtcFactory,
+        "Big Message Factory":    bigMessageFactory,
+        "WebSocket":              webSocketFactory,
+        "Reliable":               reliableFactory,
 
         // ReliableRtc
         "Reliable Rtc": reliableRtcFactory
@@ -74,12 +78,13 @@ function(  Vnf,
 
 
         // Misc
-        integrationChannelTest("Rtc",       description, callback);
-        integrationChannelTest("WebSocket", description, callback);
-        integrationChannelTest("Reliable",  description, callback);
+        integrationChannelTest("Rtc",                 description, callback);
+        integrationChannelTest("Big Message Factory", description, callback);
+        //integrationChannelTest("WebSocket",         description, callback);
+        //integrationChannelTest("Reliable",          description, callback);
 
         // ReliableRtc
-        integrationChannelTest("Reliable Rtc", description, callback);
+        //integrationChannelTest("Reliable Rtc", description, callback);
     }
 
     return {hubFactories: hubFactories,

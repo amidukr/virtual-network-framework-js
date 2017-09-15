@@ -20,9 +20,9 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
                 }
             });
 
-            self.closeConnection = function(targetVip) {
+            self.__doReleaseConnection = function(connection) {
                 if(self.parentEndpoint) {
-                    self.parentEndpoint.closeConnection(targetVip);
+                    self.parentEndpoint.closeConnection(connection.targetVip);
                 }
             };
         }
