@@ -17,7 +17,24 @@ function(  Vnf,
          args.endpointSender.openConnection("recipient", function(event){
              assert.equal(event.status,    "CONNECTED", "Verifying status");
 
-             args.endpointSender.openConnection("sender", function(event){
+             args.endpointSender.openConnection("recipient", function(event){
+                 assert.equal(event.status,    "CONNECTED", "Verifying status");
+
+                 args.endpointRecipient.destroy();
+                 args.endpointSender.destroy();
+
+                 done();
+             });
+         });
+    });
+
+    ChannelTestUtils.integrationTest("Recipient open connection in Sender open connection callback", function(assert, args) {
+         var done = assert.async(1);
+
+         args.endpointSender.openConnection("recipient", function(event){
+             assert.equal(event.status,    "CONNECTED", "Verifying status");
+
+             args.endpointRecipient.openConnection("sender", function(event){
                  assert.equal(event.status,    "CONNECTED", "Verifying status");
 
                  args.endpointRecipient.destroy();
@@ -59,7 +76,7 @@ function(  Vnf,
             doneCaptor.signal("done-1");
         });
 
-        args.endpointRecipient.openConnection("recipient", function(event){
+        args.endpointRecipient.openConnection("sender", function(event){
             assert.equal(event.status,    "CONNECTED", "Verifying status");
             doneCaptor.signal("done-2");
         });
