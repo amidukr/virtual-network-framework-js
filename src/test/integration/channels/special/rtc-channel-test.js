@@ -60,8 +60,13 @@ function(  Vnf,
             endpoint1.onMessage = VnfTestUtils.newPrintCallback(captor1, "vip-1");
             endpoint2.onMessage = VnfTestUtils.newPrintCallback(captor2, "vip-2");
 
-            endpoint1.send("vip-2", "message-to-vip-2");
-            endpoint2.send("vip-1", "message-to-vip-1");
+            endpoint1.openConnection("vip-2", function(){
+                endpoint1.send("vip-2", "message-to-vip-2");
+            });
+
+            endpoint2.openConnection("vip-1", function(){
+                endpoint2.send("vip-1", "message-to-vip-1");
+            });
 
             var failed = false;
 
@@ -111,10 +116,9 @@ function(  Vnf,
         rootEndpoint.onMessage = captureMessage(rootCaptor);
 
         rtcEndpoint.openConnection("root-endpoint", function(event){
-
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+            rtcEndpoint.send("root-endpoint", "message-1");
         });
-
-        rtcEndpoint.send("root-endpoint", "message-1");
 
         var rtcConnection;
         var dataChannel;
@@ -170,10 +174,10 @@ function(  Vnf,
 
          })
 
-         .then(rootCaptor.assertSignals.bind(null, "S19message-1"))
+         .then(rootCaptor.assertSignals.bind(null, "message-1"))
 
          .then(function(){
-            dataChannel.send("S19message-2");
+            dataChannel.send("message-2");
          })
 
          .then(rtcCaptor.assertSignals.bind(null, "message-2"))
@@ -213,10 +217,14 @@ function(  Vnf,
 
                 assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
 
-                rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
-                                                   requestForNewConnection: true,
-                                                   ice: ice,
-                                                   connectionCreateDate: self.createDate})
+                rootEndpoint.openConnection("rtc-endpoint", function(event){
+                    assert.equal(event.status, "CONNECTED", "Verifying status");
+                    rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
+                                                       requestForNewConnection: true,
+                                                       ice: ice,
+                                                       connectionCreateDate: self.createDate})
+                })
+
             }
         };
 
@@ -224,7 +232,7 @@ function(  Vnf,
         dataChannel.onopen = function(event) {
             Log.info("test", "Data Channel opened")
 
-            dataChannel.send("S19message-1");
+            dataChannel.send("message-1");
         }
 
         dataChannel.onmessage = function(e) {
@@ -253,7 +261,7 @@ function(  Vnf,
 
          .then(rtcCaptor.assertSignals.bind(null, "message-1"))
          .then(rtcEndpoint.send.bind(null, "root-endpoint", "message-2"))
-         .then(rootCaptor.assertSignals.bind(null, "S19message-2"))
+         .then(rootCaptor.assertSignals.bind(null, "message-2"))
 
          .then(rootEndpoint.destroy)
          .then(rtcEndpoint.destroy)
@@ -276,7 +284,11 @@ function(  Vnf,
         rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
         rootEndpoint.onMessage = captureMessage(rootCaptor);
 
-        rtcEndpoint.send("root-endpoint", "message-1");
+        rtcEndpoint.openConnection("root-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+            rtcEndpoint.send("root-endpoint", "message-1");
+        })
+
 
         var rtcConnection;
         var dataChannel;
@@ -298,11 +310,14 @@ function(  Vnf,
                     Log.info("test", "Send rtc ice candidates")
 
                     assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
-
-                    rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
-                                                       requestForNewConnection: true,
-                                                       ice: ice,
-                                                       connectionCreateDate: self.createDate})
+                    
+                    rootEndpoint.openConnection("rtc-endpoint", function(event){
+                        assert.equal(event.status, "CONNECTED", "Verifying status");
+                        rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
+                                                           requestForNewConnection: true,
+                                                           ice: ice,
+                                                           connectionCreateDate: self.createDate})
+                    });
                 }
             };
 
@@ -310,7 +325,7 @@ function(  Vnf,
             dataChannel.onopen = function(event) {
                 Log.info("test", "Data Channel opened")
 
-                dataChannel.send("S19message-2");
+                dataChannel.send("message-2");
             }
 
             dataChannel.onmessage = function(e) {
@@ -339,7 +354,7 @@ function(  Vnf,
              }
          })
 
-         .then(rootCaptor.assertSignals.bind(null, "S19message-1"))
+         .then(rootCaptor.assertSignals.bind(null, "message-1"))
          .then(rtcCaptor.assertSignals.bind(null, "message-2"))
 
          .then(rootEndpoint.destroy)
@@ -347,4 +362,39 @@ function(  Vnf,
 
          .then(done);
     }});
+
+    //TODO: implement
+    /*bigMessageTest("Channel Big Message Test", function(assert, args) {
+        var done = assert.async(1);
+
+        var bigMessage = [
+            new Array(64*1024).join('A'),
+            new Array(64*1024).join('AB'),
+            new Array(64*1024).join('Hello World!'),
+            new Array(10*64*1024 - 1).join('A'),
+            "Hello World!" + new Array(64*1024).join('A') + "Hello World!"
+        ];
+
+        var index = 0;
+        args.endpointRecipient.onMessage = function(event) {
+            Log.info("recipient", "message-test-handler", event.message.substr(0, 100) + "\n.......");
+            assert.deepEqual(event.message, bigMessage[index++],  "Asserting captured logs");
+
+            if(index == bigMessage.length) {
+
+                args.endpointRecipient.destroy();
+                args.endpointSender.destroy();
+
+                done();
+            }
+        };
+
+        args.endpointSender.openConnection("recipient", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            for(var i = 0; i < bigMessage.length; i++) {
+                args.endpointSender.send("recipient", bigMessage[i]);
+            }
+        });
+    });*/
 });

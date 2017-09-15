@@ -17,20 +17,23 @@ function(  Vnf,
         var doneCaptor = new SignalCaptor(assert);
 
         args.endpointSender.openConnection("recipient", function(event){
-            assert.equal(event.status,    "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+            args.endpointRecipient.openConnection("sender", function(event) {
+                assert.equal(event.status, "CONNECTED", "Verifying status");
+
+                args.endpointSender.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "recipient");
+                    doneCaptor.signal("done-1");
+                });
 
 
-            args.endpointSender.onConnectionLost(function(targetVip){
-                assert.equal(targetVip, "recipient");
-                doneCaptor.signal("done-1");
-            })
+                args.endpointRecipient.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "sender");
+                    doneCaptor.signal("done-2");
+                })
 
-            args.endpointRecipient.onConnectionLost(function(targetVip){
-                assert.equal(targetVip, "sender");
-                doneCaptor.signal("done-2");
-            })
-
-            args.endpointSender.closeConnection("recipient");
+                args.endpointSender.closeConnection("recipient");
+            });
         });
 
 
@@ -80,19 +83,22 @@ function(  Vnf,
 
         args.endpointSender.openConnection("recipient", function(event){
             assert.equal(event.status,    "CONNECTED", "Verifying status");
+            args.endpointRecipient.openConnection("sender", function(event) {
+                assert.equal(event.status, "CONNECTED", "Verifying status");
 
 
-            args.endpointSender.onConnectionLost(function(targetVip){
-                assert.equal(targetVip, "recipient");
-                doneCaptor.signal("done-1");
-            })
+                args.endpointSender.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "recipient");
+                    doneCaptor.signal("done-1");
+                })
 
-            args.endpointRecipient.onConnectionLost(function(targetVip){
-                assert.equal(targetVip, "sender");
-                doneCaptor.signal("done-2");
-            })
+                args.endpointRecipient.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "sender");
+                    doneCaptor.signal("done-2");
+                })
 
-            args.endpointSender.destroy();
+                args.endpointSender.destroy();
+            });
         });
 
 
