@@ -10,6 +10,7 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
         self.BaseEndPoint = function BaseEndPoint(selfVip) {
             var self = this;
             var destroyListeners = new Observable();
+            var connectionOpenListeners = new Observable();
             var connectionLostListeners = new Observable();
             
             var connections = {}
@@ -42,6 +43,10 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                 return connection != null && connection.isConnected;
             }
 
+            self.getConnection = function(targetVip) {
+                return connection[targetVip];
+            }
+
             self.__lazyNewConnection = function(targetVip) {
                 var connection = connections[targetVip];
                 if(!connection) {
@@ -63,6 +68,8 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                 }
 
                 connection.isConnected = true;
+
+                connectionOpenListeners.fire(targetVip);
 
                 var callback = connection.callback;
                 connection.callback = null;
@@ -100,7 +107,11 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                 connection.callback = callback;
 
                 if(isNewConnection) {
-                    self.__doOpenConnection(connection);
+                    if(targetVip == selfVip) {
+                        window.setTimeout(self.__connectionOpened.bind(null, targetVip), 0)
+                    }else{
+                        self.__doOpenConnection(connection);
+                    }
                 }
             }
 
@@ -110,11 +121,17 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                 if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 
                 var connection = connections[targetVip];
-                if(!connection && !connection.isConnected) {
+                if(!connection || !connection.isConnected) {
                     throw new Error("Connection to endpoint '" + targetVip + "' isn't established");
                 }
 
-                self.__doSend(connection, message);
+                if(targetVip == selfVip) {
+                    if(self.onMessage) {
+                        window.setTimeout(self.onMessage.bind(null, {sourceVip: selfVip, message: message, endpoint: self}), 0)
+                    }
+                }else{
+                    self.__doSend(connection, message);
+                }
             }
 
 
@@ -128,9 +145,9 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
 
                 delete connections[targetVip];
 
-                var onConnectionClose = self.__onConnectionClose;
-                if(onConnectionClose) {
-                    onConnectionClose(connection);
+                var __doReleaseConnection = self.__doReleaseConnection;
+                if(__doReleaseConnection) {
+                    __doReleaseConnection(connection);
                 }
 
                 if(connection.isConnected) {
@@ -150,7 +167,8 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
             }
             
             self.onDestroy = destroyListeners.addListener;
-            
+
+            self.onConnectionOpen = connectionOpenListeners.addListener;
             self.onConnectionLost = connectionLostListeners.addListener;
             //TODO: replace to __connectionClosed self.__fireConnectionLost = connectionLostListeners.fire;
             
