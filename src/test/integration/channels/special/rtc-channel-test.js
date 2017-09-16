@@ -111,6 +111,7 @@ function(  Vnf,
 
         var rtcCaptor  = new SignalCaptor(assert);
         var rootCaptor = new SignalCaptor(assert);
+        var rtcChannelCaptor = new SignalCaptor(assert);
 
         rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
         rootEndpoint.onMessage = captureMessage(rootCaptor);
@@ -125,9 +126,11 @@ function(  Vnf,
 
         Promise.resolve()
          .then(rootCaptor.takeNext.bind(null, 1))
-         .then(function(message) {
-            assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
-            assert.equal(message[0].requestForNewConnection, true, "Asserting requestForNewConnection");
+         .then(function(messageString) {
+            var message = JSON.parse(messageString[0]);
+
+            assert.equal(message.type, "rtc-connection", "Asserting message type is rtc-connection");
+            assert.equal(message.requestForNewConnection, true, "Asserting requestForNewConnection");
 
             rtcConnection = new RTCPeerConnection(vnfRtcServers);
 
@@ -142,10 +145,10 @@ function(  Vnf,
 
                     assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
 
-                    rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
-                                                       requestForNewConnection: false,
-                                                       ice: ice,
-                                                       connectionCreateDate: self.createDate})
+                    rootEndpoint.send("rtc-endpoint", JSON.stringify({type: "rtc-connection",
+                                                                      requestForNewConnection: false,
+                                                                      ice: ice,
+                                                                      connectionCreateDate: self.createDate}));
                 }
             };
 
@@ -155,17 +158,17 @@ function(  Vnf,
                 dataChannel = evt.channel;
 
                 dataChannel.onmessage = function(e) {
-                    rootCaptor.signal(e.data);
+                    rtcChannelCaptor.signal(e.data);
                 }
             }
 
-            rtcConnection.setRemoteDescription(new RTCSessionDescription(message[0].ice.sdp));
+            rtcConnection.setRemoteDescription(new RTCSessionDescription(message.ice.sdp));
 
             rtcConnection.createAnswer(function(desc){
                 Log.info("test", "Answer created")
 
-                for(var i = 0; i < message[0].ice.candidate.length; i++) {
-                    rtcConnection.addIceCandidate(new RTCIceCandidate(message[0].ice.candidate[i]));
+                for(var i = 0; i < message.ice.candidate.length; i++) {
+                    rtcConnection.addIceCandidate(new RTCIceCandidate(message.ice.candidate[i]));
                 }
 
                 rtcConnection.setLocalDescription(desc);
@@ -174,7 +177,7 @@ function(  Vnf,
 
          })
 
-         .then(rootCaptor.assertSignals.bind(null, "message-1"))
+         .then(rtcChannelCaptor.assertSignals.bind(null, "message-1"))
 
          .then(function(){
             dataChannel.send("message-2");
@@ -199,6 +202,8 @@ function(  Vnf,
 
         var rtcCaptor  = new SignalCaptor(assert);
         var rootCaptor = new SignalCaptor(assert);
+        var rtcChannelCaptor = new SignalCaptor(assert);
+
 
         rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
         rootEndpoint.onMessage = captureMessage(rootCaptor);
@@ -219,10 +224,10 @@ function(  Vnf,
 
                 rootEndpoint.openConnection("rtc-endpoint", function(event){
                     assert.equal(event.status, "CONNECTED", "Verifying status");
-                    rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
-                                                       requestForNewConnection: true,
-                                                       ice: ice,
-                                                       connectionCreateDate: self.createDate})
+                    rootEndpoint.send("rtc-endpoint", JSON.stringify({type: "rtc-connection",
+                                                                      requestForNewConnection: true,
+                                                                      ice: ice,
+                                                                      connectionCreateDate: self.createDate}));
                 })
 
             }
@@ -236,7 +241,7 @@ function(  Vnf,
         }
 
         dataChannel.onmessage = function(e) {
-            rootCaptor.signal(e.data);
+            rtcChannelCaptor.signal(e.data);
         }
 
         rtcConnection.createOffer(function(desc){
@@ -248,20 +253,22 @@ function(  Vnf,
 
         Promise.resolve()
          .then(rootCaptor.takeNext.bind(null, 1))
-         .then(function(message) {
-            assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
-            assert.equal(message[0].requestForNewConnection, false, "Asserting requestForNewConnection");
+         .then(function(messageString) {
+            var message = JSON.parse(messageString[0]);
 
-            rtcConnection.setRemoteDescription(new RTCSessionDescription(message[0].ice.sdp));
+            assert.equal(message.type, "rtc-connection", "Asserting message type is rtc-connection");
+            assert.equal(message.requestForNewConnection, false, "Asserting requestForNewConnection");
 
-            for(var i = 0; i < message[0].ice.candidate.length; i++) {
-                rtcConnection.addIceCandidate(new RTCIceCandidate(message[0].ice.candidate[i]));
+            rtcConnection.setRemoteDescription(new RTCSessionDescription(message.ice.sdp));
+
+            for(var i = 0; i < message.ice.candidate.length; i++) {
+                rtcConnection.addIceCandidate(new RTCIceCandidate(message.ice.candidate[i]));
             }
          })
 
          .then(rtcCaptor.assertSignals.bind(null, "message-1"))
          .then(rtcEndpoint.send.bind(null, "root-endpoint", "message-2"))
-         .then(rootCaptor.assertSignals.bind(null, "message-2"))
+         .then(rtcChannelCaptor.assertSignals.bind(null, "message-2"))
 
          .then(rootEndpoint.destroy)
          .then(rtcEndpoint.destroy)
@@ -295,9 +302,11 @@ function(  Vnf,
 
         Promise.resolve()
          .then(rootCaptor.takeNext.bind(null, 1))
-         .then(function(message){
-            assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
-            assert.equal(message[0].requestForNewConnection, true, "Asserting requestForNewConnection");
+         .then(function(messageString){
+            var message = JSON.parse(messageString[0]);
+
+            assert.equal(message.type, "rtc-connection", "Asserting message type is rtc-connection");
+            assert.equal(message.requestForNewConnection, true, "Asserting requestForNewConnection");
 
             rtcConnection = new RTCPeerConnection(vnfRtcServers);
             var ice = {candidate: [], sdp: null}
@@ -313,10 +322,10 @@ function(  Vnf,
                     
                     rootEndpoint.openConnection("rtc-endpoint", function(event){
                         assert.equal(event.status, "CONNECTED", "Verifying status");
-                        rootEndpoint.send("rtc-endpoint", {type: "rtc-connection",
-                                                           requestForNewConnection: true,
-                                                           ice: ice,
-                                                           connectionCreateDate: self.createDate})
+                        rootEndpoint.send("rtc-endpoint", JSON.stringify({type: "rtc-connection",
+                                                                          requestForNewConnection: true,
+                                                                          ice: ice,
+                                                                          connectionCreateDate: self.createDate}))
                     });
                 }
             };
@@ -341,16 +350,18 @@ function(  Vnf,
          })
 
          .then(rootCaptor.takeNext.bind(null, 1))
-         .then(function(message){
-             if(message[0].requestForNewConnection) return;
+         .then(function(messageString){
+            var message = JSON.parse(messageString[0]);
 
-             assert.equal(message[0].type, "rtc-connection", "Asserting message type is rtc-connection");
-             assert.equal(message[0].requestForNewConnection, false, "Asserting requestForNewConnection");
+             if(message.requestForNewConnection) return;
 
-             rtcConnection.setRemoteDescription(new RTCSessionDescription(message[0].ice.sdp));
+             assert.equal(message.type, "rtc-connection", "Asserting message type is rtc-connection");
+             assert.equal(message.requestForNewConnection, false, "Asserting requestForNewConnection");
 
-             for(var i = 0; i < message[0].ice.candidate.length; i++) {
-                 rtcConnection.addIceCandidate(new RTCIceCandidate(message[0].ice.candidate[i]));
+             rtcConnection.setRemoteDescription(new RTCSessionDescription(message.ice.sdp));
+
+             for(var i = 0; i < message.ice.candidate.length; i++) {
+                 rtcConnection.addIceCandidate(new RTCIceCandidate(message.ice.candidate[i]));
              }
          })
 
@@ -362,39 +373,4 @@ function(  Vnf,
 
          .then(done);
     }});
-
-    //TODO: implement
-    /*bigMessageTest("Channel Big Message Test", function(assert, args) {
-        var done = assert.async(1);
-
-        var bigMessage = [
-            new Array(64*1024).join('A'),
-            new Array(64*1024).join('AB'),
-            new Array(64*1024).join('Hello World!'),
-            new Array(10*64*1024 - 1).join('A'),
-            "Hello World!" + new Array(64*1024).join('A') + "Hello World!"
-        ];
-
-        var index = 0;
-        args.endpointRecipient.onMessage = function(event) {
-            Log.info("recipient", "message-test-handler", event.message.substr(0, 100) + "\n.......");
-            assert.deepEqual(event.message, bigMessage[index++],  "Asserting captured logs");
-
-            if(index == bigMessage.length) {
-
-                args.endpointRecipient.destroy();
-                args.endpointSender.destroy();
-
-                done();
-            }
-        };
-
-        args.endpointSender.openConnection("recipient", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
-
-            for(var i = 0; i < bigMessage.length; i++) {
-                args.endpointSender.send("recipient", bigMessage[i]);
-            }
-        });
-    });*/
 });

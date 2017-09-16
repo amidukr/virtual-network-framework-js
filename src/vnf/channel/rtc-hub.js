@@ -248,16 +248,16 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
             }
 
             signalingEndpoint.onMessage = function(event) {
-                if(event.message.type == "rtc-connection") {
+                var message = JSON.parse(event.message);
+                if(message.type == "rtc-connection") {
                     Log.debug("rtc[" + selfVip + "->" + event.sourceVip + "]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
 
                     var targetVip = event.sourceVip;
-                    var message = event.message;
 
                     var connection = self.__lazyNewConnection(targetVip);
                     var existentVnfRtcConnection = connection.vnfRtcConnection;
 
-                    if(event.message.requestForNewConnection) {
+                    if(message.requestForNewConnection) {
                         if(existentVnfRtcConnection && existentVnfRtcConnection.isCaller && message.connectionCreateDate < existentVnfRtcConnection.createDate) {
                             Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "ignore-action/connection-expired:" + JSON.stringify(event));
                             return;
@@ -270,7 +270,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
                                             ice: ice,
                                             connectionCreateDate: connection.vnfRtcConnection.createDate};
 
-                            signalingEndpoint.send(connection.targetVip, message);
+                            signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
                         });
                         
                         if(existentVnfRtcConnection) {
@@ -299,7 +299,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
                                         ice: ice,
                                         connectionCreateDate: connection.vnfRtcConnection.createDate};
 
-                        signalingEndpoint.send(connection.targetVip, message);
+                        signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
                     });
                 })
             }

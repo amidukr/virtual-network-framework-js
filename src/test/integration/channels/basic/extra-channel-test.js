@@ -124,4 +124,38 @@ function(  Vnf,
         .then(endpoint3.destroy)
         .then(done);
     });
+
+    ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, args) {
+        var done = assert.async(1);
+
+        var bigMessage = [
+            new Array(64*1024).join('A'),
+            new Array(64*1024).join('AB'),
+            new Array(64*1024).join('Hello World!'),
+            new Array(10*64*1024 - 1).join('A'),
+            "Hello World!" + new Array(64*1024).join('A') + "Hello World!"
+        ];
+
+        var index = 0;
+        args.endpointRecipient.onMessage = function(event) {
+            Log.info("recipient", "message-test-handler", event.message.substr(0, 100) + "\n.......");
+            assert.deepEqual(event.message, bigMessage[index++],  "Asserting captured logs");
+
+            if(index == bigMessage.length) {
+
+                args.endpointRecipient.destroy();
+                args.endpointSender.destroy();
+
+                done();
+            }
+        };
+
+        args.endpointSender.openConnection("recipient", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            for(var i = 0; i < bigMessage.length; i++) {
+                args.endpointSender.send("recipient", bigMessage[i]);
+            }
+        });
+    });
 });

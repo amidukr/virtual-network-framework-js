@@ -40,6 +40,8 @@ function(  Vnf,
     // open-close-open
     // open-destroy-open
 
+    //RTC - connection opened, silence, from both sides
+
 
 
     QUnit.module("Channel Basic Tests");

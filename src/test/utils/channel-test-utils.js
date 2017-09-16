@@ -74,7 +74,7 @@ function(  Vnf,
     function integrationTest(description, callback) {
         // Main cases
         integrationChannelTest("InBrowser",              description, callback);
-        integrationChannelTest("Reliable Rtc WebSocket", description, callback);
+        //integrationChannelTest("Reliable Rtc WebSocket", description, callback);
 
 
         // Misc
