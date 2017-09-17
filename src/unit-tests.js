@@ -7,12 +7,15 @@ requirejs(
 // Reliable channel
 "test/unit/channel/reliable-channel-test",
 
+"test/unit/channel/reliable/reliable-channel-message-format-test",
+
 "test/unit/channel/reliable/reliable-channel-handshake-test",
-"test/unit/channel/reliable/reliable-channel-heartbeat-handshake-test",
 "test/unit/channel/reliable/reliable-channel-order-correction-test",
 "test/unit/channel/reliable/reliable-channel-gap-correction-test",
 "test/unit/channel/reliable/reliable-channel-connection-lost-test",
-"test/unit/channel/reliable/reliable-channel-handshake-retry",
+"test/unit/channel/reliable/reliable-channel-heartbeats-test",
+"test/unit/channel/reliable/reliable-channel-handshake-retry-test",
+"test/unit/channel/reliable/reliable-channel-accept-retry-test",
 
 // Big Message Channel
 "test/unit/channel/big-message-channel-test",

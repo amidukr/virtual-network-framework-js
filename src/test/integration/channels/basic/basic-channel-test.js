@@ -40,7 +40,7 @@ function(  Vnf,
     // open-close-open
     // open-destroy-open
 
-    //RTC - connection opened, silence, from both sides
+    //WebSocket, RTC - add test for silence, when parent connection open but no response from other side.
 
 
 

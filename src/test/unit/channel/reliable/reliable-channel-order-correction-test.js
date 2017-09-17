@@ -124,4 +124,32 @@ function( ReliableTestUtils){
         .then(argument.destroy)
         .then(done);
     });
+
+
+    ReliableTestUtils.reliableVnfTest("Firs HEARTBEAT before MESSAGE lost", function(assert, argument) {
+        var done = assert.async(1);
+
+        argument.reliableHub.setHeartbeatInterval(300);
+
+        argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+            argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
+        })
+
+        Promise.resolve()
+        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: ACCEPT root1-1 rel1-1"]))
+        .then(argument.rootCapture.send.bind(null, "root-endpoint", "MESSAGE rel1-1 0 message-to-ignore-1"))
+        .then(argument.rootCapture.send.bind(null, "root-endpoint", "MESSAGE rel1-1 1 message-to-ignore-2"))
+
+        .then(argument.rootCapture.send.bind(null, "root-endpoint", "HEARTBEAT rel1-1 root1-1 0 -1"))
+
+        .then(argument.rootCapture.send.bind(null, "root-endpoint", "MESSAGE rel1-1 0 message-to-accept-1"))
+        .then(argument.rootCapture.send.bind(null, "root-endpoint", "MESSAGE rel1-1 1 message-to-accept-2"))
+
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-to-accept-1']))
+        .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message-to-accept-2']))
+
+        .then(argument.destroy)
+        .then(done);
+    });
 })
