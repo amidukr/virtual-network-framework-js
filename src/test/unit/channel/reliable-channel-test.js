@@ -35,8 +35,8 @@ function(  Vnf,
             .then(done);
     });
 
-    QUnit.test("[Reliable Hub]: Testing of Redelivering Lost Messages - Middle", function(assert){
-        Log.info("test", "[Reliable Hub]: Testing of Redelivering Lost Messages - Middle");
+    QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Middle", function(assert){
+        Log.info("test", "[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Middle");
 
         var done = assert.async(1);
 
@@ -66,8 +66,8 @@ function(  Vnf,
         .then(done);
     });
 
-    QUnit.test("[Reliable Hub]: Testing of Redelivering Lost Messages - End", function(assert){
-        Log.info("test", "[Reliable Hub]: Testing of Redelivering Lost Messages - End");
+    QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - End", function(assert){
+        Log.info("test", "[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - End");
 
         var done = assert.async(1);
 
@@ -95,8 +95,8 @@ function(  Vnf,
         .then(done);
     });
 
-    QUnit.test("[Reliable Hub]: Testing of Redelivering Lost Messages - Multiple", function(assert){
-        Log.info("test", "[Reliable Hub]: Testing of Redelivering Lost Messages - Multiple");
+    QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Multiple", function(assert){
+        Log.info("test", "[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Multiple");
 
         var done = assert.async(1);
 
@@ -141,7 +141,7 @@ function(  Vnf,
     });
 
 
-    QUnit.test("[Reliable Hub]: Send message to existing peer", function(assert){
+    QUnit.test("[Reliable Hub-2-Reliable Hub]: Send message to existing peer", function(assert){
         var done = assert.async(1);
 
         var reliableHub = new Vnf.ReliableHub(new Vnf.InBrowserHub());
@@ -171,7 +171,7 @@ function(  Vnf,
         .then(done);
     });
 
-    QUnit.test("[Reliable Hub]: Receive message from existing peer", function(assert){
+    QUnit.test("[Reliable Hub-2-Reliable Hub]: Receive message from existing peer", function(assert){
             var done = assert.async(1);
 
             var reliableHub = new Vnf.ReliableHub(new Vnf.InBrowserHub());

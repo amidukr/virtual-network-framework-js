@@ -5,10 +5,9 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(argument.toAbsoluteInterval(300));
-        argument.reliableHub.setConnectionInvalidateInterval(argument.toAbsoluteInterval(900));
-        argument.reliableHub.setConnectionLostTimeout(argument.toAbsoluteInterval(1499));
-        argument.reliableHub.setKeepAliveHandshakingChannelTimeout(argument.toAbsoluteInterval(600));
+        argument.reliableHub.setHeartbeatInterval(argument.toAbsoluteInterval(30));
+        argument.reliableHub.setConnectionInvalidateInterval(argument.toAbsoluteInterval(90));
+        argument.reliableHub.setConnectionLostTimeout(argument.toAbsoluteInterval(149));
 
         Promise.resolve()
 
@@ -43,7 +42,9 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout v2", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.fastHeartbeats();
+        argument.reliableHub.setHeartbeatInterval(50);
+        argument.reliableHub.setConnectionInvalidateInterval(500);
+        argument.reliableHub.setConnectionLostTimeout(1500);
 
         Promise.resolve()
 

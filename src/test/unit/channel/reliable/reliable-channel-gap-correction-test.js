@@ -11,10 +11,10 @@ function( ReliableTestUtils){
 
         .then(argument.makeConnection)
 
-        .then(argument.rootEndpoint.send('reliable-endpoint', "MESSAGE rel1-1 0 message-2"))
-        .then(argument.rootEndpoint.send('reliable-endpoint', "MESSAGE rel1-1 5 message-2"))
+        .then(argument.rootEndpoint.send.bind(null, 'reliable-endpoint', "MESSAGE rel1-1 0 message-2"))
+        .then(argument.rootEndpoint.send.bind(null, 'reliable-endpoint', "MESSAGE rel1-1 5 message-2"))
 
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 1 4}']))
+        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 1 4']))
 
         .then(argument.destroy)
         .then(done);

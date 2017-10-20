@@ -10,12 +10,14 @@ requirejs(
 "test/unit/channel/reliable/reliable-channel-message-format-test",
 
 "test/unit/channel/reliable/reliable-channel-handshake-test",
+"test/unit/channel/reliable/reliable-channel-handshake-message-test",
 "test/unit/channel/reliable/reliable-channel-order-correction-test",
 "test/unit/channel/reliable/reliable-channel-gap-correction-test",
 "test/unit/channel/reliable/reliable-channel-connection-lost-test",
 "test/unit/channel/reliable/reliable-channel-heartbeats-test",
 "test/unit/channel/reliable/reliable-channel-handshake-retry-test",
 "test/unit/channel/reliable/reliable-channel-accept-retry-test",
+"test/unit/channel/reliable/reliable-channel-phantom-messages-test",
 
 // Big Message Channel
 "test/unit/channel/big-message-channel-test",
