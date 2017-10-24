@@ -118,12 +118,12 @@ function(  Vnf,
 
             args.endpointSender.onConnectionLost(function(targetVip){
                 assert.equal(targetVip, "recipient", "Verifying onConnectionLost argument");
-                doneCaptor.signal("done-1");
+                doneCaptor.signal("endpointSender.onConnectionLost");
             })
 
             args.endpointRecipient.onConnectionLost(function(targetVip){
                 assert.equal(targetVip, "sender", "Verifying onConnectionLost argument");
-                doneCaptor.signal("done-2");
+                doneCaptor.signal("endpointRecipient.onConnectionLost");
             })
 
             args.endpointRecipient.openConnection("sender", function(event){
@@ -133,7 +133,7 @@ function(  Vnf,
         });
 
 
-        doneCaptor.assertSignalsUnordered(["done-1", "done-2"])
+        doneCaptor.assertSignalsUnordered(["endpointSender.onConnectionLost", "endpointRecipient.onConnectionLost"])
             .then(args.endpointSender.destroy)
         .then(done);
     });

@@ -35,6 +35,10 @@ function(  Vnf,
         return new Vnf.ReliableHub(new Vnf.InBrowserHub());
     }
 
+    function unreliableFactory() {
+        return new Vnf.UnreliableHub(new Vnf.InBrowserHub());
+    }
+
     function reliableRtcFactory() {
         return new Vnf.ReliableRtcHub(new Vnf.InBrowserHub());
     }
@@ -49,6 +53,7 @@ function(  Vnf,
         "Big Message Factory":    bigMessageFactory,
         "WebSocket":              webSocketFactory,
         "Reliable":               reliableFactory,
+        "Unreliable":             unreliableFactory,
 
         // ReliableRtc
         "Reliable Rtc": reliableRtcFactory
@@ -81,7 +86,8 @@ function(  Vnf,
         integrationChannelTest("Rtc",                 description, callback);
         integrationChannelTest("Big Message Factory", description, callback);
         //integrationChannelTest("WebSocket",         description, callback);
-        //integrationChannelTest("Reliable",          description, callback);
+        integrationChannelTest("Reliable",            description, callback);
+        integrationChannelTest("Unreliable",          description, callback);
 
         // ReliableRtc
         //integrationChannelTest("Reliable Rtc", description, callback);

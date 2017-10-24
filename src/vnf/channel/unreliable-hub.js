@@ -1,4 +1,4 @@
-define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHub) {
+define(["utils/logger", "vnf/channel/base/vnf-proxy-hub", "vnf/global"], function(Log, ProxyHub, Global) {
 
     return function UnreliableHub(hub) {
         var selfHub = this;
@@ -12,6 +12,9 @@ define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHu
             selfHub.ProxyEndpoint.call(self, selfVip);
 
             self.parentEndpoint.onMessage = function(event) {
+                var connection = self.__lazyNewConnection(event.sourceVip);
+                self.__connectionOpened(connection.targetVip)
+
                 if(self.onMessage) {
                     self.onMessage({
                         message:   event.message,
@@ -21,20 +24,26 @@ define(["utils/logger", "vnf/channel/base/vnf-proxy-hub"], function(Log, ProxyHu
                 }
             }
 
-            self.send = function(vip, message) {
+            self.__doOpenConnection = function(connection) {
+                self.parentEndpoint.openConnection(connection.targetVip, function(event) {
+                    if(event.status  == Global.FAILED) {
+                        self.__connectionOpenFailed(connection.targetVip);
+                    }else{
+                        self.__connectionOpened(connection.targetVip)
+                    }
+                })
+            }
+
+            self.__doSend = function(connection, message) {
                 if(blockedChannels[self.vip] && blockedChannels[self.vip][vip]) {
                     return;
                 }
 
-                self.parentEndpoint.send(vip, message);
-            }
-
-            self.isConnected = function(targetVip) {
-                 return self.parentEndpoint.isConnected(targetVip);
+                self.parentEndpoint.send(connection.targetVip, message);
             }
 
             self.parentEndpoint.onConnectionLost(function(targetVip){
-                self.__fireConnectionLost(targetVip);
+                self.closeConnection(targetVip);
             });
         }
 
