@@ -6,8 +6,8 @@ function( ReliableTestUtils){
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(100);
-        argument.reliableHub.setConnectionLostTimeout(200);
+        argument.reliableHub.setConnectionInvalidateInterval(500);
+        argument.reliableHub.setConnectionLostTimeout(500);
 
         Promise.resolve()
 
@@ -30,8 +30,8 @@ function( ReliableTestUtils){
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(100);
-        argument.reliableHub.setConnectionLostTimeout(200);
+        argument.reliableHub.setConnectionInvalidateInterval(500);
+        argument.reliableHub.setConnectionLostTimeout(500);
 
         Promise.resolve()
 
@@ -51,8 +51,8 @@ function( ReliableTestUtils){
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(200);
-        argument.reliableHub.setConnectionLostTimeout(300);
+        argument.reliableHub.setConnectionInvalidateInterval(500);
+        argument.reliableHub.setConnectionLostTimeout(500);
 
         Promise.resolve()
 
@@ -86,8 +86,8 @@ function( ReliableTestUtils){
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(200);
-        argument.reliableHub.setConnectionLostTimeout(300);
+        argument.reliableHub.setConnectionInvalidateInterval(500);
+        argument.reliableHub.setConnectionLostTimeout(500);
 
         Promise.resolve()
 
@@ -155,9 +155,9 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVnfTest("Connection Lost: ignore close connection without special message", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(300);
-        argument.reliableHub.setConnectionLostTimeout(300);
+        argument.reliableHub.setHeartbeatInterval(200);
+        argument.reliableHub.setConnectionInvalidateInterval(600);
+        argument.reliableHub.setConnectionLostTimeout(600);
 
         Promise.resolve()
 
@@ -185,8 +185,8 @@ function( ReliableTestUtils){
         var done = assert.async(1);
 
         argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(200);
-        argument.reliableHub.setConnectionLostTimeout(300);
+        argument.reliableHub.setConnectionInvalidateInterval(500);
+        argument.reliableHub.setConnectionLostTimeout(500);
 
         argument.reliableEndpoint.onConnectionLost(function(event){
             argument.reliableEndpoint.openConnection("root-endpoint", function(event){})
@@ -209,9 +209,9 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVnfTest("Connection Lost: Reply with CLOSE-CONNECTION to HANDSHAKE", function(assert, argument) {
         var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(100);
-        argument.reliableHub.setConnectionInvalidateInterval(200);
-        argument.reliableHub.setConnectionLostTimeout(300);
+        argument.reliableHub.setHeartbeatInterval(200);
+        argument.reliableHub.setConnectionInvalidateInterval(400);
+        argument.reliableHub.setConnectionLostTimeout(600);
 
         argument.reliableEndpoint.openConnection("root-endpoint", function(event){
             assert.equal(event.status, "FAILED", "Verifying status");

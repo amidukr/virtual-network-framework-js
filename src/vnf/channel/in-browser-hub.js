@@ -5,6 +5,12 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
 
         VnfHub.call(selfHub);
 
+        var immediateSend = false;
+
+        selfHub.setImmediateSend = function(value) {
+            immediateSend = value;
+        }
+
         selfHub.VnfEndpoint = function InBrowserEndpoint(selfVip) {
             var self = this;
             selfHub.BaseEndPoint.call(this, selfVip);
@@ -29,18 +35,24 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
 
             }
 
+            function sendFunction(connection, message) {
+                var remoteEndpoint = connection.remoteEndpoint;
+                var onMessage = remoteEndpoint.onMessage;
+
+                if(remoteEndpoint.isDestroyed()) return;
+                if(remoteEndpoint.getConnection(selfVip).remoteEndpoint != self) return;
+
+                if(onMessage) {
+                    onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
+                }
+            }
+
             self.__doSend = function(connection, message) {
-                window.setTimeout(function inBrowserSend() {
-                if(self.isDestroyed()) return;
-                    if(!connection.isConnected) return;
-
-                    var remoteEndpoint = connection.remoteEndpoint;
-                    var onMessage = remoteEndpoint.onMessage;
-                    if(onMessage) {
-                        onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
-                    }
-
-                }, 0);
+                if(immediateSend) {
+                    sendFunction(connection, message);
+                }else{
+                    window.setTimeout(sendFunction.bind(null, connection, message), 0);
+                }
             }
 
             self.__doReleaseConnection = function(connection) {

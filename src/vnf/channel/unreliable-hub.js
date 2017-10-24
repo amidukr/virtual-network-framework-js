@@ -35,7 +35,7 @@ define(["utils/logger", "vnf/channel/base/vnf-proxy-hub", "vnf/global"], functio
             }
 
             self.__doSend = function(connection, message) {
-                if(blockedChannels[self.vip] && blockedChannels[self.vip][vip]) {
+                if(blockedChannels[self.vip] && blockedChannels[self.vip][connection.targetVip]) {
                     return;
                 }
 

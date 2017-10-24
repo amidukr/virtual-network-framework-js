@@ -44,6 +44,8 @@ function( ReliableTestUtils){
     ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<->Root) Test concurrent synchronous handshake-accept sequence initiation", function(assert, argument) {
         var done = assert.async(1);
 
+        argument.rootHub.setImmediateSend(false);
+
         argument.reliableEndpoint.openConnection("root-endpoint", function(event){
             assert.equal(event.status, "CONNECTED", "Reliable connected");
         });

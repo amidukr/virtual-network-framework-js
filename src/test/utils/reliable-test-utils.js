@@ -15,6 +15,8 @@ function(  Vnf,
             var reliableCapture = new SignalCaptor(assert);
             var rootCapture     = new SignalCaptor(assert);
 
+            rootHub.setImmediateSend(true);
+
             var reliableEndpoint = reliableHub.openEndpoint("reliable-endpoint");
             var rootEndpoint = rootHub.openEndpoint("root-endpoint");
 
