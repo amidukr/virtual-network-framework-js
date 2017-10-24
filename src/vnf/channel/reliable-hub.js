@@ -1,15 +1,21 @@
-define(["utils/logger", "utils/cycle-buffer", "vnf/channel/base/vnf-proxy-hub", "utils/random"],
-function(Log, CycleBuffer, ProxyHub, Random) {
+define(["utils/logger",
+"utils/cycle-buffer",
+"vnf/channel/base/vnf-proxy-hub",
+"utils/random",
+"vnf/channel/reliable/reliable-message-serializer",
+"vnf/global"],
 
+function(Log, CycleBuffer, ProxyHub, Random, ReliableMessageSerializer, Global) {
+
+    var STATE_NO_ACTION   = 'NO-ACTION';
     var STATE_HANDSHAKING = 'HANDSHAKING';
     var STATE_ACCEPTING   = 'ACCEPTING';
     var STATE_CONNECTED   = 'CONNECTED';
 
-    var MESSAGE_HANDSHAKE         = 'HANDSHAKE';
-    var MESSAGE_ACCEPT            = 'ACCEPT';
-    var MESSAGE_REGULAR           = 'REGULAR';
-    var MESSAGE_HEARTBEAT_ACCEPT  = 'HEARTBEAT-ACCEPT';
-    var MESSAGE_HEARTBEAT_REGULAR = 'HEARTBEAT-REGULAR';
+    var MESSAGE_HANDSHAKE   = 'HANDSHAKE';
+    var MESSAGE_ACCEPT      = 'ACCEPT';
+    var MESSAGE_DATA        = 'MESSAGE';
+    var MESSAGE_HEARTBEAT   = 'HEARTBEAT';
     var MESSAGE_CLOSE_CONNECTION  = 'CLOSE-CONNECTION';
 
 
@@ -24,28 +30,21 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
         args = args || {};
 
-        var heartbeatInterval = 1000;
+        var heartbeatInterval = 3000;
 
-        var connectionInvalidateInterval = 5000;
-        var connectionLostTimeout = 25000;
-        var keepAliveHandshakingChannelTimeout = 25000;
-        var handshakeRetryInterval = 3000;
+        var connectionInvalidateInterval = 9000;
+        var connectionLostTimeout = 30000;
 
-        var handshakeRetries = 3;
 
         var heartbeatsToInvalidate = 0;
         var heartbeatsToDropConnection = 0;
-        var heartbeatsToDropHandshakingConnection = 0;
-        var heartbeatsToHandshakeRetry = 0;
 
         var heartbeatDeviation = 0.3;
 
 
         function updateHeartbeatCounters() {
-            heartbeatsToInvalidate                = Math.round(connectionInvalidateInterval / heartbeatInterval);
-            heartbeatsToDropConnection            = Math.round(connectionLostTimeout / heartbeatInterval);
-            heartbeatsToDropHandshakingConnection = Math.round(keepAliveHandshakingChannelTimeout / heartbeatInterval);
-            heartbeatsToHandshakeRetry            = Math.round(handshakeRetryInterval / heartbeatInterval);
+            heartbeatsToInvalidate     = Math.round(connectionInvalidateInterval / heartbeatInterval);
+            heartbeatsToDropConnection = Math.round(connectionLostTimeout        / heartbeatInterval);
         }
 
         if(args.heartbeatInterval) {
@@ -75,427 +74,334 @@ function(Log, CycleBuffer, ProxyHub, Random) {
             updateHeartbeatCounters();
         }
 
-        selfHub.setKeepAliveHandshakingChannelTimeout = function(value) {
-            keepAliveHandshakingChannelTimeout = value;
-            updateHeartbeatCounters();
-        }
-
-        selfHub.setHandshakeRetries = function(value) {
-            handshakeRetries = value;
-        }
-
-        selfHub.setHandshakeRetryInterval = function(value) {
-            handshakeRetryInterval = value;
-            updateHeartbeatCounters();
-        }
-
         selfHub.VnfEndpoint = function ReliableEndpoint(vip) {
             var self = this;
             selfHub.ProxyEndpoint.call(self, vip);
 
-            
             var parentEndpoint = self.parentEndpoint;
-
-            var channels = {};
-            var activeChannels = [];
             var endpointId = Random.random6();
 
-            function getChannel(targetVip) {
-                var channel = channels[targetVip];
-                if(!channel) {
-                    channel = {
-                        targetVip: targetVip,
-                        suspended: true,
-                        connected: false,
+            var nextSessionIndex = 1;
+            var timerActive = false;
 
-                        state: null,
-                        sessionIndex: 1,
-                        connectionMqStartFrom: -1,
-                        sessionId: endpointId + "-1",
-                        remoteSessionId: "",
+            var dropQueueNonEmpty = false;
+            var dropParentConnectionQueue = {}
 
-                        toInvalidateCounter: 0,
-                        keepAliveActiveConnectionCounter: 0,
-                        keepAliveHandshakingCounter: 0,
-                        keepAliveHandshakingCounter: 0,
+            function resetConnection(connection, targetVip, state) {
+                connection.targetVip = targetVip;
+                connection.sessionIndex = nextSessionIndex++;
+                connection.sessionId = endpointId + "-" + connection.sessionIndex;
 
-                        lastHeartbeatRequest: -1,
-                        lastSentMessageNumber: -1,
+                connection.silenceCounter = 0;
 
-                        lastMessage: null,
-                        handshakeRetriesIntervalCounter: 0,
-                        handshakeRetriesCounter: 0,
+                connection.lastHeartbeatRequest = -1;
 
-                        firstMessageNumberInSendBuffer: 0,
-                        sentMessages: new CycleBuffer(),
+                connection.lastSentMessageNumber = -1;
 
-                        firstMessageNumberInReceivedBuffer: -1,
-                        receivedMessages: new CycleBuffer()
-                    };
-                    
-                    setChannelState(channel, STATE_HANDSHAKING);
+                connection.firstMessageNumberInSendBuffer = 0;
+                connection.sentMessages = new CycleBuffer();
 
-                    channels[targetVip] = channel;
-                }
+                connection.firstMessageNumberInReceivedBuffer = -1;
+                connection.receivedMessages = new CycleBuffer();
 
-                return channel;
+                connection.closeConnectionHandled = false;
+
+                setConnectionState(connection, state);
+
+                resetTimer();
             }
 
-            function handleConnectionOnLost(channel) {
-                channel.sessionIndex = channel.sessionIndex + 1;
-                channel.connectionMqStartFrom = -1;
-                channel.sessionId = endpointId + "-" + channel.sessionIndex;
-                channel.remoteSessionId = "";
-
-                channel.lastHeartbeatRequest = -1;
-
-                channel.lastMessage = null;
-                channel.handshakeRetriesCounter = 0;
-                channel.handshakeRetriesIntervalCounter = 0;
-
-
-                channel.firstMessageNumberInReceivedBuffer = -1;
-                channel.receivedMessages = new CycleBuffer();
-
-                if(channel.connected || channel.state != STATE_HANDSHAKING) {
-                    channel.connected = false;
-                    setChannelState(channel, STATE_HANDSHAKING);
-                    channel.keepAliveHandshakingCounter = 0;
-                    self.__fireConnectionLost(channel.targetVip);
-                }
-            }
-
-            function parentSend(targetVip, message) {
+            function parentSend(targetVip, messageJson) {
                 try{
-                    parentEndpoint.send(targetVip, message);
+                    var messageString = ReliableMessageSerializer.serialize(messageJson);
+
+                    parentEndpoint.openConnection(targetVip, function(){
+                        try{
+                            parentEndpoint.send(targetVip, messageString);
+                        }catch(error) {
+                            Log.warn(self.vip, "reliable-hub", [new Error("Unable to send message"), error]);
+                        }
+                    })
                 }catch(error) {
                     Log.warn(self.vip, "reliable-hub", [new Error("Unable to send message"), error]);
                 }
             }
 
-            function sendHandshakeMessage(channel, messageIndex, message) {
-                parentSend(channel.targetVip, {type:         MESSAGE_HANDSHAKE,
-                                               sessionId:    channel.sessionId,
-                                               messageIndex: messageIndex,
-                                               payload:      message});
+            function sendHandshakeMessage(connection) {
+                parentSend(connection.targetVip, {type:    MESSAGE_HANDSHAKE,
+                                                  fromSid: connection.sessionId});
             }
 
-            function sendAcceptMessage(channel, messageIndex, message) {
-                parentSend(channel.targetVip, {type:         MESSAGE_ACCEPT,
-                                               sessionId:    channel.sessionId,
-                                               toSID:        channel.remoteSessionId,
-                                               mqStartFrom:  channel.connectionMqStartFrom,
-                                               messageIndex: messageIndex,
-                                               payload:      message});
+            function sendAcceptMessage(connection) {
+                parentSend(connection.targetVip, {type:      MESSAGE_ACCEPT,
+                                                  fromSid:   connection.sessionId,
+                                                  toSid:     connection.remoteSessionId});
             }
 
-            function sendRegularMessage(channel, messageIndex, message) {
-                parentSend(channel.targetVip, {type:         MESSAGE_REGULAR,
-                                               toSID:        channel.remoteSessionId,
-                                               messageIndex: messageIndex,
-                                               payload:      message});
+            function sendHeartbeatMessage(connection, gapBegin, gapEnd) {
+                parentSend(connection.targetVip, {type:      MESSAGE_HEARTBEAT,
+                                                  fromSid:   connection.sessionId,
+                                                  toSid:     connection.remoteSessionId,
+                                                  gapBegin:  gapBegin,
+                                                  gapEnd:    gapEnd});
             }
 
-            function sendAcceptHeartbeatMessage(channel, gapBegin, gapEnd) {
-                parentSend(channel.targetVip, {type:         MESSAGE_HEARTBEAT_ACCEPT,
-                                               sessionId:    channel.sessionId,
-                                               toSID:        channel.remoteSessionId,
-                                               mqStartFrom:  channel.connectionMqStartFrom,
-                                               gapBegin:     gapBegin,
-                                               gapEnd:       gapEnd});
+            function sendDataMessage(connection, messageIndex, message) {
+                parentSend(connection.targetVip, {type: MESSAGE_DATA,
+                                                  toSid: connection.remoteSessionId,
+                                                  messageIndex: messageIndex,
+                                                  payload: message})
             }
 
-            function sendRegularHeartbeatMessage(channel, gapBegin, gapEnd) {
-                parentSend(channel.targetVip, {type:      MESSAGE_HEARTBEAT_REGULAR,
-                                               toSID:     channel.remoteSessionId,
-                                               gapBegin:  gapBegin,
-                                               gapEnd:    gapEnd});
+            function sendCloseConnectionMessage(connection) {
+                parentSend(connection.targetVip, {type: MESSAGE_CLOSE_CONNECTION,
+                                                  toSid: connection.remoteSessionId,
+                                                  fromSid: connection.sessionId})
             }
 
-            function sendCloseMessage(channel) {
-                parentSend(channel.targetVip, {type: MESSAGE_CLOSE_CONNECTION,
-                                               sessionId:    channel.sessionId,
-                                               toSID:        channel.remoteSessionId});
-            }
+            function sendRefreshConnectionMessage(connection) {
+                if(connection.state == STATE_CONNECTED) {
+                    var gapBegin = connection.firstMessageNumberInReceivedBuffer + 1;
+                    var gapEnd   = -1;
 
-            var messageSender =   {'HANDSHAKING': sendHandshakeMessage,
-                                   'ACCEPTING':   sendAcceptMessage,
-                                   'CONNECTED':   sendRegularMessage};
+                    var receivedMessagesLength = connection.receivedMessages.length;
+                    if(receivedMessagesLength > 0) {
+                        var i;
 
-            var heartbeatSender = {'ACCEPTING':   sendAcceptHeartbeatMessage,
-                                   'CONNECTED':   sendRegularHeartbeatMessage};
+                        var array = connection.receivedMessages.array;
+                        var beginPointer = connection.receivedMessages.beginPointer;
+                        var arrayLength = array.length;
 
+                        for(i = 0; i < receivedMessagesLength; i++) {
+                            if(array[(beginPointer + i) % arrayLength]) {
+                                break;
+                            }
+                        }
 
-            function sendHeartbeat(channel) {
-                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
+                        gapEnd = gapBegin + i;
+                    }
 
-                channel.toInvalidateCounter++;
-                channel.keepAliveActiveConnectionCounter++;
-
-                Log.debug(instanceId, "reliable-channel-status",
-                      "invalidate: " + channel.toInvalidateCounter              + "/" + heartbeatsToInvalidate + ", "
-                    + "keep-alive: " + channel.keepAliveActiveConnectionCounter + "/" + heartbeatsToDropConnection
-                );  
-
-                if(channel.keepAliveActiveConnectionCounter >= heartbeatsToDropConnection) {
-                    channel.keepAliveActiveConnectionCounter = 0;
-
-                    Log.warn(instanceId, "reliable-channel-status", "connection closed due to silence in channel");
-
-                    self.closeConnection(channel.targetVip);
+                    sendHeartbeatMessage(connection, gapBegin, gapEnd);
                     return;
                 }
 
-                if(channel.toInvalidateCounter >= heartbeatsToInvalidate) {
-                    channel.toInvalidateCounter = 0;
-                    parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVip);
-
-                    Log.warn(instanceId, "reliable-channel-status", "re-creating connection due to silence");
-
-                    if(!parentEndpoint.closeConnection) {
-                        Log.error("reliable-hub", ["Invalidate for parent endpoint is not defined, parent peer: ", parentEndpoint])
-                    }
+                if(connection.state == STATE_ACCEPTING) {
+                    sendAcceptMessage(connection);
+                    return;
                 }
 
-
-
-                var gapBegin = channel.firstMessageNumberInReceivedBuffer + 1;
-                var gapEnd   = -1;
-
-                var receivedMessagesLength = channel.receivedMessages.length;
-                if(receivedMessagesLength > 0) {
-                    var i;
-
-                    var array = channel.receivedMessages.array;
-                    var beginPointer = channel.receivedMessages.beginPointer;
-                    var arrayLength = array.length;
-
-                    for(i = 0; i < receivedMessagesLength; i++) {
-                        if(array[(beginPointer + i) % arrayLength]) {
-                            break;
-                        }
-                    }
-
-                    gapEnd = gapBegin + i;
+                if(connection.state == STATE_HANDSHAKING) {
+                    sendHandshakeMessage(connection);
+                    return;
                 }
 
-                var sendHeartbeatMethod = heartbeatSender[channel.state];
-                if(sendHeartbeatMethod) {
-                    sendHeartbeatMethod(channel, gapBegin, gapEnd);
-                }else{
-                    Log.error("reliable-hub", ["Heartbeats processing: Unexpected channel state: '" + channel.state + "'"])
+                if(connection.state == STATE_NO_ACTION) {
+                      return;
                 }
+                
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + connection.targetVip + "]";
+                Log.error(instanceId, "send-refresh-connection-message", "Unexpected connection state: '" + connection.state + "'");
             }
 
-            function refreshHandshakingChannel(channel) {
-                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
+            function refreshConnection(connection) {
+                
+                connection.silenceCounter++;
+                var invalidateConnectionCounter = connection.silenceCounter % heartbeatsToInvalidate;
+
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + connection.targetVip + "]";
+
                 Log.debug(instanceId, "reliable-channel-status",
-                "handshake-retry-interval: " + (channel.handshakeRetriesIntervalCounter + 1) + "/" + heartbeatsToHandshakeRetry + ", "
-                + "handshake-retries: " + (channel.handshakeRetriesCounter + 1) + "/" + handshakeRetries + ","
-                + "handshake-keep-alive: " + (channel.keepAliveHandshakingCounter + 1) + "/" + heartbeatsToDropHandshakingConnection);
+                  "connection-invalidate: " + invalidateConnectionCounter + "/" + heartbeatsToInvalidate + "; "
+                + "connection-keep-alive: " + connection.silenceCounter   + "/" + heartbeatsToDropConnection);
 
-                if(channel.lastMessage) {
 
-                    channel.handshakeRetriesIntervalCounter++;
 
-                    if(channel.handshakeRetriesIntervalCounter >= heartbeatsToHandshakeRetry) {
+                if(connection.silenceCounter >= heartbeatsToDropConnection) {
+                    if(connection.state == STATE_ACCEPTING && connection.callback != null) {
+                        Log.debug(instanceId, "reliable-channel-status", "fallback to handshake state");
 
-                        channel.handshakeRetriesIntervalCounter = 0;
+                        resetConnection(connection, connection.targetVip, STATE_HANDSHAKING)
+                    }else{
+                        Log.debug(instanceId, "reliable-channel-status", "connection lost");
 
-                        channel.handshakeRetriesCounter++;
-                        if(channel.handshakeRetriesCounter > handshakeRetries) {
-                            channel.lastMessage = null;
-                            channel.handshakeRetriesCounter = 0;
-                        }else{
-                            parentEndpoint.closeConnection(channel.targetVip);
-                            sendHandshakeMessage(channel, channel.lastSentMessageNumber, channel.lastMessage);
-                            Log.debug(instanceId, "reliable-channel-status", "handshake retry")
-                        }
+                        self.closeConnection(connection.targetVip);
+                        return;
                     }
                 }
 
-                channel.keepAliveHandshakingCounter++;
-                if(channel.keepAliveHandshakingCounter >= heartbeatsToDropHandshakingConnection) {
-                    parentEndpoint.closeConnection && parentEndpoint.closeConnection(channel.targetVip);
-                    self.__fireConnectionLost(channel.targetVip);
-                    channel.suspended = true;
-                    Log.debug(instanceId, "reliable-channel-status", "closing connection")
+                if(invalidateConnectionCounter == 0) {
+                    Log.debug(instanceId, "reliable-channel-status", "re-invalidate connection");
+                    parentEndpoint.closeConnection(connection.targetVip);
                 }
+
+                Log.debug(instanceId, "reliable-channel-status", "connection refresh message sent")
+                sendRefreshConnectionMessage(connection);
             }
 
-             function onTimeEvent() {
-                var channelsToDeactivate = [];
+            function onTimeEvent() {
+                timerActive = false;
+                var connectionsToDeactivate = [];
 
-                for(var i = 0; i < activeChannels.length; i++) {
-                    var channel = activeChannels[i];
+                var connections = self.getConnections();
 
-                    if(channel.state == STATE_HANDSHAKING) {
-                        refreshHandshakingChannel(channel);
+                for(var i = 0; i < connections.length; i++) {
+                    refreshConnection(connections[i])
+                }
 
-                    }else{
-                        sendHeartbeat(channel)
+                var currentTime = new Date().getTime();
+                dropQueueNonEmpty = false;
+                for(var droppedConnectionVip in dropParentConnectionQueue ) {
+                    dropQueueNonEmpty = true;
+
+                    if(self.getConnection(droppedConnectionVip) != null) {
+                        delete dropParentConnectionQueue[droppedConnectionVip];
                     }
 
-                    if(channel.suspended) {
-                        channelsToDeactivate.push(channel);
+                    if(currentTime - dropParentConnectionQueue[droppedConnectionVip] > connectionLostTimeout) {
+                        delete dropParentConnectionQueue[droppedConnectionVip];
+                        parentEndpoint.closeConnection(droppedConnectionVip);
                     }
                 }
 
-                for(var i = 0; i < channelsToDeactivate.length; i++) {
-                    var channel = channelsToDeactivate[i];
-                    var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
-                    Log.debug(instanceId, "reliable-channel-status", "deactivate channel");
-                    activeChannels.removeValue(channel);
-                }
+                resetTimer();
+            }
 
-                if(activeChannels.length > 0) {
+
+            function resetTimer() {
+                if(!timerActive && (dropQueueNonEmpty || self.getConnections().length > 0)) {
+                    timerActive = true;
                     var nextInterval = heartbeatInterval * (1 + (Math.random() * 2 - 1) * heartbeatDeviation);
                     window.setTimeout(onTimeEvent, nextInterval);
                 }
             }
 
-
-            function newConnection(channel, message, mqStartFrom) {
-                channel.remoteSessionId = message.sessionId;
-                channel.lastHeartbeatRequest = -1;
-                channel.connectionMqStartFrom = channel.lastSentMessageNumber + 1;
-
-                if(mqStartFrom > channel.firstMessageNumberInReceivedBuffer) {
-                    channel.receivedMessages.removeFirst(mqStartFrom - channel.firstMessageNumberInReceivedBuffer - 1);
-                    channel.firstMessageNumberInReceivedBuffer = mqStartFrom - 1;
-                }
-            }
-
-
-
             var allowedMessageStates = {
-                "HANDSHAKE":         {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": false},
-                "ACCEPT":            {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true},
-                "HEARTBEAT-ACCEPT":  {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true},
-                "REGULAR":           {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true},
-                "HEARTBEAT-REGULAR": {"HANDSHAKING": false, "ACCEPTING": true, "CONNECTED": true},
-                "CLOSE-CONNECTION":  {"HANDSHAKING": true,  "ACCEPTING": true, "CONNECTED": true}
+                "HANDSHAKE":         {"NO-ACTION": true,  "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": false},
+                "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": true},
+                "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": true},
+                "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true}
             };
 
-            var verifyRemoteSession = {
-                "HANDSHAKE":         {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-                "ACCEPT":            {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-                "HEARTBEAT-ACCEPT":  {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-                "REGULAR":           {"HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false},
-                "HEARTBEAT-REGULAR": {"HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false},
-                "CLOSE-CONNECTION":  {"HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true}
+            var verifyFromSid = {
+                "HANDSHAKE":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false},
+                "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true}
             };
 
-            function verifyIfPhantom(channel, message) {
-                if(message.toSID && message.toSID != channel.sessionId) return "message.toSID different to channel.sessionId";
+            var verifyToSid = {
+                "HANDSHAKE":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false},
+                "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": true},
+                "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
+                "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": true},
+                "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true}
+            };
 
+            function verifyIfPhantom(connection, message) {
                 var messageType = message.type;
-                var channelState = channel.state;
+                var connectionState = connection.state;
 
-                if(!allowedMessageStates[messageType][channelState])
-                    return "Message type: '" + messageType + "' isn't allowed for channel state: '" + channelState + "'";
+                if(!allowedMessageStates[messageType][connectionState])
+                    return "Message type: '" + messageType + "' isn't allowed for channel state: '" + connectionState + "'";
 
-                if(verifyRemoteSession[messageType][channelState]) {
-                    if(channel.remoteSessionId != message.sessionId)
-                        return "Message sessionId isn't the same to channel.remoteSessionId," +
-                        " for messageType: '" + messageType + "' and channelState: '"  + channelState + "'";
+                if(verifyFromSid[messageType][connectionState]) {
+                    if(connection.remoteSessionId != message.fromSid)
+                        return "Message fromSid isn't the same to connection.remoteSessionId," +
+                        " for messageType: '" + messageType + "' and connectionState: '"  + connectionState + "'";
+                }
+
+                if(verifyToSid[messageType][connectionState]) {
+                    if(connection.sessionId != message.toSid)
+                        return "Message toSid isn't the same to connection.sessionId," +
+                        " for messageType: '" + messageType + "' and connectionState: '"  + connectionState + "'";
                 }
 
                 return false;
             }
 
-            function setChannelState(channel, newState) {
-                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
-                
-                channel.state = newState;
+            function setConnectionState(connection, newState) {
+                var instanceId = "reliable[" + endpointId + ":" + vip + "->" + connection.targetVip + "]";
 
-                Log.debug(instanceId, "reliable-channel-status", "channel state changed to: " + channel.state);
-            }
+                connection.state = newState;
 
-            function updateChannelState(channel, message) {
-                if(channel.state == STATE_CONNECTED) return;
+                Log.debug(instanceId, "reliable-channel-status", "channel state changed to: " + connection.state);
+            } 
 
-                channel.connected = true;
 
-                if(channel.state == STATE_HANDSHAKING) {
-                    if(message.type == MESSAGE_HANDSHAKE) {
-                        setChannelState(channel, STATE_ACCEPTING);
+            function handleHandshakeMessage(event, connection, message) {
+                if(  connection.state == STATE_NO_ACTION
+                  || connection.state == STATE_HANDSHAKING) {
 
-                        newConnection(channel, message, message.messageIndex);
-                        return;
-                    }
+                    setConnectionState(connection, STATE_ACCEPTING);
+                    connection.remoteSessionId = message.fromSid;
 
-                    if(message.type == MESSAGE_ACCEPT || message.type == MESSAGE_HEARTBEAT_ACCEPT) {
-                        setChannelState(channel, STATE_CONNECTED)
-
-                        newConnection(channel, message, message.mqStartFrom);
-                        return;
-                    }
-
-                }
-
-                if(channel.state == STATE_ACCEPTING) {
-                    if(message.type == MESSAGE_ACCEPT  || message.type == MESSAGE_HEARTBEAT_ACCEPT
-                    || message.type == MESSAGE_REGULAR || message.type == MESSAGE_HEARTBEAT_REGULAR) {
-                        setChannelState(channel, STATE_CONNECTED);
-                        return;
-                    }
-                }
-
-                
-            }
-
-            function reactivateChannel(channel) {
-                if(channel.suspended) {
-                    var instanceId = "reliable[" + endpointId + ":" + vip + "->" + channel.targetVip + "]";
-                    Log.debug(instanceId, "reliable-channel-status", "reactivate channel");
-
-                    channel.suspended = false;
-                    channel.keepAliveHandshakingCounter = 0;
-                    activeChannels.push(channel);
-
-                    if(activeChannels.length == 1) {
-                        window.setTimeout(onTimeEvent, heartbeatInterval);
-                    }
+                    sendAcceptMessage(connection);
                 }
             }
 
-            function heartbeatGapProcessing(event, channel, message) {
-                var prevHeartBeatRequest = channel.lastHeartbeatRequest;
-                channel.lastHeartbeatRequest = message.gapBegin;
+            function handleAcceptMessage(event, connection, message) {
+                if(  connection.state == STATE_HANDSHAKING
+                  || connection.state == STATE_ACCEPTING) {
 
-                // performance optimization- to not flood the network
-                // to avoid double sending of message, responding to gap only after second heartbeat
-                // due to network latencies heartbeat can be out-dated, while message is delivered
-                if(message.gapEnd == -1 && prevHeartBeatRequest != message.gapBegin) {
+                    setConnectionState(connection, STATE_CONNECTED);
+                    connection.remoteSessionId = message.fromSid;
+
+                    sendHeartbeatMessage(connection, 0, -1);
+
+                    self.__connectionOpened(connection.targetVip);
+                }
+            }
+
+            function handleHeartbeatMessage(event, connection, message) {
+                if(connection.state == STATE_CONNECTED) {
+                    var prevHeartBeatRequest = connection.lastHeartbeatRequest;
+                    connection.lastHeartbeatRequest = message.gapBegin;
+
+                    // performance optimization - to not flood the network
+                    // to avoid double sending of message, responding to gap only after second heartbeat
+                    // due to network latencies heartbeat can be out-dated, while message is delivered
+                    if(message.gapEnd == -1 && prevHeartBeatRequest != message.gapBegin) {
+                        return;
+                    }
+
+                    // removing messages before gapBegin in sent buffer
+                    var sentMessages = connection.sentMessages;
+                    if(connection.firstMessageNumberInSendBuffer < message.gapBegin) {
+                        sentMessages.removeFirst(message.gapBegin - connection.firstMessageNumberInSendBuffer);
+                        connection.firstMessageNumberInSendBuffer = message.gapBegin;
+                    }
+
+
+                    var array = sentMessages.array;
+                    for(var i = 0; i < sentMessages.length; i++) {
+                        if(message.gapEnd != -1 && message.gapEnd < i + message.gapBegin) {
+                            break;
+                        }
+
+                        var gapMessage = array[(i + sentMessages.beginPointer) % array.length];
+
+                        if(gapMessage) {
+                            sendDataMessage(connection, i + message.gapBegin, gapMessage);
+                        }
+                    }
+                }
+
+                if(connection.state == STATE_ACCEPTING) {
+                    setConnectionState(connection, STATE_CONNECTED);
+                    connection.remoteSessionId = message.fromSid;
+
+                    self.__connectionOpened(connection.targetVip)
+
                     return;
                 }
-
-                var sentMessages = channel.sentMessages;
-                if(channel.firstMessageNumberInSendBuffer < message.gapBegin) {
-                    sentMessages.removeFirst(message.gapBegin - channel.firstMessageNumberInSendBuffer);
-                    channel.firstMessageNumberInSendBuffer = message.gapBegin;
-                }
-
-
-                var array = sentMessages.array;
-                for(var i = 0; i < sentMessages.length; i++) {
-                    if(message.gapEnd != -1 && message.gapEnd < i + message.gapBegin) {
-                        break;
-                    }
-
-                    var gapMessage = array[(i + sentMessages.beginPointer) % array.length];
-
-                    if(gapMessage) {
-                        sendRegularMessage(channel, i + message.gapBegin, gapMessage);
-                    }
-                }
             }
 
-            function messageGapProcessing(event, channel, message) {
-                var receivedMessages = channel.receivedMessages;
+            function handleDataMessage(event, connection, message) {
+                var receivedMessages = connection.receivedMessages;
 
-                if(message.messageIndex == channel.firstMessageNumberInReceivedBuffer + 1) {
+                if(message.messageIndex == connection.firstMessageNumberInReceivedBuffer + 1) {
                     if(self.onMessage) {
                         self.onMessage({
                             message: message.payload,
@@ -504,8 +410,8 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                         });
                     }
                 }else {
-                    if(message.messageIndex > channel.firstMessageNumberInReceivedBuffer) {
-                        receivedMessages.setValue(message.messageIndex - channel.firstMessageNumberInReceivedBuffer - 2, message);
+                    if(message.messageIndex > connection.firstMessageNumberInReceivedBuffer) {
+                        receivedMessages.setValue(message.messageIndex - connection.firstMessageNumberInReceivedBuffer - 2, message);
                     }
 
                     return;
@@ -533,39 +439,30 @@ function(Log, CycleBuffer, ProxyHub, Random) {
                     }
                 }
 
-                channel.firstMessageNumberInReceivedBuffer += processedMessages;
+                connection.firstMessageNumberInReceivedBuffer += processedMessages;
                 receivedMessages.removeFirst(processedMessages);
             }
 
-            function handleHeartbeat(event, channel, message) {
-                try{
-                    self.onHeartbeat && self.onHeartbeat(event);
-                }catch(error) {
-                    Log.error(self.vip, "reliable-hub", [new Error("onHeartbeat handler thrown error"), error]);
+            function handleCloseMessage(event, connection, message) {
+                if(connection.state == STATE_CONNECTED) {
+                    connection.closeConnectionHandled = true;
+                    self.closeConnection(connection.targetVip);
+                    return;
                 }
-
-                updateChannelState(channel, message);
-                heartbeatGapProcessing(event, channel, message);
-            }
-
-            function handleMessage(event, channel, message) {
-                updateChannelState(channel, message);
-                messageGapProcessing(event, channel, message);
-            }
-
-            function handleCloseMessage(event, channel, message) {
-                handleConnectionOnLost(channel);
             }
 
             var handlers = {
-                "HEARTBEAT-ACCEPT":  handleHeartbeat,
-                "HEARTBEAT-REGULAR": handleHeartbeat,
-
-                "HANDSHAKE": handleMessage,
-                "ACCEPT":    handleMessage,
-                "REGULAR":   handleMessage,
+                "HANDSHAKE": handleHandshakeMessage,
+                "ACCEPT":    handleAcceptMessage,
+                "HEARTBEAT": handleHeartbeatMessage,
+                "MESSAGE":   handleDataMessage,
 
                 "CLOSE-CONNECTION": handleCloseMessage
+            }
+
+
+            this.setEndpointId = function(value) {
+                endpointId = value;
             }
 
             parentEndpoint.onMessage = function(event) {
@@ -575,84 +472,58 @@ function(Log, CycleBuffer, ProxyHub, Random) {
 
                 //Log.debug(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));
 
-                var message = event.message;
-                var channel = getChannel(event.sourceVip);
+                var message = ReliableMessageSerializer.deserialize(event.message);
 
-                var handler = handlers[event.message.type];
+                var connection = self.__lazyNewConnection(event.sourceVip);
+                if(!connection.state) {
+                    resetConnection(connection, event.sourceVip, STATE_NO_ACTION);
+                }
+
+                var handler = handlers[message.type];
 
                 if(!handler) {
                     throw new Error("ReliableHub: Unknown message type received: " + message.type);
                 }
 
-                var phantomError = verifyIfPhantom(channel, message);
+                var phantomError = verifyIfPhantom(connection, message);
                 if(phantomError) {
-                    Log.warn("reliable-hub", ["Phantom detected: " + phantomError,  event, channel])
+                    Log.warn("reliable-hub", ["Phantom detected: " + phantomError,  event, connection])
                     return;
                 }
 
-                channel.toInvalidateCounter = 0;
-                channel.keepAliveActiveConnectionCounter = 0;
-                reactivateChannel(channel);
+                connection.silenceCounter = 0;
 
-                handler(event, channel, message);
+                handler(event, connection, message);
             }
 
-            this.setEndpointId = function(value) {
-                endpointId = value;
-            }
-
-            this.send = function(targetVip, message) {
-                if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
-
-                var channel = getChannel(targetVip);
-                channel.connected = true;
-
-                channel.lastSentMessageNumber++;
-                channel.sentMessages.push(message);
-
-                if(channel.state == STATE_HANDSHAKING) {
-                    channel.lastMessage = message;
-                    channel.handshakeRetriesCounter = 0;
-                    channel.handshakeRetriesIntervalCounter = 0;
-                }
-
-                var sendMessageMethod = messageSender[channel.state];
-                sendMessageMethod(channel, channel.lastSentMessageNumber, message)
-
-                reactivateChannel(channel);
-            }
-
-           self.isConnected = function(targetVip) {
-                var channel = channels[targetVip];
-                return parentEndpoint.isConnected(targetVip) && channel && channel.connected;
-           }
-
-            this.closeConnection = function(targetVip) {
-                var channel = channels[targetVip];
-                if(channel) {
-                    if(parentEndpoint.isConnected(targetVip)) {
-                        sendCloseMessage(channel);
-                        channel.suspended = true;
+            self.__doOpenConnection = function(connection) {
+                parentEndpoint.openConnection(connection.targetVip, function(event) {
+                    if(event.status  == Global.FAILED) {
+                        self.__connectionOpenFailed(connection.targetVip);
+                        return;
                     }
 
-                    parentEndpoint.closeConnection(targetVip);
-
-                    handleConnectionOnLost(channel);
-                }
+                    resetConnection(connection, event.targetVip, STATE_HANDSHAKING);
+                    sendHandshakeMessage(connection);
+                })
             }
 
-            var parentDestroy = self.destroy;
-            self.destroy = function() {
-                var instanceId = "reliable[" + endpointId + ":" + vip + "-> ... ]";
-                Log.debug(instanceId, "reliable-channel-status", "destroy endpoint");
+            self.__doSend = function(connection, message) {
+                connection.lastSentMessageNumber++;
+                connection.sentMessages.push(message);
 
-                for(var connectedVip in channels){
-                    self.closeConnection(connectedVip);
+                sendDataMessage(connection, connection.lastSentMessageNumber, message)
+            }
+
+            var __superDoReleaseConnection = self.__doReleaseConnection;
+            self.__doReleaseConnection = function(connection) {
+                if(!connection.closeConnectionHandled && connection.state == STATE_CONNECTED) {
+                    sendCloseConnectionMessage(connection);
                 }
 
-                activeChannels = [];
-                parentDestroy();
-            };
+                dropQueueNonEmpty = true;
+                dropParentConnectionQueue[connection.targetVip] = new Date().getTime();
+            }
         }
     }
 });

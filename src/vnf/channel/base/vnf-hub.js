@@ -14,6 +14,7 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
             var connectionLostListeners = new Observable();
             
             var connections = {}
+            var connectionsArray = null;
             
             window.vnfActiveEndpoints.push(self);
             
@@ -43,8 +44,19 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                 return connection != null && connection.isConnected;
             }
 
+            self.getConnections = function() {
+                if(connectionsArray == null) {
+                    connectionsArray = [];
+                    for(var vip in connections) {
+                        connectionsArray.push(connections[vip]);
+                    }
+                }
+
+                return connectionsArray;
+            }
+
             self.getConnection = function(targetVip) {
-                return connection[targetVip];
+                return connections[targetVip];
             }
 
             self.__lazyNewConnection = function(targetVip) {
@@ -53,6 +65,8 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                     connection = {isConnected: false,
                                   targetVip: targetVip};
                     connections[targetVip] = connection;
+
+                    connectionsArray = null;
                 }
 
                 return connection;
@@ -145,6 +159,7 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                 }
 
                 delete connections[targetVip];
+                connectionsArray = null;
 
                 var __doReleaseConnection = self.__doReleaseConnection;
                 if(__doReleaseConnection) {

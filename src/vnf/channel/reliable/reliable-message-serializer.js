@@ -9,6 +9,10 @@ function() {
         for(var i  = 0; i < number - 1; i++) {
             var spaceIndex = stringValue.indexOf(' ', prevSpaceIndex + 1);
 
+            if(spaceIndex == -1) {
+                throw new Error("Unable split string into " + number + " parts. String value is: '" + stringValue + "'");
+            }
+
             result[i] = stringValue.substr(prevSpaceIndex  + 1, spaceIndex - prevSpaceIndex  - 1);
 
             prevSpaceIndex = spaceIndex;

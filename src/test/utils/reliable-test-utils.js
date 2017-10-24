@@ -26,7 +26,6 @@ function(  Vnf,
 
             reliableEndpoint.setEndpointId("rel1");
             reliableHub.setHeartbeatInterval(10000);
-            reliableHub.setHandshakeRetries(0);
 
 
             function destroy() {
@@ -35,20 +34,28 @@ function(  Vnf,
             }
 
             function makeConnection() {
-                argument.reliableEndpoint.openConnection("root-endpoint", function(event){})
+
+                args.reliableEndpoint.openConnection("root-endpoint", function(event){
+                    assert.equal(event.status, "CONNECTED", "Reliable connected");
+
+                    if(event.status != "CONNECTED") {
+                        return;
+                    }
+
+                    args.reliableCapture.signal("openConnection captured");
+                });
 
                 return Promise.resolve()
-                        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HANDSHAKE rel1-1']))
-                        .then(argument.rootCapture.send.bind(null, "reliable-endpoint", "ACCEPT rel1-1 root1-1"))
-                        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']));
+                    .then(args.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HANDSHAKE rel1-1']))
+                    .then(args.rootEndpoint.send.bind(null, "reliable-endpoint", "ACCEPT rel1-1 root1-1"))
+                    .then(args.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+                    .then(args.reliableCapture.assertSignals.bind(null, ['openConnection captured']))
             }
 
             function fastHeartbeats() {
                 reliableHub.setHeartbeatInterval(args.getInterval("reliableFastHeartbeatInterval"));
                 reliableHub.setConnectionInvalidateInterval(args.getInterval("reliableFastConnectionInvalidateInterval"));
                 reliableHub.setConnectionLostTimeout(args.getInterval("reliableFastConnectionLostTimeout"));
-                reliableHub.setHandshakeRetryInterval(args.getInterval("reliableFastHandshakeRetryInterval"));
-                reliableHub.setKeepAliveHandshakingChannelTimeout(args.getInterval("reliableFastKeepAliveHandshakingChannelTimeout"));
             }
 
             return Object.assign({}, {  reliableHub:      reliableHub,

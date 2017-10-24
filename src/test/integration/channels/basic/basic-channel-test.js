@@ -100,6 +100,8 @@ function(  Vnf,
         args.endpointRecipient.onMessage = function(event) {
             Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
+            assert.ok(args.endpointRecipient.isConnected(event.sourceVip), "Verifying connection established");
+
             assert.equal(event.message,   "sent to recipient message", "Verifying message");
             assert.equal(event.sourceVip, "sender", "Verifying sourceVip");
             assert.equal(event.endpoint, args.endpointRecipient, "Verifying endpoint");
