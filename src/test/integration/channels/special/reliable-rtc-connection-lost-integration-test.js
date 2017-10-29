@@ -14,6 +14,10 @@ function(  Vnf,
         var rtcHub = new Vnf.RtcHub(new Vnf.InBrowserHub(), {heartbeatsToInvalidate: 3000});
         var reliableHub = new Vnf.ReliableHub(rtcHub);
 
+        reliableHub.setHeartbeatInterval(50);
+        reliableHub.setConnectionInvalidateInterval(300);
+        reliableHub.setConnectionLostTimeout(600);
+
         var endpoint1 = reliableHub.openEndpoint("vip-1");
         var endpoint2 = reliableHub.openEndpoint("vip-2");
 
