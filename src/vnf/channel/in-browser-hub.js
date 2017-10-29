@@ -37,7 +37,7 @@ define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
 
             function sendFunction(connection, message) {
                 var remoteEndpoint = connection.remoteEndpoint;
-                
+
                 if(!remoteEndpoint)  return;
                 if(remoteEndpoint.isDestroyed()) return;
                 if(remoteEndpoint.getConnection(selfVip).remoteEndpoint != self) return;
