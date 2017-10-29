@@ -141,8 +141,6 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                 reliableRtc.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHeartbeatInterval"));
                 reliableRtc.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionInvalidateInterval"));
                 reliableRtc.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionLostTimeout"));
-                reliableRtc.setHandshakeRetryInterval(            TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHandshakeRetryInterval"));
-                reliableRtc.setKeepAliveHandshakingChannelTimeout(TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcKeepAliveHandshakingChannelTimeout"));
 
                 return reliableRtc;
             };
@@ -153,8 +151,6 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
                 reliableRtc.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHeartbeatInterval"));
                 reliableRtc.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionInvalidateInterval"));
                 reliableRtc.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionLostTimeout"));
-                reliableRtc.setHandshakeRetryInterval(            TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHandshakeRetryInterval"));
-                reliableRtc.setKeepAliveHandshakingChannelTimeout(TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcKeepAliveHandshakingChannelTimeout"));
 
                 return reliableRtc;
             };

@@ -29,7 +29,7 @@ requirejs(
 "test/unit/store/websocket-store-client-test",
 
 // VNF System Test
-"test/unit/system/vnf-system-test",
+//"test/unit/system/vnf-system-test",
 
 // WebSocket RPC Test
 "test/unit/websocket/websocket-rpc-test"

@@ -14,6 +14,8 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
             
             var parentEndpoint = self.parentEndpoint;
 
+            self.setAnyTypeSupported(true);
+
             parentEndpoint.onConnectionOpen(function(targetVip){
                 self.__connectionOpened(targetVip);
             })

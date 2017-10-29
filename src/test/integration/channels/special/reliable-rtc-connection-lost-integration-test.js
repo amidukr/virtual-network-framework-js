@@ -23,10 +23,13 @@ function(  Vnf,
         var capture2 = new SignalCaptor(assert);
         endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
+        endpoint1.openConnection("vip-2", function(event){
+            assert.equal(event.status,    "CONNECTED", "Verifying status");
 
-        endpoint1.send("vip-2", "rtc-message-1");
-        endpoint1.send("vip-2", "rtc-message-2");
-        endpoint1.send("vip-2", "rtc-message-3");
+            endpoint1.send("vip-2", "rtc-message-1");
+            endpoint1.send("vip-2", "rtc-message-2");
+            endpoint1.send("vip-2", "rtc-message-3");
+        });
 
         capture2.assertSignals(["from vip-1: rtc-message-1",
                             "from vip-1: rtc-message-2",

@@ -15,6 +15,8 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
             
             var connections = {}
             var connectionsArray = null;
+
+            var anyTypeSupported = false;
             
             window.vnfActiveEndpoints.push(self);
             
@@ -37,6 +39,9 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
                     targetVip: targetVip,
                     endpoint: self
                 });
+            }
+            self.setAnyTypeSupported = function(value) {
+                anyTypeSupported = value;
             }
             
             self.isConnected = function isConnected(targetVip) {
@@ -130,8 +135,10 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
             }
 
             self.send = function(targetVip, message) {
-                if(typeof targetVip != "string")   throw new Error("Wrong first argument type, targetVip as string is expected");
-                if(typeof message   != "string")   throw new Error("Wrong second argument type, message - only string is supported");
+                if(typeof targetVip != "string")
+                    throw new Error("Wrong first argument type, targetVip as string is expected");
+                if(!anyTypeSupported && typeof message   != "string")
+                    throw new Error("Wrong second argument type, message - only string is supported");
 
                 if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 

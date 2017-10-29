@@ -62,6 +62,7 @@ function(  Vnf,
     function integrationChannelTest(channelName, description, callback) {
         VnfTestUtils.test(["Channel Integration Tests", channelName], description,    {hubFactory: hubFactories[channelName]}, function(assert, args){
             args.vnfHub = args.hubFactory();
+            args.channelName = channelName;
             args.endpointRecipient = args.vnfHub.openEndpoint("recipient");
             args.endpointSender = args.vnfHub.openEndpoint("sender");
 

@@ -88,7 +88,7 @@ function(  Vnf,
                 .then(endpoint2.destroy)
 
                 .then(function(){
-                    if(n < 100 && !failed) {
+                    if(n < 50 && !failed) {
                         return doTest();
                     }
                 });

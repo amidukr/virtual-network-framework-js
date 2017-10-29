@@ -2,7 +2,6 @@ requirejs([ "vnf/vnf",
             "utils/signal-captor",
             "utils/logger",
             "test/utils/vnf-test-utils",
-            "test/utils/channel-test-utils",
             "test/utils/channel-test-utils"],
 function(  Vnf,
            SignalCaptor,
@@ -12,7 +11,12 @@ function(  Vnf,
 
     QUnit.module("Channel Extra Tests");
     ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, args) {
-         var done = assert.async(1);
+        var done = assert.async(1);
+
+        var bigMessageHub = new Vnf.BigMessageHub(args.vnfHub);
+
+        args.endpointRecipient = bigMessageHub.openEndpoint("recipient");
+        args.endpointSender = bigMessageHub.openEndpoint("sender");
 
         args.endpointRecipient.onMessage = function(event) {
             Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
@@ -127,6 +131,12 @@ function(  Vnf,
 
     ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, args) {
         var done = assert.async(1);
+
+        if(args.channelName == "Rtc") {
+            assert.ok(true, "Skipping RTC do not supports Big Message");
+            done()
+            return;
+        }
 
         var bigMessage = [
             new Array(64*1024).join('A'),
