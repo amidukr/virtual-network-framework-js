@@ -2,7 +2,7 @@ define(["vnf/vnf", "test/mock/mock-websocket-factory"], function(Vnf, MockWebSoc
 
     function setupWebSocketRpcMocks(assert, argument) {
         argument.mockWebSocketFactory = new MockWebSocketFactory(assert);
-        argument.webSocketRpc = new Vnf.WebSocketRpc("endpoint-vip", argument.mockWebSocketFactory);
+        argument.webSocketRpc = new Vnf.WebSocketRpc("ws-endpoint", argument.mockWebSocketFactory);
         argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
 
         argument.webSocketRpc.setBusyTimerInterval(200);
@@ -14,7 +14,7 @@ define(["vnf/vnf", "test/mock/mock-websocket-factory"], function(Vnf, MockWebSoc
         return Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: " + index + " LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: " + index + " LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, index + " LOGIN\nOK"))
     }
 

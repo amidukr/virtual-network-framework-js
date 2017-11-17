@@ -7,6 +7,7 @@ requirejs(
 "test/integration/channels/basic/open-connection-channel-test",
 
 "test/integration/channels/special/reliable-rtc-connection-lost-integration-test",
-"test/integration/channels/special/rtc-channel-test"
+"test/integration/channels/special/rtc-channel-test",
+"test/integration/channels/special/web-socket-channel-test"
 
 ], function(){})

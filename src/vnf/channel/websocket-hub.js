@@ -16,35 +16,73 @@ function(Log,
         selfHub.VnfEndpoint = function WebSocketEndpoint(selfVip) {
             var self = this;
             selfHub.BaseEndPoint.call(this, selfVip);
+            var resendHandshakeInterval = 3000;
 
             var webSocketRpc = new WebSocketRpc(selfVip, webSocketFactory);
 
-            var connected = {};
+            function sendHandshake(targetVip) {
+                var connection = self.getConnection(targetVip);
+
+                if(connection == null) {
+                    return;
+                }
+
+                if(!self.isConnected(targetVip)) {
+                    if(connection.retryAttempts-- == 0) {
+                        self.closeConnection(targetVip);
+                        return;
+                    }
+
+
+                    webSocketRpc.invoke("SEND_TO_ENDPOINT",  targetVip + "\nHANDSHAKE", {retryResend: true});
+                    window.setTimeout(sendHandshake.bind(null, targetVip), resendHandshakeInterval);
+                }
+            }
+
+            self.setResendHandshakeInterval = function(value) {
+                resendHandshakeInterval = value;
+            }
+
+            self.__doOpenConnection = function(connection) {
+                connection.retryAttempts = 2;
+                sendHandshake(connection.targetVip);
+            }
+
+            function handleHandshakeMessage(sourceVip, messageType, body) {
+                var connection = self.__lazyNewConnection(sourceVip);
+                self.__connectionOpened(connection.targetVip);
+
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nACCEPT", {retryResend: true});
+            }
+
+            function handleAcceptMessage(sourceVip, messageType, body) {
+                var connection = self.__lazyNewConnection(sourceVip);
+                self.__connectionOpened(connection.targetVip);
+            }
 
             function handleMessage(sourceVip, messageType, body) {
-                connected[sourceVip] = true;
+                if(!self.isConnected(sourceVip)) {
+                    return false;
+                }
 
                 self.onMessage && self.onMessage({sourceVip: sourceVip,
-                                                  message:   VnfSerializer.deserializeValue(body),
+                                                  message:   body,
                                                   endpoint:  self});
             }
 
             function handleCloseConnection(sourceVip, messageType, body) {
-                delete connected[sourceVip];
-                self.__fireConnectionLost(sourceVip);
+                self.closeConnection(sourceVip);
             }
 
             var messageHandlers = {
+                "HANDSHAKE":        handleHandshakeMessage,
+                "ACCEPT":           handleAcceptMessage,
                 "MESSAGE":          handleMessage,
                 "CLOSE-CONNECTION": handleCloseConnection
             }
 
-            self.setConnection = function(targetVip, endpoint) {
-                connections[targetVip] = endpoint;
-            }
-
             self.getWebSocketRpc = function() {
-               return webSocketRpc;
+              return webSocketRpc;
             }
 
             webSocketRpc.registerPushHandler("ENDPOINT_MESSAGE", function(event){
@@ -77,43 +115,25 @@ function(Log,
                 handler(sourceVip, messageType, body);
             })
 
-            self.send = function(vip, message) {
-                if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
-
-                connected[vip] = true;
-
-                webSocketRpc.invoke("SEND_TO_ENDPOINT",  vip + "\nMESSAGE\n" + VnfSerializer.serializeValue(message), {retryResend: true});
-            }
+            self.__doSend = function(connection, message) {
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nMESSAGE\n" + message, {retryResend: true})
+                .then(function(event){
+                    if(event.data == "ENDPOINT_NOT_FOUND") {
+                        self.closeConnection(connection.targetVip);
+                    }
+                });
+            };
 
             var parentDestroy = self.destroy;
             self.destroy = function() {
-                for(var remoteVip in connected){
-                    if(connected[remoteVip]) {
-                        try{
-                            self.closeConnection(remoteVip);
-                        }catch(e){
-                            Log.error(selfVip, "in-browser-hub", ["Error closing connection", e]);
-                        }
-                    }
-                }
-
-                webSocketRpc.destroy();
                 parentDestroy();
-            }
+                webSocketRpc.destroy();
+            };
 
-            self.isConnected = function(targetVip) {
-                return connected[targetVip];
-            }
-
-            self.closeConnection = function(targetVip) {
-                if(!connected[targetVip]) return;
-
-                delete connected[targetVip];
-                self.__fireConnectionLost.bind(null, targetVip);
-
-                webSocketRpc.invoke("SEND_TO_ENDPOINT",  targetVip + "\nCLOSE-CONNECTION", {retryResend: true});
-            }
-        }
+            self.__doReleaseConnection = function(connection) {
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true});
+            };
+        };
     };
 });
 

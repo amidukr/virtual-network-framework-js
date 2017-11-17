@@ -18,7 +18,14 @@ function(  Vnf,
             argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
 
             var webSocketHub = new Vnf.WebSocketHub(argument.mockWebSocketFactory);
-            argument.webSocketEndpoint = webSocketHub.openEndpoint("endpoint-vip");
+            argument.webSocketEndpoint = webSocketHub.openEndpoint("ws-endpoint");
+            argument.webSocketEndpointCaptor = new SignalCaptor(assert);
+
+            argument.webSocketEndpoint.onMessage = VnfTestUtils.newPrintCallback(argument.webSocketEndpointCaptor,
+                                                                                 "ws-endpoint");
+            argument.webSocketEndpoint
+                   .onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(argument.webSocketEndpointCaptor,
+                                                                                 "ws-endpoint"));
 
             var webSocketRpc = argument.webSocketEndpoint.getWebSocketRpc();
 
@@ -32,169 +39,282 @@ function(  Vnf,
 
 
     QUnit.module("WebSocketHub Tests");
-    webSocketHubTest("Send string test", function(assert, argument){
+    webSocketHubTest("New connection join test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.send("endpoint-vip", "string-value");
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
+        });
 
         Promise.resolve()
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nSstring-value"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
+
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint connectionOpened"]))
+
+        .then(argument.webSocketEndpoint.destroy)
 
         .then(done)
-    })
+    });
 
-    webSocketHubTest("Send json test", function(assert, argument){
+    webSocketHubTest("New connection join - retry test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.send("endpoint-vip", {"json":"value"});
+        argument.webSocketEndpoint.setResendHandshakeInterval(300);
+
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
+        });
 
         Promise.resolve()
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\nendpoint-vip\nMESSAGE\nJ{"json":"value"}']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
 
-        .then(done);
-    })
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT"))
 
-    webSocketHubTest("onMessage string test", function(assert, argument){
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint connectionOpened"]))
+
+        .then(argument.webSocketEndpoint.destroy)
+
+        .then(done)
+    });
+
+    webSocketHubTest("New connection join - failed due to timeout test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.onMessage = function(event) {
-            assert.equal(event.message, "endpoint-message", "verifying connection");
-            assert.equal(event.sourceVip, "from-endpoint-vip", "verifying source");
-            done()
-        }
+        argument.webSocketEndpoint.setResendHandshakeInterval(300);
+
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "FAILED", "Verifying status");
+
+            argument.webSocketEndpointCaptor.signal("ws-endpoint openConnection failed");
+        });
+
+        Promise.resolve()
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT\nENDPOINT_NOT_FOUND"))
+
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT"))
+
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint openConnection failed"]))
+
+        .then(argument.webSocketEndpoint.destroy)
+
+        .then(done)
+    });
+
+    webSocketHubTest("New connection accept test", function(assert, argument){
+        var done = assert.async(1);
 
         Promise.resolve()
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 0))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nfrom-endpoint-vip\nMESSAGE\nSendpoint-message"))
-    })
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nHANDSHAKE"))
 
-    webSocketHubTest("onMessage json test", function(assert, argument){
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 SEND_TO_ENDPOINT\nremote-endpoint\nACCEPT"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
+
+        .then(function(){
+            argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+                assert.equal(event.status, "CONNECTED", "Verifying status");
+
+                argument.webSocketEndpoint.destroy();
+                done();
+            });
+        });
+    });
+
+    webSocketHubTest("Send message test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.onMessage = function(event) {
-            assert.deepEqual(event.message, {"json":"value"}, "verifying connection");
-            assert.equal(event.sourceVip, "from-endpoint-vip", "verifying source");
-            done()
-        }
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpoint.send("remote-endpoint", "my test\nmessage")
+        });
 
         Promise.resolve()
-        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 0))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, 'ENDPOINT_MESSAGE\nfrom-endpoint-vip\nMESSAGE\nJ{"json":"value"}'))
-    })
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
 
-    webSocketHubTest("Failover tests for malformed message", function(assert, argument){
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nMESSAGE\nmy test\nmessage"]))
+
+        .then(argument.webSocketEndpoint.destroy)
+
+        .then(done)
+    });
+
+    webSocketHubTest("onMessage test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.onMessage = function(event) {
-            assert.equal(event.message, "endpoint-message", "verifying connection");
-            assert.equal(event.sourceVip, "from-endpoint-vip", "verifying source");
-            done()
-        }
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
+        });
 
         Promise.resolve()
-        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 0))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
+
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nMESSAGE\nmy\ntest message"))
+
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint connectionOpened"]))
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ['from remote-endpoint: my\ntest message']))
+
+        .then(argument.webSocketEndpoint.destroy)
+
+        .then(done)
+    });
+
+
+    webSocketHubTest("Fail-over malformed message test", function(assert, argument){
+        var done = assert.async(1);
+
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
+        });
+
+        Promise.resolve()
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
+
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
 
         // sending malformed message
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nfrom-endpoint-vipMESSAGESmalformed-message"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpointMESSAGESmalformed-message"))
 
         // sending regular message
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nfrom-endpoint-vip\nMESSAGE\nSendpoint-message"))
-    })
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nMESSAGE\nendpoint-message"))
 
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint connectionOpened"]))
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ['from remote-endpoint: endpoint-message']))
 
-    webSocketHubTest("isConnected test", function(assert, argument){
+        .then(argument.webSocketEndpoint.destroy)
 
-        assert.notOk(argument.webSocketEndpoint.isConnected("external-endpoint-vip"), "verifying before send");
+        .then(done)
+    });
 
-        argument.webSocketEndpoint.send("external-endpoint-vip", "message");
-
-        assert.ok(argument.webSocketEndpoint.isConnected("external-endpoint-vip"), "verifying after send");
-
-        argument.webSocketEndpoint.closeConnection("external-endpoint-vip", "message");
-
-        assert.notOk(argument.webSocketEndpoint.isConnected("external-endpoint-vip"), "verifying after closeConnection");
-    })
-
-    webSocketHubTest("closeConnection test", function(assert, argument){
+    webSocketHubTest("closeConnection notification test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.send("external-endpoint-vip", "establish-connection");
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
+        });
 
         Promise.resolve()
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
-
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\nexternal-endpoint-vip\nMESSAGE\nSestablish-connection']))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
 
-        .then(argument.webSocketEndpoint.closeConnection.bind(null, "external-endpoint-vip"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 2 SEND_TO_ENDPOINT\nexternal-endpoint-vip\nCLOSE-CONNECTION']))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint connectionOpened"]))
+
+        .then(argument.webSocketEndpoint.closeConnection.bind(null, "remote-endpoint"))
+
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nCLOSE-CONNECTION"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 PING"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 PING"))
+
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["from remote-endpoint connection lost"]))
+
+        .then(argument.webSocketEndpoint.destroy)
 
         .then(done)
-    })
+    });
 
-    webSocketHubTest("destroy test", function(assert, argument){
+
+
+    webSocketHubTest("handling closeConnection message test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.send("vip-1", "message-1")
-        argument.webSocketEndpoint.send("vip-2", "message-2")
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
+        });
 
         Promise.resolve()
-        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 2))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\nvip-1\nMESSAGE\nSmessage-1']))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\nvip-2\nMESSAGE\nSmessage-2']))
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT"))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 SEND_TO_ENDPOINT"))
 
-        .then(argument.webSocketEndpoint.destroy.bind("external-endpoint-vip"))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 3 SEND_TO_ENDPOINT\nvip-1\nCLOSE-CONNECTION']))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 4 SEND_TO_ENDPOINT\nvip-2\nCLOSE-CONNECTION']))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 SEND_TO_ENDPOINT"))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 SEND_TO_ENDPOINT"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint connectionOpened"]))
 
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nCLOSE-CONNECTION"))
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["from remote-endpoint connection lost"]))
+
+        .then(argument.webSocketEndpoint.destroy)
+
+        .then(done)
+    });
+
+    webSocketHubTest("closeConnection after send failed test", function(assert, argument){
+        var done = assert.async(1);
+
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            argument.webSocketEndpoint.send("remote-endpoint", "my test\nmessage")
+        });
+
+        Promise.resolve()
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nMESSAGE\nmy test\nmessage"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT\nENDPOINT_NOT_FOUND"))
+
+
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 SEND_TO_ENDPOINT\nremote-endpoint\nCLOSE-CONNECTION"]))
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["from remote-endpoint connection lost"]))
+
+        .then(argument.webSocketEndpoint.destroy)
+
+        .then(done)
+    });
+
+    webSocketHubTest("Endpoint destroy test", function(assert, argument){
+        var done = assert.async(1);
+
+        argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+        });
+
+        Promise.resolve()
+        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
+
+        .then(argument.webSocketEndpoint.destroy)
+
+        .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["from remote-endpoint connection lost"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nCLOSE-CONNECTION"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
 
         .then(done)
-    })
-
-
-    webSocketHubTest("onConnectionClose by closeConnection test", function(assert, argument){
-        var done = assert.async(1);
-
-        argument.webSocketEndpoint.onConnectionLost(function(targetVip){
-            assert.equal(targetVip, "external-vip");
-            done();
-        })
-
-        Promise.resolve()
-        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 0))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nexternal-vip\nCLOSE-CONNECTION"))
-    })
-
-    webSocketHubTest("Test retry", function(assert, argument){
-        var done = assert.async(1);
-
-        argument.webSocketEndpoint.send("target-endpoint-vip", "string-value");
-        argument.webSocketEndpoint.closeConnection("target-endpoint-vip");
-
-        Promise.resolve()
-        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 2))
-
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\ntarget-endpoint-vip\nMESSAGE\nSstring-value']))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\ntarget-endpoint-vip\nCLOSE-CONNECTION']))
-
-        .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
-        .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 3))
-
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 SEND_TO_ENDPOINT\ntarget-endpoint-vip\nMESSAGE\nSstring-value']))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 1 SEND_TO_ENDPOINT\ntarget-endpoint-vip\nCLOSE-CONNECTION']))
-
-        .then(done);
     });
 })

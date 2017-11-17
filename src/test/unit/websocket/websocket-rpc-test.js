@@ -36,7 +36,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 INVOKE-TEST-COMMAND\nMy\ntest\ndata-2"]))
@@ -66,7 +66,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
@@ -101,7 +101,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND"))
@@ -132,7 +132,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(function(){
             argument.mockWebSocketFactory.fireOnmessage("PUSH-TEST-COMMAND\npush\ntest\ndata-1");
@@ -148,7 +148,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(function(){
@@ -172,7 +172,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
@@ -180,20 +180,20 @@ function(  Vnf,
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
 
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nws-endpoint"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nfirst response"));
@@ -217,7 +217,7 @@ function(  Vnf,
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(function(){mockWebSocket = argument.mockWebSocketFactory.getMockWebSocket()})
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
@@ -228,7 +228,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(function(){mockWebSocket = argument.mockWebSocketFactory.getMockWebSocket()})
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
 
         //... timeout ...
 
@@ -237,7 +237,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(function(){mockWebSocket = argument.mockWebSocketFactory.getMockWebSocket()})
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nsuccessful-response"));
@@ -261,7 +261,7 @@ function(  Vnf,
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(function(){mockWebSocket = argument.mockWebSocketFactory.getMockWebSocket()})
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
@@ -271,7 +271,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
         .then(function(){mockWebSocket.fireOnclose()})
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nsuccessful-response"))
@@ -307,7 +307,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
@@ -317,7 +317,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
@@ -327,7 +327,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nsuccessful-response"));
@@ -348,25 +348,25 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nws-endpoint"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 LOGIN\nOK"))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
@@ -388,21 +388,21 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nresponse\nto call - 0"))
@@ -428,21 +428,21 @@ function(  Vnf,
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["webSocketRpc-onConnectionOpen"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["webSocketRpc-onConnectionOpen"]))
 
         .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["webSocketRpc-onConnectionOpen"]))
 
@@ -458,7 +458,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 PING"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 PING"))
@@ -483,7 +483,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 PING"]))
 
@@ -491,13 +491,13 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 PING"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 PING"))
@@ -519,7 +519,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 PING"]))
 
@@ -530,7 +530,7 @@ function(  Vnf,
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 PING"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 PING"))
@@ -551,7 +551,7 @@ function(  Vnf,
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 5 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 5 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "5 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 PING"]))
 
@@ -561,7 +561,7 @@ function(  Vnf,
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
 
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 6 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 6 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "6 LOGIN\nOK"))
 
 
@@ -585,20 +585,20 @@ function(  Vnf,
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nALREADY_USED"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
 
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 LOGIN\nALREADY_USED"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 PING"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "3 PING"))
@@ -613,7 +613,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
 
         argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1")
@@ -633,7 +633,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-FAIL-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n1 INVOKE-FAIL-COMMAND\nSERVER_SIDE_FAILURE_CODE"))
@@ -655,7 +655,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 INVOKE-TEST-COMMAND\nMy\ntest\ndata for retry"]))
@@ -704,7 +704,7 @@ function(  Vnf,
 
         Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
-        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nendpoint-vip"]))
+        .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 LOGIN\nOK"))
         .then(argument.webSocketRpc.destroy.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
