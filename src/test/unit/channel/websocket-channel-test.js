@@ -17,8 +17,8 @@ function(  Vnf,
             argument.mockWebSocketFactory = new WebSocketRpcTestUtils.MockWebSocketFactory(assert);
             argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
 
-            var webSocketHub = new Vnf.WebSocketHub(argument.mockWebSocketFactory);
-            argument.webSocketEndpoint = webSocketHub.openEndpoint("ws-endpoint");
+            argument.webSocketHub = new Vnf.WebSocketHub(argument.mockWebSocketFactory);
+            argument.webSocketEndpoint = argument.webSocketHub.openEndpoint("ws-endpoint");
             argument.webSocketEndpointCaptor = new SignalCaptor(assert);
 
             argument.webSocketEndpoint.onMessage = VnfTestUtils.newPrintCallback(argument.webSocketEndpointCaptor,
@@ -65,7 +65,7 @@ function(  Vnf,
     webSocketHubTest("New connection join - retry test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.setResendHandshakeInterval(300);
+        argument.webSocketHub.setResendHandshakeInterval(300);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
             assert.equal(event.status, "CONNECTED", "Verifying status");
@@ -93,7 +93,7 @@ function(  Vnf,
     webSocketHubTest("New connection join - failed due to timeout test", function(assert, argument){
         var done = assert.async(1);
 
-        argument.webSocketEndpoint.setResendHandshakeInterval(300);
+        argument.webSocketHub.setResendHandshakeInterval(300);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
             assert.equal(event.status, "FAILED", "Verifying status");
@@ -104,7 +104,7 @@ function(  Vnf,
         Promise.resolve()
         .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT\nENDPOINT_NOT_FOUND"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 SEND_TO_ENDPOINT\nSEND_TO_ENDPOINT_RECIPIENT_ENDPOINT_CANNOT_BE_FOUND"))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT"))
@@ -286,7 +286,7 @@ function(  Vnf,
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 SEND_TO_ENDPOINT\nremote-endpoint\nMESSAGE\nmy test\nmessage"]))
-        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT\nENDPOINT_NOT_FOUND"))
+        .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 SEND_TO_ENDPOINT\nSEND_TO_ENDPOINT_RECIPIENT_ENDPOINT_CANNOT_BE_FOUND"))
 
 
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 SEND_TO_ENDPOINT\nremote-endpoint\nCLOSE-CONNECTION"]))

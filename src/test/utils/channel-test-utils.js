@@ -28,7 +28,12 @@ function(  Vnf,
     }
 
     function webSocketFactory() {
-        return new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl")));
+        var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl")));
+
+        hub.setResendHandshakeInterval(100);
+        hub.setResendHandshakeRetries(10);
+
+        return hub;
     }
 
     function reliableFactory() {
@@ -86,7 +91,7 @@ function(  Vnf,
         // Misc
         integrationChannelTest("Rtc",                 description, callback);
         integrationChannelTest("Big Message Factory", description, callback);
-        //integrationChannelTest("WebSocket",         description, callback);
+        integrationChannelTest("WebSocket",           description, callback);
         integrationChannelTest("Reliable",            description, callback);
         integrationChannelTest("Unreliable",          description, callback);
 

@@ -2,7 +2,6 @@ requirejs([ "vnf/vnf",
             "utils/signal-captor",
             "utils/logger",
             "test/utils/vnf-test-utils",
-            "test/utils/channel-test-utils",
             "test/utils/channel-test-utils"],
 function(  Vnf,
            SignalCaptor,
@@ -54,12 +53,12 @@ function(  Vnf,
 
             args.endpointSender.onConnectionLost(function(targetVip){
                 assert.equal(targetVip, "recipient");
-                doneCaptor.signal("done-1");
+                doneCaptor.signal("sender-connection-lost");
             })
 
             args.endpointRecipient.onConnectionLost(function(targetVip){
                 assert.equal(targetVip, "sender");
-                doneCaptor.signal("done-2");
+                doneCaptor.signal("recipient-connection-lost");
             })
 
             args.endpointRecipient.openConnection("sender", function(event){
@@ -69,7 +68,7 @@ function(  Vnf,
         });
 
 
-        doneCaptor.assertSignalsUnordered(["done-1", "done-2"])
+        doneCaptor.assertSignalsUnordered(["sender-connection-lost", "recipient-connection-lost"])
             .then(args.endpointRecipient.destroy)
             .then(args.endpointSender.destroy)
         .then(done);

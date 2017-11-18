@@ -1,22 +1,35 @@
 define(["utils/logger",
         "vnf/websocket/websocket-rpc",
         "vnf/channel/base/vnf-hub",
-        "utils/vnf-serializer"],
+        "utils/vnf-serializer",
+        "vnf/global"],
 
 function(Log,
          WebSocketRpc,
          VnfHub,
-         VnfSerializer) {
+         VnfSerializer,
+         Global) {
 
     return function WebSocketHub(webSocketFactory){
         var selfHub = this;
 
         VnfHub.call(selfHub);
 
+        var resendHandshakeInterval = 3000;
+        var resendHandshakeRetries = 2;
+
+
+        selfHub.setResendHandshakeInterval = function(value) {
+            resendHandshakeInterval = value;
+        }
+
+        selfHub.setResendHandshakeRetries = function(value) {
+            resendHandshakeRetries = value;
+        }
+
         selfHub.VnfEndpoint = function WebSocketEndpoint(selfVip) {
             var self = this;
             selfHub.BaseEndPoint.call(this, selfVip);
-            var resendHandshakeInterval = 3000;
 
             var webSocketRpc = new WebSocketRpc(selfVip, webSocketFactory);
 
@@ -39,20 +52,17 @@ function(Log,
                 }
             }
 
-            self.setResendHandshakeInterval = function(value) {
-                resendHandshakeInterval = value;
-            }
-
             self.__doOpenConnection = function(connection) {
-                connection.retryAttempts = 2;
+                connection.retryAttempts = resendHandshakeRetries;
                 sendHandshake(connection.targetVip);
             }
 
             function handleHandshakeMessage(sourceVip, messageType, body) {
                 var connection = self.__lazyNewConnection(sourceVip);
-                self.__connectionOpened(connection.targetVip);
 
                 webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nACCEPT", {retryResend: true});
+
+                self.__connectionOpened(connection.targetVip);
             }
 
             function handleAcceptMessage(sourceVip, messageType, body) {
@@ -118,7 +128,7 @@ function(Log,
             self.__doSend = function(connection, message) {
                 webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nMESSAGE\n" + message, {retryResend: true})
                 .then(function(event){
-                    if(event.data == "ENDPOINT_NOT_FOUND") {
+                    if(event.data == Global.SEND_TO_ENDPOINT_RECIPIENT_ENDPOINT_CANNOT_BE_FOUND) {
                         self.closeConnection(connection.targetVip);
                     }
                 });
