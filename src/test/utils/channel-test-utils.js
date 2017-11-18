@@ -45,7 +45,7 @@ function(  Vnf,
     }
 
     function reliableRtcFactory() {
-        return new Vnf.ReliableRtcHub(new Vnf.InBrowserHub());
+        return new Vnf.BigMessageHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
     }
 
     var hubFactories = {
@@ -96,7 +96,7 @@ function(  Vnf,
         integrationChannelTest("Unreliable",          description, callback);
 
         // ReliableRtc
-        //integrationChannelTest("Reliable Rtc", description, callback);
+        integrationChannelTest("Reliable Rtc", description, callback);
     }
 
     return {hubFactories: hubFactories,

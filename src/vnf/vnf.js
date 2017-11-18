@@ -18,6 +18,14 @@ define(["vnf/global",
 
         "utils/arrays"],
 
+    //TODO: review and remove obsolete code
+    //TODO: rename vip to eva
+    //TODO: rename big message to name according to specification document
+    //TODO: disable rtc tests
+    //TODO: try rtc over websocket hub
+    //TODO: should be no failing tests
+    //TODO: clean-up todos
+
   function(Global,
 
            WebSocketRpc,

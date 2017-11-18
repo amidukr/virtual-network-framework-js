@@ -132,7 +132,8 @@ function(  Vnf,
     ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, args) {
         var done = assert.async(1);
 
-        if(args.channelName == "Rtc" || args.channelName == "WebSocket") {
+
+        if(["WebSocket", "Rtc"].indexOf(args.channelName) != -1) {
             assert.ok(true, "Skipping RTC do not supports Big Message");
             done()
             return;
