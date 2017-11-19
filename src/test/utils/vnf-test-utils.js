@@ -1,6 +1,29 @@
-define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
+define(["vnf/vnf",
+        "utils/observable",
+        "utils/logger"],
+        function(Vnf, Observable, Log){
 
     var runningTest = "";
+    var tearDownListeners = new Observable();
+
+    function clearResource() {
+        tearDownListeners.fire();
+        tearDownListeners = new Observable();
+    }
+
+    var counter = 1;
+
+    QUnit.testDone( function(details) {
+        clearResource();
+    });
+
+    QUnit.moduleDone(function(details){
+        clearResource();
+    })
+
+    QUnit.done(function(details){
+        clearResource();
+    })
 
     var VnfTestUtils = {
 
@@ -20,8 +43,11 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
             return enabled && VnfTestUtils.isTestingLevelEnabled(testLevel, testProfile);
         },
 
-        test: function(testProfile, shortDescription, args, callback) {
+        onTearDown: function(callback) {
+             tearDownListeners.addListener(callback);
+        },
 
+        test: function(testProfile, shortDescription, args, callback) {
             var profileKey = [];
             var profileKeyDescription;
 
@@ -60,19 +86,23 @@ define(["vnf/vnf", "utils/logger"], function(Vnf, Log){
 
                 var arguments = {}
 
-                if(window.vnfActiveEndpoints.length > 0) {
-                    Log.warn("test", ["Active endpoints left:", window.vnfActiveEndpoints.slice(), "test:", previousTest]);
-                    var vnfActiveEndpointsClone = window.vnfActiveEndpoints.slice();
-                    for(var i = 0; i < vnfActiveEndpointsClone.length; i++) {
-                        try{
-                            vnfActiveEndpointsClone[i].destroy();
-                        }catch(e) {
-                            Log.warn("test", ["Exception during endpoint destroy: ", e]);
+                // testDone wasn't executed couple time due to timeouts,
+                // but resource still have to be cleared
+                clearResource();
+
+                VnfTestUtils.onTearDown(function(){
+                    if(window.vnfActiveEndpoints.length > 0) {
+                        Log.warn("test", ["Active endpoints left:", window.vnfActiveEndpoints.slice(), "test:", previousTest]);
+                        var vnfActiveEndpointsClone = window.vnfActiveEndpoints.slice();
+                        for(var i = 0; i < vnfActiveEndpointsClone.length; i++) {
+                            try{
+                                vnfActiveEndpointsClone[i].destroy();
+                            }catch(e) {
+                                Log.warn("test", ["Exception during endpoint destroy: ", e]);
+                            }
                         }
                     }
-                }
-
-
+                });
 
                 function getInterval(config) {
                     return TestingProfiles.getInterval(profileKey, config)
