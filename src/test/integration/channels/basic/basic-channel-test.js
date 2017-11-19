@@ -10,40 +10,12 @@ function(  Vnf,
            ChannelTestUtils){
 
     //TODO: test cases to implement
-    //Basic Tests
-    // end point API verfication
-    // openConnection - test event
-    // openConnection - send - test event
-    // openConnection - send/reply - test event
-    // send without connection - catch exception
-
-    //Extra Tests
-    // sendObject
-    // loopback test
-    // send Big message
-
-    //Connection Close Tests
-    // openConnection - closeConnection -- assert event
-    // openConnection - destroy - -- assert event
-    // openConnection - closeConnection - send - catch exception
-
-    //Open Connection Tests
-    // --- all test should verify that was not connection close ---
-    // openConnection in openConnection
-    // openConneciotn in onMessage
-    // each openConnection overwrite previous.
-
-    //Concurrent Connections Tests
-    //  extract from vnf-channel-test.js
 
     //Open connection after close
-    //  extract from vnf-channel-test.js
-    // open-close-open
-    // open-destroy-open
+    //TODO:  open-close-open
+    //TODO:  open-destroy-open
 
     //WebSocket, RTC - add test for silence, when parent connection open but no response from other side.
-
-
 
     QUnit.module("Channel Basic Tests");
     ChannelTestUtils.integrationTest("Channel API Verification", function(assert, args) {

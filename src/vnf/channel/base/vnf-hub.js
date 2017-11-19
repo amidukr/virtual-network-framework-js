@@ -193,7 +193,6 @@ define(["utils/logger", "utils/observable", "vnf/global"], function(Log, Observa
 
             self.onConnectionOpen = connectionOpenListeners.addListener;
             self.onConnectionLost = connectionLostListeners.addListener;
-            //TODO: replace to __connectionClosed self.__fireConnectionLost = connectionLostListeners.fire;
             
             self.destroy = function() {
                 if(destroyed) return;
