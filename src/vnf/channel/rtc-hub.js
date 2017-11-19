@@ -8,7 +8,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
         iceServers: [
             //{url: "stun:23.21.150.121"},
             //{url: "stun:stun.1.google.com:19302"},
-            {url: "stun:127.0.0.1"}
+            {urls: "stun:127.0.0.1"}
         ]
     };
     
@@ -211,7 +211,7 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
         var selfHub = this;
         ProxyHub.call(selfHub, signalingHub);
 
-        var establishConnectionTimeout = 5000;
+        var establishConnectionTimeout = 10000;
         selfHub.setEstablishConnectionTimeout = function(value) {
             establishConnectionTimeout = value;
         }
