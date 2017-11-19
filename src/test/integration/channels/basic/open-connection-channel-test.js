@@ -125,5 +125,5 @@ function(  Vnf,
                 .then(args.endpointRecipient.destroy)
                 .then(args.endpointSender.destroy)
             .then(done);
-        });
+    });
 })
