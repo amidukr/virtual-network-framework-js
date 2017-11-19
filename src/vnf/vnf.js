@@ -20,6 +20,7 @@ define(["vnf/global",
 
     //TODO: clean-up todos
     //TODO: VNF System isn't part of VNF - needs decision here.
+    //TODO: review redundant test related configurations on html page and exract config set  launcher to config.js file
     //TODO: review and remove obsolete code
     //TODO: disable rtc tests
     //TODO: try rtc over websocket hub

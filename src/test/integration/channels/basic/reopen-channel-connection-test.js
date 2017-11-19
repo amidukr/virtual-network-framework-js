@@ -79,6 +79,7 @@ function(  Vnf,
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointRecipient.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "sender", "Verifying connection-lost targetVip argument");
                     args.endpointRecipient.openConnection("sender", function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying sender connection status");
 
@@ -110,6 +111,7 @@ function(  Vnf,
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointSender.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "recipient", "Verifying connection-lost targetVip argument");
                     args.endpointSender.openConnection("recipient", function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying sender connection status");
 
@@ -140,6 +142,7 @@ function(  Vnf,
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointRecipient.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "sender", "Verifying connection-lost targetVip argument");
                     args.endpointRecipient.openConnection("sender", function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
@@ -171,6 +174,7 @@ function(  Vnf,
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointSender.onConnectionLost(function(targetVip){
+                    assert.equal(targetVip, "recipient", "Verifying connection-lost targetVip argument");
                     args.endpointSender.openConnection("recipient", function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying sender connection status");
 

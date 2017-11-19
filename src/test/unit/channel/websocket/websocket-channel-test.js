@@ -3,43 +3,18 @@ requirejs(["vnf/vnf",
            "utils/logger",
            "test/utils/vnf-test-utils",
            "test/utils/websocket-rpc-test-utils",
+           "test/utils/websocket-channel-test-utils",
            "lib/bluebird"],
 function(  Vnf,
            SignalCaptor,
            Log,
            VnfTestUtils,
            WebSocketRpcTestUtils,
+           WebSocketChannelTestUtils,
            Promise){
 
-    function webSocketHubTest(description, callback) {
-        VnfTestUtils.test("WebSocketHub", description, {}, function(assert, argument){
-
-            argument.mockWebSocketFactory = new WebSocketRpcTestUtils.MockWebSocketFactory(assert);
-            argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
-
-            argument.webSocketHub = new Vnf.WebSocketHub(argument.mockWebSocketFactory);
-            argument.webSocketEndpoint = argument.webSocketHub.openEndpoint("ws-endpoint");
-            argument.webSocketEndpointCaptor = new SignalCaptor(assert);
-
-            argument.webSocketEndpoint.onMessage = VnfTestUtils.newPrintCallback(argument.webSocketEndpointCaptor,
-                                                                                 "ws-endpoint");
-            argument.webSocketEndpoint
-                   .onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(argument.webSocketEndpointCaptor,
-                                                                                 "ws-endpoint"));
-
-            var webSocketRpc = argument.webSocketEndpoint.getWebSocketRpc();
-
-            webSocketRpc.setBusyTimerInterval(200);
-            webSocketRpc.setIdleTimerInterval(300);
-            webSocketRpc.setLoginRecreateInterval(200)
-
-            return callback(assert, argument);
-        });
-    }
-
-
-    QUnit.module("WebSocketHub Tests");
-    webSocketHubTest("New connection join test", function(assert, argument){
+    QUnit.module("WebSocketHub Basic Tests");
+    WebSocketChannelTestUtils.webSocketHubTest("New connection join test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -62,7 +37,7 @@ function(  Vnf,
         .then(done)
     });
 
-    webSocketHubTest("New connection join - retry test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("New connection join - retry test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketHub.setResendHandshakeInterval(300);
@@ -90,7 +65,7 @@ function(  Vnf,
         .then(done)
     });
 
-    webSocketHubTest("New connection join - failed due to timeout test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("New connection join - failed due to timeout test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketHub.setResendHandshakeInterval(300);
@@ -116,7 +91,7 @@ function(  Vnf,
         .then(done)
     });
 
-    webSocketHubTest("New connection accept test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("New connection accept test", function(assert, argument){
         var done = assert.async(1);
 
         Promise.resolve()
@@ -136,7 +111,7 @@ function(  Vnf,
         });
     });
 
-    webSocketHubTest("Send message test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("Send message test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -159,7 +134,7 @@ function(  Vnf,
         .then(done)
     });
 
-    webSocketHubTest("onMessage test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("onMessage test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -185,7 +160,7 @@ function(  Vnf,
     });
 
 
-    webSocketHubTest("Fail-over malformed message test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("Fail-over malformed message test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -215,7 +190,7 @@ function(  Vnf,
         .then(done)
     });
 
-    webSocketHubTest("closeConnection notification test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("closeConnection notification test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -246,7 +221,7 @@ function(  Vnf,
 
 
 
-    webSocketHubTest("handling closeConnection message test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("handling closeConnection message test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -271,7 +246,7 @@ function(  Vnf,
         .then(done)
     });
 
-    webSocketHubTest("closeConnection after send failed test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("closeConnection after send failed test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -297,7 +272,7 @@ function(  Vnf,
         .then(done)
     });
 
-    webSocketHubTest("Endpoint destroy test", function(assert, argument){
+    WebSocketChannelTestUtils.webSocketHubTest("Endpoint destroy test", function(assert, argument){
         var done = assert.async(1);
 
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){

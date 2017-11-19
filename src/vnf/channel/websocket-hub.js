@@ -82,6 +82,8 @@ function(Log,
             }
 
             function handleCloseConnection(sourceVip, messageType, body) {
+                var connection = self.getConnection(sourceVip);
+                connection.handlingCloseEvent = true;
                 self.closeConnection(sourceVip);
             }
 
@@ -142,7 +144,9 @@ function(Log,
             };
 
             self.__doReleaseConnection = function(connection) {
-                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true});
+                if(!connection.handlingCloseEvent) {
+                    webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true});
+                }
             };
         };
     };

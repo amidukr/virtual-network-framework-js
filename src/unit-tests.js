@@ -23,7 +23,8 @@ requirejs(
 "test/unit/channel/big-message-channel-test",
 
 // WebSocket Channel
-"test/unit/channel/websocket-channel-test",
+"test/unit/channel/websocket/websocket-channel-test",
+"test/unit/channel/websocket/websocket-connection-reuse-test",
 
 // Web Socket Store client
 "test/unit/store/websocket-store-client-test",
