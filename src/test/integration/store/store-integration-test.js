@@ -9,8 +9,6 @@ function(  Vnf,
            VnfTestUtils,
            Promise){
 
-    //TODO: web socket store
-
     function storeIntegrationTest(description, callback) {
 
         function inBrowserArgumentFactory() {
@@ -25,10 +23,11 @@ function(  Vnf,
         }
 
 
-        /*function webSocketArgument() {
-            var webSocketFactory = ...;
+        function webSocketArgument() {
+            var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl"));
+
             function newWebSocketClient(vip) {
-                var client = new Vnf.WebSocketClientStore(new Vnf.WebSocketRpc(vip, webSocketFactory));
+                var client = new Vnf.WebSocketStoreClient(new Vnf.WebSocketRpc(vip, webSocketFactory));
 
                 VnfTestUtils.onTearDown(function(){
                     client.destroy();
@@ -40,9 +39,10 @@ function(  Vnf,
             return {
                 newStoreClient: newWebSocketClient
             }
-        }*/
+        }
 
         VnfTestUtils.test("store:InBrowser", "[Store Integration tests]: " + description, inBrowserArgumentFactory, callback);
+        VnfTestUtils.test("store:WebSocket", "[Store Integration tests]: " + description, webSocketArgument, callback);
     }
 
 
@@ -329,21 +329,24 @@ function(  Vnf,
         .then(function(collection1Entries){
             assert.deepEqual(collection1Entries, {"entry1": "entry1 value",
                                                   "entry2": "entry2 value",
-                                                  "entry3": "entry3 value"});
+                                                  "entry3": "entry3 value"}, "Verifying initial stored data");
         })
 
         .then(storeClient2.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
         .then(function(value){
-            assert.equal(value, "entry1 value", "asserting inserted entry");
+            assert.equal(value, "entry1 value", "getting single inserted entry");
         })
 
 
         .then(storeClient1.destroy.bind(null))
 
+        // WebSocket.close doesn't works immediately
+        .delay(200)
+
 
         .then(storeClient2.getEntriesWithBody.bind(null, "collection1"))
         .then(function(collection1Entries){
-            assert.deepEqual(collection1Entries, {"entry3": "entry3 value"});
+            assert.deepEqual(collection1Entries, {"entry3": "entry3 value"}, "Verifying entry that should be destroyed");
         })
 
         .then(storeClient2.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
