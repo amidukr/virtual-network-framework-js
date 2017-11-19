@@ -42,6 +42,7 @@ function(  Vnf,
         }
 
         QUnit.config.testTimeout = 60000;
+        Timeouts.logCaptureTimeout = 5000;
 
         var n = 0;
 

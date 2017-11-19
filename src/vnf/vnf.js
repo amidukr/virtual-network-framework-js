@@ -28,6 +28,7 @@ define(["vnf/global",
     //TODO: rename vip to eva
     //TODO: rename big message to name according to specification document
     //TODO: clean-up todos again
+    //TODO: run tests in firefox and IE.
     //TODO: should be no failing tests
 
   function(Global,

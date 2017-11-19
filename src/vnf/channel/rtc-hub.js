@@ -285,23 +285,27 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
             }
 
             self.__doOpenConnection = function(connection) {
-                signalingEndpoint.openConnection(connection.targetVip, function(event) {
-                    if(event.status  == Global.FAILED) {
-                        self.__connectionOpenFailed(connection.targetVip);
-                        return;
-                    }
+                function doRunOpenConnection() {
+                    signalingEndpoint.openConnection(connection.targetVip, function(event) {
+                        if(event.status  == Global.FAILED) {
+                            self.__connectionOpenFailed(connection.targetVip);
+                            return;
+                        }
 
-                    connection.vnfRtcConnection = createVnfRtcConnection(connection.targetVip);
-                    connection.vnfRtcConnection.startCaller(function(ice){
+                        connection.vnfRtcConnection = createVnfRtcConnection(connection.targetVip);
+                        connection.vnfRtcConnection.startCaller(function(ice){
 
-                        var message =  {type: "rtc-connection",
-                                        requestForNewConnection: true,
-                                        ice: ice,
-                                        connectionCreateDate: connection.vnfRtcConnection.createDate};
+                            var message =  {type: "rtc-connection",
+                                            requestForNewConnection: true,
+                                            ice: ice,
+                                            connectionCreateDate: connection.vnfRtcConnection.createDate};
 
-                        signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
-                    });
-                })
+                            signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                        });
+                    })
+                }
+
+                window.setTimeout(doRunOpenConnection, 0);
             }
 
             self.getRtcConnection = function(vip) {
