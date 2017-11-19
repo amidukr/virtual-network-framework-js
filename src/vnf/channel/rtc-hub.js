@@ -211,6 +211,11 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
         var selfHub = this;
         ProxyHub.call(selfHub, signalingHub);
 
+        var establishConnectionTimeout = 5000;
+        selfHub.setEstablishConnectionTimeout = function(value) {
+            establishConnectionTimeout = value;
+        }
+
         selfHub.VnfEndpoint = function RTCEndpoint(selfVip) {
             var self = this;
             selfHub.ProxyEndpoint.call(self, selfVip);
@@ -227,6 +232,10 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
 
                         return;
                     }
+
+                    var connection = self.getConnection(targetVip);
+
+                    window.clearTimeout(connection.connectTimeoutHandler);
 
                     self.__connectionOpened(targetVip);
                 });
@@ -304,6 +313,12 @@ define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "
                         });
                     })
                 }
+
+                connection.connectTimeoutHandler = window.setTimeout(function(){
+                    if(self.isConnected(connection.targetVip)) return;
+
+                    self.__connectionOpenFailed(connection.targetVip);
+                }, establishConnectionTimeout);
 
                 window.setTimeout(doRunOpenConnection, 0);
             }

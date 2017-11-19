@@ -9,14 +9,6 @@ function(  Vnf,
            VnfTestUtils,
            ChannelTestUtils){
 
-    //TODO: test cases to implement
-
-    //Open connection after close
-    //TODO:  open-close-open
-    //TODO:  open-destroy-open
-
-    //WebSocket, RTC - add test for silence, when parent connection open but no response from other side.
-
     QUnit.module("Channel Basic Tests");
     ChannelTestUtils.integrationTest("Channel API Verification", function(assert, args) {
         assert.ok(args.endpointRecipient.send, "Verifying send method");

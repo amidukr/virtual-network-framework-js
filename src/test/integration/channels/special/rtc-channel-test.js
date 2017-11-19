@@ -374,4 +374,63 @@ function(  Vnf,
 
          .then(done);
     }});
+
+
+    QUnit.test("[RtcHub Unit]: connection should failed if no response from other side", function(assert){
+        var done = assert.async(1);
+
+        var rootHub = new Vnf.InBrowserHub();
+        var rtcHub = new Vnf.RtcHub(rootHub);
+
+        var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
+        var rootEndpoint = rootHub.openEndpoint("second-endpoint");
+
+        rtcHub.setEstablishConnectionTimeout(300);
+
+        rtcEndpoint.openConnection("second-endpoint", function(event){
+            assert.equal(event.status, "FAILED", "Check that connect failed to empty endpoint");
+
+            rootEndpoint.destroy();
+
+            var secondRtcEndpoint = rtcHub.openEndpoint("second-endpoint");
+
+            rtcEndpoint.openConnection("second-endpoint", function(event){
+                assert.equal(event.status, "CONNECTED", "Verifying that connected to another rtc");
+
+                secondRtcEndpoint.destroy();
+                rtcEndpoint.destroy();
+                done();
+            })
+        });
+    });
+
+    QUnit.test("[RtcHub Unit]: accept timeout fail test", function(assert){
+        var done = assert.async(1);
+
+        var rootHub = new Vnf.InBrowserHub();
+        var rtcHub = new Vnf.RtcHub(rootHub);
+
+        var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
+        var rootEndpoint = rootHub.openEndpoint("second-endpoint");
+
+        rootEndpoint.openConnection("rtc-endpoint", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+
+            rootEndpoint.send("rtc-endpoint", JSON.stringify({type: "rtc-connection",
+                                                              requestForNewConnection: true,
+                                                              ice: "ice",
+                                                              connectionCreateDate: self.createDate}));
+
+            rootEndpoint.destroy();
+            var rtcSecondEndpoint = rootHub.openEndpoint("second-rtc-endpoint");
+
+            rtcSecondEndpoint.openConnection("rtc-endpoint", function(event){
+                assert.equal(event.status, "CONNECTED", "Verifying status");
+
+                rtcEndpoint.destroy();
+                rtcSecondEndpoint.destroy();
+                done();
+            });
+        })
+    });
 });

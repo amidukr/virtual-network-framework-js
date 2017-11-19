@@ -19,11 +19,13 @@ define(["vnf/global",
         "utils/arrays"],
 
     //TODO: clean-up todos
-    //TODO: VNF System isn't part of VNF - needs decision here.
     //TODO: review redundant test related configurations on html page and exract config set  launcher to config.js file
+    //TODO: review vnfTest it executes same test multiple times.
+    //            vnf test is used only in one place in rtc, move that method to here.
     //TODO: review and remove obsolete code
     //TODO: disable rtc tests
     //TODO: try rtc over websocket hub
+    //TODO: VNF System isn't part of VNF - needs decision here.
     //TODO: rename packages and namings to Neuron-Vnf
     //TODO: rename vip to eva
     //TODO: rename big message to name according to specification document
