@@ -2,6 +2,8 @@ define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, U
 
     return function WebSocketStoreClient(webSocketRpc) {
 
+        webSocketRpc.allocateUsage();
+
         var webSocketStoreClient = this;
         var storeCache = {}
 
@@ -121,6 +123,10 @@ define(["vnf/global", "utils/utils", "utils/vnf-serializer"], function(Global, U
                 }
                 return evt.data;
             })
+        }
+
+        this.destroy = function() {
+            webSocketRpc.releaseUsage();
         }
     };
 

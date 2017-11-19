@@ -32,6 +32,7 @@ function(Log,
             selfHub.BaseEndPoint.call(this, selfVip);
 
             var webSocketRpc = new WebSocketRpc(selfVip, webSocketFactory);
+            webSocketRpc.allocateUsage();
 
             function sendHandshake(targetVip) {
                 var connection = self.getConnection(targetVip);
@@ -137,7 +138,7 @@ function(Log,
             var parentDestroy = self.destroy;
             self.destroy = function() {
                 parentDestroy();
-                webSocketRpc.destroy();
+                webSocketRpc.releaseUsage();
             };
 
             self.__doReleaseConnection = function(connection) {

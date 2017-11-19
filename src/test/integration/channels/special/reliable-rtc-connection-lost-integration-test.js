@@ -8,6 +8,7 @@ function(  Vnf,
            VnfTestUtils){
 
 
+    QUnit.module("Reliable-RTC Connection Lost Tests")
     VnfTestUtils.test("Reliable-RTC", "Rtc Connection restore test", function(assert){
         var done = assert.async(1);
 

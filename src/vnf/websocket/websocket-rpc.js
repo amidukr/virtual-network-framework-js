@@ -24,6 +24,8 @@ function(Log, Observable, Utils, Global) {
 
         var idleTimerToken = null;
 
+        var allocatedUsagesCounter = 0;
+
         function onBusyTimer() {
             // connection lost verification busy is the case when calls are made constantly to websocket
 
@@ -271,6 +273,24 @@ function(Log, Observable, Utils, Global) {
                 var callAction = callMap[header];
                 delete callMap[header];
                 callAction.reject(Global.INSTANCE_DESTROYED);
+            }
+        }
+
+        this.allocateUsage = function() {
+            if(destroyed) {
+                throw new Error("WebsocketRpc instance already destroyed")
+            }
+
+            allocatedUsagesCounter++;
+        }
+
+        this.releaseUsage = function() {
+            if(destroyed) {
+                return;
+            }
+
+            if(--allocatedUsagesCounter == 0) {
+                webSocketRpc.destroy();
             }
         }
 
