@@ -137,7 +137,7 @@ function(  Vnf,
         .then(done);
     });
 
-    ChannelTestUtils.integrationTest("Close connection - Channel No-Connection exception test", function(assert, args) {
+    ChannelTestUtils.integrationTest("Close connection and send - Channel No-Connection exception test", function(assert, args) {
         var done = assert.async(1);
 
         args.endpointSender.openConnection("recipient", function(event){

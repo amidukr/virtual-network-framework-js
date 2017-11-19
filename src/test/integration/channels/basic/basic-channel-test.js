@@ -9,6 +9,7 @@ function(  Vnf,
            VnfTestUtils,
            ChannelTestUtils){
 
+    //TODO: test cases to implement
     //Basic Tests
     // end point API verfication
     // openConnection - test event

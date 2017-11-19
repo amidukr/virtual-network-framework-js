@@ -18,13 +18,16 @@ define(["vnf/global",
 
         "utils/arrays"],
 
+    //TODO: clean-up todos
+    //TODO: VNF System isn't part of VNF - needs decision here.
     //TODO: review and remove obsolete code
-    //TODO: rename vip to eva
-    //TODO: rename big message to name according to specification document
     //TODO: disable rtc tests
     //TODO: try rtc over websocket hub
+    //TODO: rename packages and namings to Neuron-Vnf
+    //TODO: rename vip to eva
+    //TODO: rename big message to name according to specification document
+    //TODO: clean-up todos again
     //TODO: should be no failing tests
-    //TODO: clean-up todos
 
   function(Global,
 
