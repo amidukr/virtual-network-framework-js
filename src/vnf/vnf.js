@@ -19,19 +19,19 @@ define(["vnf/global",
         "utils/arrays"],
 
     //TODO: clean-up todos
-    //TODO: review redundant test related configurations on html page and exract config set  launcher to config.js file
-    //TODO: review vnfTest it executes same test multiple times.
+    //TODO:  review and remove obsolete code
+    //TODO:   review redundant test related configurations on html page and exract config set  launcher to config.js file
+    //TODO:   review vnfTest it executes same test multiple times.
     //            vnf test is used only in one place in rtc, move that method to here.
-    //TODO: review and remove obsolete code
-    //TODO: disable rtc tests
-    //TODO: try rtc over websocket hub
-    //TODO: VNF System isn't part of VNF - needs decision here.
-    //TODO: rename packages and namings to Neuron-Vnf
-    //TODO: rename vip to eva
-    //TODO: rename big message to name according to specification document
-    //TODO: clean-up todos again
-    //TODO: run tests in firefox and IE.
-    //TODO: should be no failing tests
+    //TODO:  run tests in firefox and IE.
+    //TODO:  try rtc over websocket hub
+    //TODO:  VNF System isn't part of VNF - needs decision here.
+    //TODO:  rename packages and namings to Neuron-Vnf
+    //TODO:  rename vip to eva
+    //TODO:  rename big message to name according to specification document
+    //TODO:  disable rtc tests
+    //TODO:  clean-up todos again
+    //TODO:  should be no failing tests
 
   function(Global,
 
