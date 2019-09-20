@@ -1,0 +1,25 @@
+{
+  "name": "virtual-network-framework",
+  "version": "0.1.0",
+  "description": "Virtual Network Framework",
+  "main": "src/vnf/vnf1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amidukr/virtual-network-framework-js.git"
+  },
+  "keywords": [
+    "webrtc",
+    "js",
+    "javascript"
+  ],
+  "author": "Dmytro Brazhnyk",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/amidukr/virtual-network-framework-js/issues"
+  },
+  "homepage": "https://github.com/amidukr/virtual-network-framework-js#readme",
+  "dependencies": {}
+}
