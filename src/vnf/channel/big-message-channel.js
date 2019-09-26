@@ -1,4 +1,4 @@
-define(["utils/logger", "utils/xtimeout.js", "vnf/channel/base/vnf-proxy-hub", "vnf/global"], function(Log, xTimeout, ProxyHub, Global) {
+define(["utils/logger", "utils/xtimeout", "vnf/channel/base/vnf-proxy-hub", "vnf/global"], function(Log, xTimeout, ProxyHub, Global) {
     var DEFAULT_FRAGMENT_SIZE = 64*1024;
 
     function BigMessageHub(parentHub, configuration){

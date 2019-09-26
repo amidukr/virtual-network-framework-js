@@ -1,4 +1,4 @@
-requirejs(
+define(
 [
 //Channel test suite
 "test/integration/channels/basic/basic-channel-test",

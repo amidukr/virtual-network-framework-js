@@ -2,9 +2,9 @@
   "name": "virtual-network-framework",
   "version": "0.1.0",
   "description": "Virtual Network Framework",
-  "main": "src/vnf/vnf1.js",
+  "main": "src/my-module.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/karma start --single-run --reporters=progress"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,16 @@
     "url": "https://github.com/amidukr/virtual-network-framework-js/issues"
   },
   "homepage": "https://github.com/amidukr/virtual-network-framework-js#readme",
-  "dependencies": {}
+  "dependencies": {
+    "esm": "^3.2.25",
+    "karma": "^4.3.0",
+    "karma-requirejs": "^1.1.0",
+    "qunit": "^2.9.2",
+    "requirejs": "^2.3.6"
+  },
+  "devDependencies": {
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-firefox-launcher": "^1.2.0",
+    "karma-qunit": "^4.0.0"
+  }
 }

@@ -1,5 +1,8 @@
+QUnit.config.autostart = false;
+
 requirejs(
 [
+"test-config",
 "unit-tests",
 "integration-tests"
 
@@ -8,4 +11,9 @@ requirejs(
 "test/suite/vnf/channel/proxy-channels-test",
 "test/suite/vnf/store/store-integration-test",
 "test/suite/vnf/system/vnf-system-integration-test" */
-], function(){})
+], function(){
+  window.setTimeout(function() {
+    QUnit.start();
+  }, 50);
+})
+
