@@ -1,15 +1,12 @@
-define(["vnf/vnf",
-           "utils/signal-captor",
-           "test/utils/vnf-test-utils",
-           "test/utils/websocket-rpc-test-utils",
-           "utils/signal-captor"],
-function(  Vnf,
-           Log,
-           VnfTestUtils,
-           WebSocketRpcTestUtils,
-           SignalCaptor){
+import {SignalCaptor} from "../../utils/signal-captor.js";
 
-    function webSocketHubTest(description, callback) {
+import {VnfTestUtils}          from "./vnf-test-utils.js";
+import {WebSocketRpcTestUtils} from "./websocket-rpc-test-utils.js";
+
+import {Vnf} from "../../vnf/vnf.js";
+
+export class WebSocketChannelTestUtils{
+    static webSocketHubTest(description, callback) {
         VnfTestUtils.test("WebSocketHub", description, {}, function(assert, argument){
 
             argument.mockWebSocketFactory = new WebSocketRpcTestUtils.MockWebSocketFactory(assert);
@@ -33,7 +30,5 @@ function(  Vnf,
 
             return callback(assert, argument);
         });
-   }
-
-    return {webSocketHubTest: webSocketHubTest};
-})
+    }
+}

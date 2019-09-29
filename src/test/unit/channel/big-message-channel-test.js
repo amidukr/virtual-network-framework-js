@@ -1,164 +1,160 @@
-requirejs(["vnf/vnf",
-           "utils/signal-captor",
-           "test/utils/vnf-test-utils",
-           "lib/bluebird"],
-function(  Vnf,
-           SignalCaptor,
-           VnfTestUtils,
-           Promise){
+import {SignalCaptor} from "../../../utils/signal-captor.js";
 
-    function bigMessageTest(description, callback) {
-        function prepareArguments(assert, args) {
-            args.rootHub = new Vnf.InBrowserHub();
-            args.bigMessageHub = new Vnf.BigMessageHub(args.rootHub, {fragmentSize: 5});
+import {VnfTestUtils} from "../../utils/vnf-test-utils.js";
 
-            args.rootEndpoint = args.rootHub.openEndpoint("root-endpoint");
-            args.bigMessageEndpoint = args.bigMessageHub.openEndpoint("big-message-endpoint");
+import {Vnf} from "../../../vnf/vnf.js";
+
+function bigMessageTest(description, callback) {
+    function prepareArguments(assert, args) {
+        args.rootHub = new Vnf.InBrowserHub();
+        args.bigMessageHub = new Vnf.BigMessageHub(args.rootHub, {fragmentSize: 5});
+
+        args.rootEndpoint = args.rootHub.openEndpoint("root-endpoint");
+        args.bigMessageEndpoint = args.bigMessageHub.openEndpoint("big-message-endpoint");
 
 
-            args.rootEndpointCaptor = new SignalCaptor(assert);
-            args.bigMessageCaptor = new SignalCaptor(assert);
+        args.rootEndpointCaptor = new SignalCaptor(assert);
+        args.bigMessageCaptor = new SignalCaptor(assert);
 
-            args.rootEndpoint.onMessage = VnfTestUtils.newPrintCallback(args.rootEndpointCaptor, "root-endpoint");
-            args.bigMessageEndpoint.onMessage  = VnfTestUtils.newPrintCallback(args.bigMessageCaptor, "big-message-endpoint");
-        }
-
-        VnfTestUtils.test("Big Message Hub",  description, prepareArguments, callback);
+        args.rootEndpoint.onMessage = VnfTestUtils.newPrintCallback(args.rootEndpointCaptor, "root-endpoint");
+        args.bigMessageEndpoint.onMessage  = VnfTestUtils.newPrintCallback(args.bigMessageCaptor, "big-message-endpoint");
     }
 
-    QUnit.module("BigMessage Channel Test");
-    bigMessageTest("Serialize message test", function(assert, argument){
-        var done = assert.async(1);
+    VnfTestUtils.test("Big Message Hub",  description, prepareArguments, callback);
+}
 
-        argument.bigMessageEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+QUnit.module("BigMessage Channel Test");
+bigMessageTest("Serialize message test", function(assert, argument){
+    var done = assert.async(1);
 
-            argument.bigMessageEndpoint.send("root-endpoint", "abcdefghijk");
-            argument.bigMessageEndpoint.send("root-endpoint", "lmnopqrstu");
-            argument.bigMessageEndpoint.send("root-endpoint", "vwxyz");
-        })
+    argument.bigMessageEndpoint.openConnection("root-endpoint", function(event){
+        assert.equal(event.status, "CONNECTED", "Verifying status");
 
-        Promise.resolve()
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: S211abcde']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: fghij']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: k']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: S210lmnop']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: qrstu']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: S15vwxyz']))
+        argument.bigMessageEndpoint.send("root-endpoint", "abcdefghijk");
+        argument.bigMessageEndpoint.send("root-endpoint", "lmnopqrstu");
+        argument.bigMessageEndpoint.send("root-endpoint", "vwxyz");
+    })
 
-        .then(argument.rootEndpoint.destroy)
-        .then(argument.bigMessageEndpoint.destroy)
+    Promise.resolve()
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: S211abcde']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: fghij']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: k']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: S210lmnop']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: qrstu']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: S15vwxyz']))
 
-        .then(done);
+    .then(argument.rootEndpoint.destroy)
+    .then(argument.bigMessageEndpoint.destroy)
 
+    .then(done);
+
+});
+
+bigMessageTest("Deserialize message test", function(assert, argument){
+    var done = assert.async(1);
+
+    argument.rootEndpoint.openConnection("big-message-endpoint", function(event){
+        assert.equal(event.status, "CONNECTED", "Verifying status");
+
+        argument.rootEndpoint.send("big-message-endpoint", "S13ab");
+        argument.rootEndpoint.send("big-message-endpoint", "c");
+        argument.rootEndpoint.send("big-message-endpoint", "S213defgh");
+        argument.rootEndpoint.send("big-message-endpoint", "ijklmn");
+        argument.rootEndpoint.send("big-message-endpoint", "op");
     });
 
-    bigMessageTest("Deserialize message test", function(assert, argument){
-        var done = assert.async(1);
+    Promise.resolve()
+    .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from root-endpoint: abc']))
+    .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from root-endpoint: defghijklmnop']))
 
-        argument.rootEndpoint.openConnection("big-message-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+    .then(argument.rootEndpoint.destroy)
+    .then(argument.bigMessageEndpoint.destroy)
 
-            argument.rootEndpoint.send("big-message-endpoint", "S13ab");
-            argument.rootEndpoint.send("big-message-endpoint", "c");
-            argument.rootEndpoint.send("big-message-endpoint", "S213defgh");
-            argument.rootEndpoint.send("big-message-endpoint", "ijklmn");
-            argument.rootEndpoint.send("big-message-endpoint", "op");
-        });
+    .then(done);
+});
 
-        Promise.resolve()
-        .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from root-endpoint: abc']))
-        .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from root-endpoint: defghijklmnop']))
+bigMessageTest("Send object message test", function(assert, argument){
+    var done = assert.async(1);
 
-        .then(argument.rootEndpoint.destroy)
-        .then(argument.bigMessageEndpoint.destroy)
+    argument.bigMessageEndpoint.openConnection("root-endpoint", function(event){
+        assert.equal(event.status, "CONNECTED", "Verifying status");
 
-        .then(done);
+        argument.bigMessageEndpoint.send("root-endpoint", {json:'value'});
+    })
+
+    Promise.resolve()
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: J216{"jso']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: n":"v']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: alue"']))
+    .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: }']))
+
+    .then(argument.rootEndpoint.destroy)
+    .then(argument.bigMessageEndpoint.destroy)
+
+    .then(done);
+});
+
+bigMessageTest("Receive object message test", function(assert, argument){
+    var done = assert.async(1);
+
+    argument.rootEndpoint.openConnection("big-message-endpoint", function(event){
+        assert.equal(event.status, "CONNECTED", "Verifying status");
+
+        argument.rootEndpoint.send("big-message-endpoint", 'J216{"jso');
+        argument.rootEndpoint.send("big-message-endpoint", 'n":"v');
+        argument.rootEndpoint.send("big-message-endpoint", 'alue"');
+        argument.rootEndpoint.send("big-message-endpoint", '}');
     });
 
-    bigMessageTest("Send object message test", function(assert, argument){
-        var done = assert.async(1);
+    Promise.resolve()
+    .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from root-endpoint: {"json":"value"}']))
 
-        argument.bigMessageEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+    .then(argument.rootEndpoint.destroy)
+    .then(argument.bigMessageEndpoint.destroy)
 
-            argument.bigMessageEndpoint.send("root-endpoint", {json:'value'});
-        })
+    .then(done);
+});
 
-        Promise.resolve()
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: J216{"jso']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: n":"v']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: alue"']))
-        .then(argument.rootEndpointCaptor.assertSignals.bind(null, ['from big-message-endpoint: }']))
+bigMessageTest("End-to-end-test", function(assert, argument){
+    var done = assert.async(1);
 
-        .then(argument.rootEndpoint.destroy)
-        .then(argument.bigMessageEndpoint.destroy)
+    var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
 
-        .then(done);
+    endpointBigSender.openConnection("big-message-endpoint", function(event){
+        assert.equal(event.status, "CONNECTED", "Verifying status");
+
+        endpointBigSender.send("big-message-endpoint", "a1b2c3d4e5f6g7h8j9k0l1m2n3")
+        endpointBigSender.send("big-message-endpoint", "o4p5q6r7s8");
     });
 
-    bigMessageTest("Receive object message test", function(assert, argument){
-        var done = assert.async(1);
+    Promise.resolve()
+    .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from big-sender: a1b2c3d4e5f6g7h8j9k0l1m2n3']))
+    .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from big-sender: o4p5q6r7s8']))
 
-        argument.rootEndpoint.openConnection("big-message-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+    .then(endpointBigSender.destroy)
+    .then(argument.rootEndpoint.destroy)
+    .then(argument.bigMessageEndpoint.destroy)
 
-            argument.rootEndpoint.send("big-message-endpoint", 'J216{"jso');
-            argument.rootEndpoint.send("big-message-endpoint", 'n":"v');
-            argument.rootEndpoint.send("big-message-endpoint", 'alue"');
-            argument.rootEndpoint.send("big-message-endpoint", '}');
-        });
+    .then(done);
+});
 
-        Promise.resolve()
-        .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from root-endpoint: {"json":"value"}']))
+bigMessageTest("Object End-to-end-test", function(assert, argument){
+    var done = assert.async(1);
 
-        .then(argument.rootEndpoint.destroy)
-        .then(argument.bigMessageEndpoint.destroy)
+    var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
 
-        .then(done);
+    endpointBigSender.openConnection("big-message-endpoint", function(event){
+        assert.equal(event.status, "CONNECTED", "Verifying status");
+
+        endpointBigSender.send("big-message-endpoint", {json:"value"})
     });
 
-    bigMessageTest("End-to-end-test", function(assert, argument){
-        var done = assert.async(1);
+    Promise.resolve()
+    .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from big-sender: {"json":"value"}']))
 
-        var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
+    .then(endpointBigSender.destroy)
+    .then(argument.rootEndpoint.destroy)
+    .then(argument.bigMessageEndpoint.destroy)
 
-        endpointBigSender.openConnection("big-message-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
-
-            endpointBigSender.send("big-message-endpoint", "a1b2c3d4e5f6g7h8j9k0l1m2n3")
-            endpointBigSender.send("big-message-endpoint", "o4p5q6r7s8");
-        });
-
-        Promise.resolve()
-        .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from big-sender: a1b2c3d4e5f6g7h8j9k0l1m2n3']))
-        .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from big-sender: o4p5q6r7s8']))
-
-        .then(endpointBigSender.destroy)
-        .then(argument.rootEndpoint.destroy)
-        .then(argument.bigMessageEndpoint.destroy)
-
-        .then(done);
-    });
-
-    bigMessageTest("Object End-to-end-test", function(assert, argument){
-        var done = assert.async(1);
-
-        var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
-
-        endpointBigSender.openConnection("big-message-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
-
-            endpointBigSender.send("big-message-endpoint", {json:"value"})
-        });
-
-        Promise.resolve()
-        .then(argument.bigMessageCaptor.assertSignals.bind(null, ['from big-sender: {"json":"value"}']))
-
-        .then(endpointBigSender.destroy)
-        .then(argument.rootEndpoint.destroy)
-        .then(argument.bigMessageEndpoint.destroy)
-
-        .then(done);
-    });
-})
+    .then(done);
+});

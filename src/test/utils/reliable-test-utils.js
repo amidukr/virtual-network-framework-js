@@ -1,13 +1,12 @@
-define(["vnf/vnf",
-           "utils/signal-captor",
-           "test/utils/vnf-test-utils",
-           "utils/signal-captor"],
-function(  Vnf,
-           Log,
-           VnfTestUtils,
-           SignalCaptor){
+import {Log}         from "../../utils/logger.js";
+import {SignalCaptor} from "../../utils/signal-captor.js";
 
-    function reliableVnfTest(description, callback) {
+import {VnfTestUtils} from "./vnf-test-utils.js";
+
+import {Vnf} from "../../vnf/vnf.js";
+
+export class ReliableTestUtils {
+    static reliableVnfTest(description, callback) {
         function prepareArguments(assert, args) {
             var rootHub  = new Vnf.InBrowserHub();
             var reliableHub = new Vnf.ReliableHub(rootHub);
@@ -75,7 +74,5 @@ function(  Vnf,
         }
 
         VnfTestUtils.test("Reliable Hub",  description, prepareArguments,  callback);
-    };
-
-    return {reliableVnfTest: reliableVnfTest};
-})
+    }
+}

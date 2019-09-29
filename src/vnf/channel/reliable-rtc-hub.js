@@ -1,10 +1,11 @@
-define(["utils/logger", "vnf/channel/rtc-hub", "vnf/channel/reliable-hub"],
-function(Log, RtcHub, ReliableHub) {
+import {Log} from "../../utils/logger.js";
 
-    return function ReliableRtcHub(hub) {
-        var selfHub = this;
+import {RtcHub}      from "./rtc-hub.js";
+import {ReliableHub} from "./reliable-hub.js";
 
-        var rtcHub = new RtcHub(hub);
-        ReliableHub.call(selfHub, rtcHub);
-    }
-});
+export  function ReliableRtcHub(hub) {
+    var selfHub = this;
+
+    var rtcHub = new RtcHub(hub);
+    ReliableHub.call(selfHub, rtcHub);
+};

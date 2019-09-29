@@ -1,11 +1,11 @@
-define(["vnf/vnf",
-        "test/utils/vnf-test-utils",
-        "utils/signal-captor"],
-function(  Vnf,
-           VnfTestUtils,
-           SignalCaptor){
+import {SignalCaptor} from "../../utils/signal-captor.js";
 
-    function vfnSystemTest(description, callback) {
+import {VnfTestUtils} from "./vnf-test-utils.js";
+
+import {Vnf} from "../../vnf/vnf.js";
+
+export class VnfSystemTestUtils {
+    static vfnSystemTest(description, callback) {
 
 
         //Vnf.System.registerWebSocket(vnfSystem, "http://....");
@@ -17,7 +17,7 @@ function(  Vnf,
         function prepareArguments(assert, args) {
             var vnfSystem = new Vnf.System();
 
-            var rootHub  = new Vnf.InBrowserHub();
+            var rootHub  = new Vnf.BigMessageHub(new Vnf.InBrowserHub());
 
             vnfSystem.registerService(new Vnf.System.ChannelHubService(rootHub))
             vnfSystem.registerService(new Vnf.System.StoreService(new Vnf.InBrowserStore()))
@@ -46,6 +46,4 @@ function(  Vnf,
 
         VnfTestUtils.test("Vnf System Tests", description, prepareArguments, callback);
     }
-
-    return {vfnSystemTest: vfnSystemTest};
-})
+}

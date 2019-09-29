@@ -1,12 +1,11 @@
-define([], function(){
-
-    function serializeValue(value) {
+export class VnfSerializer {
+    static serializeValue(value) {
         if(typeof value == "string") return "S" + value;
 
         return "J" + JSON.stringify(value);
     }
 
-    function deserializeValue(value) {
+    static deserializeValue(value) {
         if(value == null || value == "") return value;
 
         var formatType = value.charAt(0);
@@ -17,7 +16,4 @@ define([], function(){
 
         throw new Error("Unexpected message format: '" + formatType + "', for message: " + message);
     }
-
-	return {serializeValue:   serializeValue,
-	        deserializeValue: deserializeValue};
-})
+}

@@ -9,34 +9,72 @@ module.exports = function(config) {
     
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['requirejs', 'qunit'],
+    frameworks: ['qunit', 'commonjs'],
 
     // list of files / patterns to load in the browser
     files: [
-      //{pattern: 'src/lib/require.js'},
-      {pattern: 'src/karma-tests.js'},
-      {pattern: 'src/**/*.js*', included: false}      
-      //{pattern: '/utils/*.js'},
-      //{pattern: 'src/utils/cycle-buffer.js', type: 'module'},
-      ///{pattern: 'src/test/unit/utils/cycle-buffer-test.js', type: 'module'}
+      {pattern: 'src/lib/bluebird.js'},
+
+      {pattern: 'src/utils/*.js'},
+      {pattern: 'src/vnf/**/*.js'},
+
+      {pattern: 'src/test-config.js'},
+      {pattern: 'src/test/utils/**/*.js'},
+      {pattern: 'src/test/mock/**/*.js'},
+
+      {pattern: 'src/test/unit/**/*.js'},
+      {pattern: 'src/test/**/rtc-channel-test.js'}
     ],
 
 
     // list of files / patterns to exclude
     exclude: [
+        'src/test/unit/system/**/*.js'
     ],
 
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
+      'src/**/*.js': ['babel', 'commonjs'],
+      'src/utils/**/*.js': 'coverage',
+      'src/vnf/**/*.js': 'coverage'
     },
 
+     babelPreprocessor: {
+      options: {
+        presets: ['@babel/preset-env'],
+        sourceMap: 'inline'
+      },
+      sourceFileName: function (file) {
+        return file.originalPath;
+      }
+    },
+
+    commonjsPreprocessor: {
+      modulesRoot: 'src'
+    },
+
+    coverageIstanbulInstrumenter: {
+      esModules: true
+    },
+
+    coverageReporter: {
+      instrumenterOptions: {
+        istanbul: {
+          verbose: true,
+          noCompact: false,
+          instrumentation: {
+            "es-modules": true
+          }
+        }
+      }
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['spec', 'coverage'],
 
 
     // web server port
@@ -58,7 +96,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome', 'Firefox', 'ChromeHeadless', 'FirefoxHeadless'],
 
 
     // Continuous Integration mode

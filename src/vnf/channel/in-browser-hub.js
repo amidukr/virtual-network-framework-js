@@ -1,70 +1,70 @@
-define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
+import {Log} from "../../utils/logger.js";
 
-    return function InBrowserHub(){
-        var selfHub = this;
+import {VnfHub} from "./base/vnf-hub.js";
 
-        VnfHub.call(selfHub);
+export function InBrowserHub(){
+    var selfHub = this;
 
-        var immediateSend = false;
+    VnfHub.call(selfHub);
 
-        selfHub.setImmediateSend = function(value) {
-            immediateSend = value;
-        }
+    var immediateSend = false;
 
-        selfHub.VnfEndpoint = function InBrowserEndpoint(selfVip) {
-            var self = this;
-            selfHub.BaseEndPoint.call(this, selfVip);
+    selfHub.setImmediateSend = function(value) {
+        immediateSend = value;
+    }
 
-            self.__doOpenConnection = function(connection) {
-                window.setTimeout(function(){
-                    var remoteEndpoint = selfHub.getEndPoint(connection.targetVip);
+    selfHub.VnfEndpoint = function InBrowserEndpoint(selfVip) {
+        var self = this;
+        selfHub.BaseEndPoint.call(this, selfVip);
 
-                    if(remoteEndpoint) {
+        self.__doOpenConnection = function(connection) {
+            window.setTimeout(function(){
+                var remoteEndpoint = selfHub.getEndPoint(connection.targetVip);
 
-                        connection.remoteEndpoint = remoteEndpoint;
+                if(remoteEndpoint) {
 
-                        var remoteConnection = remoteEndpoint.__lazyNewConnection(selfVip);
-                        remoteConnection.remoteEndpoint = self;
-                        remoteEndpoint.__connectionOpened(selfVip);
+                    connection.remoteEndpoint = remoteEndpoint;
 
-                        self.__connectionOpened(connection.targetVip);
-                    }else{
-                        self.__connectionOpenFailed(connection.targetVip);
-                    }
-                }, 0);
+                    var remoteConnection = remoteEndpoint.__lazyNewConnection(selfVip);
+                    remoteConnection.remoteEndpoint = self;
+                    remoteEndpoint.__connectionOpened(selfVip);
 
-            }
-
-            function sendFunction(connection, message) {
-                var remoteEndpoint = connection.remoteEndpoint;
-
-                if(!remoteEndpoint)  return;
-                if(remoteEndpoint.isDestroyed()) return;
-                if(remoteEndpoint.getConnection(selfVip).remoteEndpoint != self) return;
-
-                var onMessage = remoteEndpoint.onMessage;
-
-
-                if(onMessage) {
-                    onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
-                }
-            }
-
-            self.__doSend = function(connection, message) {
-                if(immediateSend) {
-                    sendFunction(connection, message);
+                    self.__connectionOpened(connection.targetVip);
                 }else{
-                    window.setTimeout(sendFunction.bind(null, connection, message), 0);
+                    self.__connectionOpenFailed(connection.targetVip);
                 }
-            }
+            }, 0);
 
-            self.__doReleaseConnection = function(connection) {
-                 var remoteEndpoint = connection.remoteEndpoint;
-                 if(remoteEndpoint && remoteEndpoint.isConnected(selfVip)) {
-                    window.setTimeout(remoteEndpoint.closeConnection.bind(null, selfVip), 0);
-                 }
+        }
+
+        function sendFunction(connection, message) {
+            var remoteEndpoint = connection.remoteEndpoint;
+
+            if(!remoteEndpoint)  return;
+            if(remoteEndpoint.isDestroyed()) return;
+            if(remoteEndpoint.getConnection(selfVip).remoteEndpoint != self) return;
+
+            var onMessage = remoteEndpoint.onMessage;
+
+
+            if(onMessage) {
+                onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
             }
         }
-    };
-});
 
+        self.__doSend = function(connection, message) {
+            if(immediateSend) {
+                sendFunction(connection, message);
+            }else{
+                window.setTimeout(sendFunction.bind(null, connection, message), 0);
+            }
+        }
+
+        self.__doReleaseConnection = function(connection) {
+             var remoteEndpoint = connection.remoteEndpoint;
+             if(remoteEndpoint && remoteEndpoint.isConnected(selfVip)) {
+                window.setTimeout(remoteEndpoint.closeConnection.bind(null, selfVip), 0);
+             }
+        }
+    }
+};
