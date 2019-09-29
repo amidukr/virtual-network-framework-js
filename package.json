@@ -4,7 +4,7 @@
   "description": "Virtual Network Framework",
   "main": "src/my-module.js",
   "scripts": {
-    "test": "./node_modules/.bin/karma start --single-run --reporters=progress"
+    "test": "./node_modules/.bin/karma start --single-run"
   },
   "repository": {
     "type": "git",
@@ -22,11 +22,14 @@
   },
   "homepage": "https://github.com/amidukr/virtual-network-framework-js#readme",
   "dependencies": {
-    "esm": "^3.2.25",
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
     "karma": "^4.3.0",
-    "karma-requirejs": "^1.1.0",
-    "qunit": "^2.9.2",
-    "requirejs": "^2.3.6"
+    "karma-babel-preprocessor": "^8.0.1",
+    "karma-commonjs": "^1.0.0",
+    "karma-coverage": "^2.0.1",
+    "karma-spec-reporter": "0.0.32",
+    "qunit": "^2.9.2"
   },
   "devDependencies": {
     "karma-chrome-launcher": "^3.1.0",

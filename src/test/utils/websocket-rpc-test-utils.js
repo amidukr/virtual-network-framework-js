@@ -1,6 +1,9 @@
-define(["vnf/vnf", "test/mock/mock-websocket-factory"], function(Vnf, MockWebSocketFactory){
+import {MockWebSocketFactory}          from "../mock/mock-websocket-factory.js";
 
-    function setupWebSocketRpcMocks(assert, argument) {
+import {Vnf} from "../../vnf/vnf.js";
+
+export class WebSocketRpcTestUtils {
+    static setupWebSocketRpcMocks(assert, argument) {
         argument.mockWebSocketFactory = new MockWebSocketFactory(assert);
         argument.webSocketRpc = new Vnf.WebSocketRpc("ws-endpoint", argument.mockWebSocketFactory);
         argument.webSocketCaptor = argument.mockWebSocketFactory.captor;
@@ -10,17 +13,13 @@ define(["vnf/vnf", "test/mock/mock-websocket-factory"], function(Vnf, MockWebSoc
         argument.webSocketRpc.setLoginRecreateInterval(200)
     }
 
-    function doLogin(argument, index) {
+    static doLogin(argument, index) {
         return Promise.resolve()
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
         .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
         .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: " + index + " LOGIN\nws-endpoint"]))
         .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, index + " LOGIN\nOK"))
     }
+}
 
-    return {
-        MockWebSocketFactory:   MockWebSocketFactory,
-        doLogin:                doLogin,
-        setupWebSocketRpcMocks: setupWebSocketRpcMocks
-    }
-})
+WebSocketRpcTestUtils.MockWebSocketFactory = MockWebSocketFactory;

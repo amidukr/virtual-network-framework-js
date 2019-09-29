@@ -1,38 +1,36 @@
-define(
-[
-//Utils
-"test/unit/utils/cycle-buffer-test"
-//"test/unit/utils/signal-captor-test"
+import "./test/unit/utils/cycle-buffer-test.js";
+import "./test/unit/utils/signal-captor-test.js";
 
 // Reliable channel
-//"test/unit/channel/reliable-channel-test",
+import "./test/unit/channel/reliable-channel-test.js";
 
-//"test/unit/channel/reliable/reliable-channel-message-format-test",
+import "./test/unit/channel/reliable/reliable-channel-message-format-test.js";
 
-//"test/unit/channel/reliable/reliable-channel-handshake-test",
-//"test/unit/channel/reliable/reliable-channel-handshake-message-test",
-//"test/unit/channel/reliable/reliable-channel-order-correction-test",
-//"test/unit/channel/reliable/reliable-channel-gap-correction-test",
-//"test/unit/channel/reliable/reliable-channel-connection-lost-test",
-//"test/unit/channel/reliable/reliable-channel-heartbeats-test",
-//"test/unit/channel/reliable/reliable-channel-handshake-retry-test",
-//"test/unit/channel/reliable/reliable-channel-accept-retry-test",
-//"test/unit/channel/reliable/reliable-channel-phantom-messages-test",
+import "./test/unit/channel/reliable/reliable-channel-handshake-test.js";
+import "./test/unit/channel/reliable/reliable-channel-handshake-message-test.js";
+import "./test/unit/channel/reliable/reliable-channel-order-correction-test.js";
+import "./test/unit/channel/reliable/reliable-channel-gap-correction-test.js";
+import "./test/unit/channel/reliable/reliable-channel-connection-lost-test.js";
+import "./test/unit/channel/reliable/reliable-channel-heartbeats-test.js";
+import "./test/unit/channel/reliable/reliable-channel-handshake-retry-test.js";
+import "./test/unit/channel/reliable/reliable-channel-accept-retry-test.js";
+import "./test/unit/channel/reliable/reliable-channel-phantom-messages-test.js";
 
 // Big Message Channel
-//"test/unit/channel/big-message-channel-test",
+import "./test/unit/channel/big-message-channel-test.js";
 
 // WebSocket Channel
-//"test/unit/channel/websocket/websocket-channel-test",
-//"test/unit/channel/websocket/websocket-connection-reuse-test",
+import "./test/unit/channel/websocket/websocket-channel-test.js";
+import "./test/unit/channel/websocket/websocket-connection-reuse-test.js";
 
 // Web Socket Store client
-//"test/unit/store/websocket-store-client-test",
+import "./test/unit/store/websocket-store-client-test.js";
 
 // VNF System Test
-//"test/unit/system/vnf-system-test",
+//import "./test/unit/system/vnf-system-test.js";
 
 // WebSocket RPC Test
-//"test/unit/websocket/websocket-rpc-test"
+import "./test/unit/websocket/websocket-rpc-test.js";
 
-], function(){})
+// RTC Test
+import "./test/integration/channels/special/rtc-channel-test.js";

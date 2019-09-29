@@ -1,30 +1,32 @@
-define(["utils/logger", "vnf/channel/base/vnf-hub"], function(Log, VnfHub) {
-    return function ProxyHub(parentHub){
-        var selfHub = this;
+import {Log} from "../../../utils/logger.js";
 
-        if(!parentHub) {
-            throw new Error("Unable to create instnce of ProxyHub, argument 'parentHub' shouldn't be null");
-        }
+import {VnfHub} from "./vnf-hub.js";
 
-        VnfHub.call(selfHub);
+export function ProxyHub(parentHub){
+    var selfHub = this;
 
-        selfHub.ProxyEndpoint = function InBrowserEndpoint(selfVip) {
-            var self = this;
-            selfHub.BaseEndPoint.call(this, selfVip);
+    if(!parentHub) {
+        throw new Error("Unable to create instnce of ProxyHub, argument 'parentHub' shouldn't be null");
+    }
 
-            self.parentEndpoint = parentHub.openEndpoint(selfVip);
+    VnfHub.call(selfHub);
 
-            self.onDestroy(function(){
-                if(self.parentEndpoint) {
-                    self.parentEndpoint.destroy();
-                }
-            });
+    selfHub.ProxyEndpoint = function InBrowserEndpoint(selfVip) {
+        var self = this;
+        selfHub.BaseEndPoint.call(this, selfVip);
 
-            self.__doReleaseConnection = function(connection) {
-                if(self.parentEndpoint) {
-                    self.parentEndpoint.closeConnection(connection.targetVip);
-                }
-            };
-        }
-    };
-});
+        self.parentEndpoint = parentHub.openEndpoint(selfVip);
+
+        self.onDestroy(function(){
+            if(self.parentEndpoint) {
+                self.parentEndpoint.destroy();
+            }
+        });
+
+        self.__doReleaseConnection = function(connection) {
+            if(self.parentEndpoint) {
+                self.parentEndpoint.closeConnection(connection.targetVip);
+            }
+        };
+    }
+};

@@ -1,99 +1,97 @@
-requirejs(["test/utils/reliable-test-utils"],
-function( ReliableTestUtils){
+import {ReliableTestUtils} from "../../../utils/reliable-test-utils.js";
 
-    QUnit.module("ReliableHub Heartbeats");
-    ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout", function(assert, argument) {
-        var done = assert.async(1);
+QUnit.module("ReliableHub Heartbeats");
+ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout", function(assert, argument) {
+    var done = assert.async(1);
 
-        argument.reliableHub.setHeartbeatInterval(argument.toAbsoluteInterval(30));
-        argument.reliableHub.setConnectionInvalidateInterval(argument.toAbsoluteInterval(90));
-        argument.reliableHub.setConnectionLostTimeout(argument.toAbsoluteInterval(149));
+    argument.reliableHub.setHeartbeatInterval(argument.toAbsoluteInterval(30));
+    argument.reliableHub.setConnectionInvalidateInterval(argument.toAbsoluteInterval(90));
+    argument.reliableHub.setConnectionLostTimeout(argument.toAbsoluteInterval(149));
 
-        Promise.resolve()
+    Promise.resolve()
 
-        .then(argument.makeConnection)
+    .then(argument.makeConnection)
 
-        //300ms - heartbeat 1
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    //300ms - heartbeat 1
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
 
-        //600ms - heartbeat 2
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    //600ms - heartbeat 2
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
 
-        //900ms - invalidate
-        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-
-
-        //1200ms - heartbeat 3
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.reliableCapture.assertSilence.bind(null, 0))
-
-        //1500ms - connection lost
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
-
-        .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
-
-        .then(argument.destroy)
-        .then(done);
-    });
+    //900ms - invalidate
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
 
 
-    ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout v2", function(assert, argument) {
-        var done = assert.async(1);
+    //1200ms - heartbeat 3
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.reliableCapture.assertSilence.bind(null, 0))
 
-        argument.reliableHub.setHeartbeatInterval(50);
-        argument.reliableHub.setConnectionInvalidateInterval(500);
-        argument.reliableHub.setConnectionLostTimeout(1500);
+    //1500ms - connection lost
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
 
-        Promise.resolve()
+    .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
 
-        .then(argument.makeConnection)
+    .then(argument.destroy)
+    .then(done);
+});
 
-        // invalidate 1 - 10 heartbeats
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
 
-        // invalidate 2 - 10 heartbeats
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout v2", function(assert, argument) {
+    var done = assert.async(1);
 
-        // invalidate 3 - 9 heartbeats + connection lost
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    argument.reliableHub.setHeartbeatInterval(50);
+    argument.reliableHub.setConnectionInvalidateInterval(500);
+    argument.reliableHub.setConnectionLostTimeout(1500);
 
-        .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
-        .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
+    Promise.resolve()
 
-        // root capture lost after timeout
-        .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+    .then(argument.makeConnection)
 
-        .then(argument.destroy)
-        .then(done);
-    });
+    // invalidate 1 - 10 heartbeats
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+
+    // invalidate 2 - 10 heartbeats
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+
+    // invalidate 3 - 9 heartbeats + connection lost
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
+    .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
+
+    // root capture lost after timeout
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+
+    .then(argument.destroy)
+    .then(done);
 });

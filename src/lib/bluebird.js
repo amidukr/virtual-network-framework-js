@@ -5099,3 +5099,7 @@ function isUndefined(arg) {
 
 },{}]},{},[4])(4)
 });                    ;if (typeof window !== 'undefined' && window !== null) {                               window.P = window.Promise;                                                     } else if (typeof self !== 'undefined' && self !== null) {                             self.P = self.Promise;                                                         }
+
+var windowPromise = window.Promise;
+
+export {windowPromise as Promise};

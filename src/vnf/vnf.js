@@ -1,75 +1,41 @@
-define(["vnf/global",
+import "../utils/arrays.js";
 
-        "vnf/websocket/websocket-rpc",
-        "vnf/websocket/websocket-facrory",
+import {Global} from "./global.js";
 
-        "vnf/store/in-browser-store",
-        "vnf/store/websocket-store-client",
+import {WebSocketRpc}     from "./websocket/websocket-rpc.js";
+import {WebSocketFactory} from "./websocket/websocket-facrory.js";
 
-        "vnf/channel/in-browser-hub",
-        "vnf/channel/rtc-hub",
-        "vnf/channel/big-message-channel",
-        "vnf/channel/unreliable-hub",
-        "vnf/channel/reliable-hub",
-        "vnf/channel/reliable-rtc-hub",
-        "vnf/channel/websocket-hub",
+import {InBrowserStore}       from "./store/in-browser-store.js";
+import {WebSocketStoreClient} from "./store/websocket-store-client.js";
 
-        "vnf/system/system",
+import {InBrowserHub}   from "./channel/in-browser-hub.js";
+import {RtcHub}         from "./channel/rtc-hub.js";
+import {BigMessageHub}  from "./channel/big-message-channel.js";
+import {UnreliableHub}  from "./channel/unreliable-hub.js";
+import {ReliableHub}    from "./channel/reliable-hub.js";
+import {ReliableRtcHub} from "./channel/reliable-rtc-hub.js";
+import {WebSocketHub}   from "./channel/websocket-hub.js";
 
-        "utils/arrays"],
+import {VnfSystem} from "./system/system.js";
 
-    //TODO: clean-up todos
-    //TODO:  review and remove obsolete code
-    //TODO:   review redundant test related configurations on html page and exract config set  launcher to config.js file
-    //TODO:   review vnfTest it executes same test multiple times.
-    //            vnf test is used only in one place in rtc, move that method to here.
-    //TODO:  run tests in firefox and IE.
-    //TODO:  try rtc over websocket hub
-    //TODO:  VNF System isn't part of VNF - needs decision here.
-    //TODO:  rename packages and namings to Neuron-Vnf
-    //TODO:  rename vip to eva
-    //TODO:  rename big message to name according to specification document
-    //TODO:  disable rtc tests
-    //TODO:  clean-up todos again
-    //TODO:  should be no failing tests
-
-  function(Global,
-
-           WebSocketRpc,
-           WebSocketFactory,
-
-           InBrowserStore,
-           WebSocketStoreClient,
-
-           InBrowserHub,
-           RtcHub,
-           BigMessageHub,
-           UnreliableHub,
-           ReliableHub,
-           ReliableRtcHub,
-           WebSocketHub,
-
-           VnfSystem){
-    return {
+var Vnf = {
       Global: Global,
 
-      WebSocketRpc:     WebSocketRpc,
+      WebSocketRpc: WebSocketRpc,
       WebSocketFactory: WebSocketFactory,
 
-      InBrowserStore:       InBrowserStore,
+      InBrowserStore: InBrowserStore,
       WebSocketStoreClient: WebSocketStoreClient,
 
-      InBrowserHub:   InBrowserHub,
-      UnreliableHub:  UnreliableHub,
-      ReliableHub:    ReliableHub,
-      RtcHub:         RtcHub,
+      InBrowserHub: InBrowserHub,
+      UnreliableHub: UnreliableHub,
+      ReliableHub: ReliableHub,
+      RtcHub: RtcHub,
       BigMessageHub: BigMessageHub,
       ReliableRtcHub: ReliableRtcHub,
-      WebSocketHub:   WebSocketHub,
-
+      WebSocketHub: WebSocketHub,
 
       System: VnfSystem
-    }
-});
+};
 
-
+export {Vnf}

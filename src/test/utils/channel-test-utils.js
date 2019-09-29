@@ -1,104 +1,104 @@
-define(["vnf/vnf",
-           "utils/signal-captor",
-           "test/utils/vnf-test-utils",
-           "utils/signal-captor"],
-function(  Vnf,
-           Log,
-           VnfTestUtils,
-           SignalCaptor){
+import {Log}         from "../../utils/logger.js";
+import {SignalCaptor} from "../../utils/signal-captor.js";
 
-    function inBrowserFactory(){
-        return new Vnf.InBrowserHub();
-    }
+import {VnfTestUtils} from "./vnf-test-utils.js";
 
-    function reliableRtcWebSocketFactory(){
-        return new Vnf.ReliableRtcHub(webSocketFactory());
-    }
-
-    function rtcFactory(){
-        return new Vnf.RtcHub(new Vnf.InBrowserHub());
-    }
-
-    function bigMessageFactory(){
-        return new Vnf.BigMessageHub(new Vnf.InBrowserHub());
-    }
-
-    function reliableWebSocketFactory() {
-        return new Vnf.ReliableHub(webSocketFactory());
-    }
-
-    function webSocketFactory() {
-        var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl")));
-
-        hub.setResendHandshakeInterval(100);
-        hub.setResendHandshakeRetries(10);
-
-        return hub;
-    }
-
-    function reliableFactory() {
-        return new Vnf.ReliableHub(new Vnf.InBrowserHub());
-    }
-
-    function unreliableFactory() {
-        return new Vnf.UnreliableHub(new Vnf.InBrowserHub());
-    }
-
-    function reliableRtcFactory() {
-        return new Vnf.BigMessageHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
-    }
-
-    var hubFactories = {
-        // Main cases
-        "InBrowser":              inBrowserFactory,
-        "Reliable Rtc WebSocket": reliableRtcWebSocketFactory,
-
-        // Misc
-        "Rtc":                    rtcFactory,
-        "Big Message Factory":    bigMessageFactory,
-        "WebSocket":              webSocketFactory,
-        "Reliable":               reliableFactory,
-        "Unreliable":             unreliableFactory,
-
-        // ReliableRtc
-        "Reliable Rtc": reliableRtcFactory
-    }
-
-    function integrationChannelTest(channelName, description, callback) {
-        VnfTestUtils.test(["Channel Integration Tests", channelName], description,    {hubFactory: hubFactories[channelName]}, function(assert, args){
-            args.vnfHub = args.hubFactory();
-            args.channelName = channelName;
-            args.endpointRecipient = args.vnfHub.openEndpoint("recipient");
-            args.endpointSender = args.vnfHub.openEndpoint("sender");
+import {Vnf} from "../../vnf/vnf.js";
 
 
-            args.recipientCaptor = new SignalCaptor(assert);
-            args.senderCaptor    = new SignalCaptor(assert);
+function inBrowserFactory(){
+    return new Vnf.InBrowserHub();
+}
 
-            args.endpointRecipient.onMessage = VnfTestUtils.newPrintCallback(args.recipientCaptor, "recipient");
-            args.endpointSender.onMessage    = VnfTestUtils.newPrintCallback(args.senderCaptor, "sender");
+function reliableRtcWebSocketFactory(){
+    return new Vnf.ReliableRtcHub(webSocketFactory());
+}
 
-            callback(assert, args);
-        });
-    }
+function rtcFactory(){
+    return new Vnf.RtcHub(new Vnf.InBrowserHub());
+}
 
-    function integrationTest(description, callback) {
-        // Main cases
-        integrationChannelTest("InBrowser",              description, callback);
-        //integrationChannelTest("Reliable Rtc WebSocket", description, callback);
+function bigMessageFactory(){
+    return new Vnf.BigMessageHub(new Vnf.InBrowserHub());
+}
+
+function reliableWebSocketFactory() {
+    return new Vnf.ReliableHub(webSocketFactory());
+}
+
+function webSocketFactory() {
+    var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl")));
+
+    hub.setResendHandshakeInterval(100);
+    hub.setResendHandshakeRetries(10);
+
+    return hub;
+}
+
+function reliableFactory() {
+    return new Vnf.ReliableHub(new Vnf.InBrowserHub());
+}
+
+function unreliableFactory() {
+    return new Vnf.UnreliableHub(new Vnf.InBrowserHub());
+}
+
+function reliableRtcFactory() {
+    return new Vnf.BigMessageHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
+}
 
 
-        // Misc
-        integrationChannelTest("Rtc",                 description, callback);
-        integrationChannelTest("Big Message Factory", description, callback);
-        integrationChannelTest("WebSocket",           description, callback);
-        integrationChannelTest("Reliable",            description, callback);
-        integrationChannelTest("Unreliable",          description, callback);
 
-        // ReliableRtc
-        integrationChannelTest("Reliable Rtc", description, callback);
-    }
+function integrationChannelTest(channelName, description, callback) {
+    VnfTestUtils.test(["Channel Integration Tests", channelName], description,    {hubFactory: hubFactories[channelName]}, function(assert, args){
+        args.vnfHub = args.hubFactory();
+        args.channelName = channelName;
+        args.endpointRecipient = args.vnfHub.openEndpoint("recipient");
+        args.endpointSender = args.vnfHub.openEndpoint("sender");
 
-    return {hubFactories: hubFactories,
-            integrationTest: integrationTest};
-})
+
+        args.recipientCaptor = new SignalCaptor(assert);
+        args.senderCaptor    = new SignalCaptor(assert);
+
+        args.endpointRecipient.onMessage = VnfTestUtils.newPrintCallback(args.recipientCaptor, "recipient");
+        args.endpointSender.onMessage    = VnfTestUtils.newPrintCallback(args.senderCaptor, "sender");
+
+        callback(assert, args);
+    });
+}
+
+export class ChannelTestUtils {
+
+    static integrationTest(description, callback) {
+       // Main cases
+       integrationChannelTest("InBrowser",              description, callback);
+       //integrationChannelTest("Reliable Rtc WebSocket", description, callback);
+
+
+       // Misc
+       integrationChannelTest("Rtc",                 description, callback);
+       integrationChannelTest("Big Message Factory", description, callback);
+       integrationChannelTest("WebSocket",           description, callback);
+       integrationChannelTest("Reliable",            description, callback);
+       integrationChannelTest("Unreliable",          description, callback);
+
+       // ReliableRtc
+       integrationChannelTest("Reliable Rtc", description, callback);
+   }
+}
+
+ChannelTestUtils.hubFactories = {
+     // Main cases
+     "InBrowser":              inBrowserFactory,
+     "Reliable Rtc WebSocket": reliableRtcWebSocketFactory,
+
+     // Misc
+     "Rtc":                    rtcFactory,
+     "Big Message Factory":    bigMessageFactory,
+     "WebSocket":              webSocketFactory,
+     "Reliable":               reliableFactory,
+     "Unreliable":             unreliableFactory,
+
+     // ReliableRtc
+     "Reliable Rtc": reliableRtcFactory
+}

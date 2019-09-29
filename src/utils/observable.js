@@ -1,21 +1,21 @@
-define(["utils/logger"], function(Log){
-    return function Observable() {
-        var self = this;
+import {Log} from "./logger.js";
 
-        var listeners = [];
+export function Observable() {
+    var self = this;
 
-        self.addListener = function addListener(listener) {
-            listeners[listeners.length] = listener;
-        }
+    var listeners = [];
 
-        self.fire = function fire() {
-            for(var i = 0; i < listeners.length; i++) {
-                try{
-                    listeners[i].apply(null, arguments);
-                }catch(e) {
-                    Log.error("observable-error", ["Listener thrown error", e]);
-                }
+    self.addListener = function addListener(listener) {
+        listeners[listeners.length] = listener;
+    }
+
+    self.fire = function fire() {
+        for(var i = 0; i < listeners.length; i++) {
+            try{
+                listeners[i].apply(null, arguments);
+            }catch(e) {
+                Log.error("observable-error", ["Listener thrown error", e]);
             }
         }
     }
-});
+}
