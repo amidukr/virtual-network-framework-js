@@ -100,7 +100,7 @@ function VnfRtcConnection(connectionId){
             Log.debug(instanceId, "webrtc-connecting", "ondatachannel: " + JSON.stringify(evt));
             handleNewChannel(evt.channel);
             if(onChannelOpenedCallback) {
-                onChannelOpenedCallback();
+                //onChannelOpenedCallback();
             }
         }
     }
