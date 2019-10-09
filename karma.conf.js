@@ -22,8 +22,8 @@ module.exports = function(config) {
       {pattern: 'src/test/utils/**/*.js'},
       {pattern: 'src/test/mock/**/*.js'},
 
-      {pattern: 'src/test/unit/**/*.js'},
-      {pattern: 'src/test/**/rtc-channel-test.js'}
+      {pattern: 'src/test/unit/**/*.js'}
+      //{pattern: 'src/test/**/rtc-channel-test.js'}
     ],
 
 
@@ -76,7 +76,6 @@ module.exports = function(config) {
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: ['spec', 'coverage'],
 
-
     // web server port
     port: 9876,
 
@@ -96,7 +95,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox', 'ChromeHeadless', 'FirefoxHeadless'],
+    browsers: ['ChromeHeadless', 'FirefoxHeadless'],
 
 
     // Continuous Integration mode
