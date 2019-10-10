@@ -1,11 +1,14 @@
 # Todo List
 
-1. Create NPM module
-   https://docs.npmjs.com/creating-node-js-modules  
-2. Configure Karma to run test in diferent browser
-3. Refactor Unit Test
-4. Replace boilerplate code with commonly used JS libraries
-
+1. Run RTC as Unit
+1. Refactor Unit Test
+1. Replace boilerplate code with commonly used JS libraries
+   1. Remove TestConfig 
+1. Split src and test
+1. Fix/Run integration test
+1. Implement stress test
+1. Remove/Extract VNF System
+1. Share specification document
 
 # Previous List
 

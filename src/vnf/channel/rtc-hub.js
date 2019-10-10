@@ -99,9 +99,6 @@ function VnfRtcConnection(connectionId){
         connection.ondatachannel = function(evt){
             Log.debug(instanceId, "webrtc-connecting", "ondatachannel: " + JSON.stringify(evt));
             handleNewChannel(evt.channel);
-            if(onChannelOpenedCallback) {
-                onChannelOpenedCallback();
-            }
         }
     }
 
@@ -170,8 +167,11 @@ function VnfRtcConnection(connectionId){
                 onChannelClosedCallback();
             }
         }
-    }
 
+        if(channel.readyState == "open" && onChannelOpenedCallback) {
+            onChannelOpenedCallback();
+        }
+    }
 
     function createRtcConnection() {
         connection = new RTCPeerConnection(vnfRtcServers);

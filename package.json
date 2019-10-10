@@ -4,7 +4,8 @@
   "description": "Virtual Network Framework",
   "main": "src/my-module.js",
   "scripts": {
-    "test": "./node_modules/.bin/karma start --single-run"
+    "test": "./node_modules/.bin/karma start --single-run",
+    "codecov": "./node_modules/.bin/codecov"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   "dependencies": {
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
+    "codecov": "^3.6.1",
     "karma": "^4.3.0",
     "karma-babel-preprocessor": "^8.0.1",
     "karma-commonjs": "^1.0.0",

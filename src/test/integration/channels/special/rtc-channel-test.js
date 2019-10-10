@@ -30,10 +30,10 @@ function captureMessage(captor) {
 }
 
 QUnit.module("RtcHub Unit")
-QUnit.test("[RtcHub Unit]: rtc initiate connection test", function(assert, argument){
+VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test", callback: function(assert, argument){
     var done = assert.async(1);
 
-    var rootHub = new Vnf.InBrowserHub();
+    var rootHub = argument.rootHubFactory();
     var rtcHub = new Vnf.RtcHub(rootHub);
 
     var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
@@ -119,12 +119,12 @@ QUnit.test("[RtcHub Unit]: rtc initiate connection test", function(assert, argum
      .then(rtcEndpoint.destroy)
 
      .then(done);
-});
+}});
 
-QUnit.test("[RtcHub Unit]: rtc accept connection test", function(assert, argument){
+VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", callback: function(assert, argument){
     var done = assert.async(1);
 
-    var rootHub = new Vnf.InBrowserHub();
+    var rootHub = argument.rootHubFactory();
     var rtcHub = new Vnf.RtcHub(rootHub);
 
     var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
@@ -203,12 +203,12 @@ QUnit.test("[RtcHub Unit]: rtc accept connection test", function(assert, argumen
      .then(rtcEndpoint.destroy)
 
      .then(done);
-});
+}});
 
-QUnit.test("[RtcHub Unit]: rtc synchronous connection establish test", function(assert, argument){
+VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc synchronous connection establish test", callback: function(assert, argument){
     var done = assert.async(1);
 
-    var rootHub = new Vnf.InBrowserHub();
+    var rootHub = argument.rootHubFactory();
     var rtcHub = new Vnf.RtcHub(rootHub);
 
     var rtcEndpoint  = rtcHub.openEndpoint("rtc-endpoint");
@@ -301,7 +301,7 @@ QUnit.test("[RtcHub Unit]: rtc synchronous connection establish test", function(
      .then(rtcEndpoint.destroy)
 
      .then(done);
-});
+}});
 
 
 QUnit.test("[RtcHub Unit]: connection should failed if no response from other side", function(assert){

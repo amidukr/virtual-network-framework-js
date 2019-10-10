@@ -22,8 +22,8 @@ module.exports = function(config) {
       {pattern: 'src/test/utils/**/*.js'},
       {pattern: 'src/test/mock/**/*.js'},
 
-      {pattern: 'src/test/unit/**/*.js'}
-      //{pattern: 'src/test/**/rtc-channel-test.js'}
+      {pattern: 'src/test/unit/**/*.js'},
+      {pattern: 'src/test/**/rtc-channel-test.js'}
     ],
 
 
@@ -60,15 +60,7 @@ module.exports = function(config) {
     },
 
     coverageReporter: {
-      instrumenterOptions: {
-        istanbul: {
-          verbose: true,
-          noCompact: false,
-          instrumentation: {
-            "es-modules": true
-          }
-        }
-      }
+      reporters: [{type: 'lcov'}]
     },
 
     // test results reporter to use
