@@ -13,17 +13,12 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      {pattern: 'src/lib/bluebird.js'},
+      {pattern: 'src/**/*.js'},
 
-      {pattern: 'src/utils/*.js'},
-      {pattern: 'src/vnf/**/*.js'},
+      {pattern: 'test/utils/**/*.js'},
 
-      {pattern: 'src/test-config.js'},
-      {pattern: 'src/test/utils/**/*.js'},
-      {pattern: 'src/test/mock/**/*.js'},
-
-      {pattern: 'src/test/unit/**/*.js'},
-      {pattern: 'src/test/**/rtc-channel-test.js'}
+      {pattern: 'test/suites/test-config.js'},
+      {pattern: 'test/suites/unit/**/*.js'}
     ],
 
 
@@ -36,9 +31,8 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'src/**/*.js': ['babel', 'commonjs'],
-      'src/utils/**/*.js': 'coverage',
-      'src/vnf/**/*.js': 'coverage'
+      'test/**/*.js': ['babel', 'commonjs'],
+      'src/**/*.js': ['babel', 'commonjs', 'coverage']
     },
 
      babelPreprocessor: {
