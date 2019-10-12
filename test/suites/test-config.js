@@ -102,7 +102,10 @@ TestingProfiles = {
         testLevel: TESTING_LEVEL_INTEGRATION
     },
 
-
+    "[Channel Integration Tests, Reliable Rtc]": {
+        qunitTestTimeout:  30000,
+        logCaptureTimeout: 30000
+    },
 
     "[root:InMemory, ReliableWebSocketHub] Generic Vnf Tests: Channel Double Message Send Test" : {
         enabled: false

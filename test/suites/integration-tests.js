@@ -1,18 +1,13 @@
-define(
-[
 //Channel test suite
-"test/integration/channels/basic/basic-channel-test",
-"test/integration/channels/basic/connection-close-channel-test",
-"test/integration/channels/basic/extra-channel-test",
-"test/integration/channels/basic/open-connection-channel-test",
-"test/integration/channels/basic/reopen-channel-connection-test",
+import "./integration/channels/basic/basic-channel-test.js";
+import "./integration/channels/basic/connection-close-channel-test.js";
+import "./integration/channels/basic/extra-channel-test.js";
+import "./integration/channels/basic/open-connection-channel-test.js";
+import "./integration/channels/basic/reopen-channel-connection-test.js";
 
-"test/integration/channels/special/reliable-rtc-connection-lost-integration-test",
-"test/integration/channels/special/rtc-channel-test",
-"test/integration/channels/special/web-socket-channel-test",
+//import "test/integration/channels/special/reliable-rtc-connection-lost-integration-test.js";
+//import "test/integration/channels/special/rtc-channel-test.js";
+//import "test/integration/channels/special/web-socket-channel-test.js";
 
 //Store test suite
-"test/integration/store/store-integration-test"
-
-
-], function(){})
+//import "test/integration/store/store-integration-test";

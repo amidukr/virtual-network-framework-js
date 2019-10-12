@@ -1,16 +1,24 @@
-requirejs([ "vnf/vnf",
-            "utils/signal-captor",
-            "utils/logger",
-            "test/utils/vnf-test-utils",
-            "test/utils/channel-test-utils",
-            "test/utils/channel-test-utils"],
-function(  Vnf,
-           SignalCaptor,
-           Log,
-           VnfTestUtils,
-           ChannelTestUtils){
+import {Vnf} from "../../../../../src/vnf/vnf.js";
+import {SignalCaptor} from "../../../../../src/utils/signal-captor.js";
+import {Log} from "../../../../../src/utils/logger.js";
 
-    QUnit.module("Channel Open Connection Tests");
+import {VnfTestUtils} from "../../../../../test/utils/vnf-test-utils.js";
+import {ChannelTestUtils} from "../../../../../test/utils/channel-test-utils.js";
+
+QUnit.module("Channel Open Connection Tests", (hooks) => {
+
+    var prevCaptorTimeout = -1;
+
+    hooks.beforeEach(function(assert){
+         prevCaptorTimeout = Timeouts.logCaptureTimeout;
+         Timeouts.logCaptureTimeout = 30000;
+         assert.timeout( 30000 );
+    });
+
+    hooks.afterEach(function() {
+        Timeouts.logCaptureTimeout = prevCaptorTimeout;
+    });
+
     ChannelTestUtils.integrationTest("Test reopen of closed-connection - close by sender open by sender test", function(assert, args) {
         var done = assert.async(1);
 
@@ -249,4 +257,4 @@ function(  Vnf,
             });
         });
     });
-})
+});

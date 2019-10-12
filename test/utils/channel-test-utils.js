@@ -50,7 +50,7 @@ function reliableRtcFactory() {
 
 
 function integrationChannelTest(channelName, description, callback) {
-    VnfTestUtils.test(["Channel Integration Tests", channelName], description,    {hubFactory: hubFactories[channelName]}, function(assert, args){
+    VnfTestUtils.test(["Channel Integration Tests", channelName], description,    {hubFactory: ChannelTestUtils.hubFactories[channelName]}, function(assert, args){
         args.vnfHub = args.hubFactory();
         args.channelName = channelName;
         args.endpointRecipient = args.vnfHub.openEndpoint("recipient");
@@ -74,11 +74,10 @@ export class ChannelTestUtils {
        integrationChannelTest("InBrowser",              description, callback);
        //integrationChannelTest("Reliable Rtc WebSocket", description, callback);
 
-
        // Misc
        integrationChannelTest("Rtc",                 description, callback);
        integrationChannelTest("Big Message Factory", description, callback);
-       integrationChannelTest("WebSocket",           description, callback);
+       //integrationChannelTest("WebSocket",           description, callback);
        integrationChannelTest("Reliable",            description, callback);
        integrationChannelTest("Unreliable",          description, callback);
 

@@ -18,15 +18,17 @@ module.exports = function(config) {
       {pattern: 'test/utils/**/*.js'},
 
       {pattern: 'test/suites/test-config.js'},
-      {pattern: 'test/suites/unit/**/*.js'}
+      {pattern: 'test/suites/unit/**/*.js'},
+
+      {pattern: 'test/suites/integration/channels/basic/*.js'}
     ],
 
 
     // list of files / patterns to exclude
     exclude: [
-        'src/test/unit/system/**/*.js'
+        'test/**/connection-close-channel-test.js',
+        'test/**/reopen-channel-connection-test.js'
     ],
-
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
