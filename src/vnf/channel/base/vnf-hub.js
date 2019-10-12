@@ -72,6 +72,7 @@ export function VnfHub(){
             var connection = connections[targetVip];
             if(!connection) {
                 connection = {isConnected: false,
+                              destroyed: false,
                               targetVip: targetVip};
                 connections[targetVip] = connection;
 
@@ -168,6 +169,8 @@ export function VnfHub(){
             if(!connection) {
                 return;
             }
+
+            connection.destroyed = true;
 
             delete connections[targetVip];
             connectionsArray = null;

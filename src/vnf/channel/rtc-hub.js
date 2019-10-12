@@ -246,6 +246,8 @@ export function RtcHub(signalingHub){
 
                 var connection = self.getConnection(targetVip);
 
+                if(!connection) return;
+
                 window.clearTimeout(connection.connectTimeoutHandler);
 
                 self.__connectionOpened(targetVip);
@@ -306,6 +308,10 @@ export function RtcHub(signalingHub){
 
         self.__doOpenConnection = function(connection) {
             function doRunOpenConnection() {
+                if(connection.destroyed) {
+                    return;
+                }
+
                 signalingEndpoint.openConnection(connection.targetVip, function(event) {
                     if(event.status  == Global.FAILED) {
                         self.__connectionOpenFailed(connection.targetVip);
