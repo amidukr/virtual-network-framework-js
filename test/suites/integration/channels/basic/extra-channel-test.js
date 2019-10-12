@@ -76,53 +76,61 @@ ChannelTestUtils.integrationTest("Multiple/Loopback Channels Send Test", functio
     endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
     endpoint3.onMessage = VnfTestUtils.newPrintCallback(capture3, "vip-3");
 
-    function sendMessage(endpoint, targetVip, message) {
-        endpoint.openConnection(targetVip, function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
-            endpoint.send(targetVip, message);
-        })
+    if(args.channelName == 'WebSocket') {
+        window.setTimeout(runTest, 1000);
+    }else{
+        runTest();
     }
 
-    sendMessage(endpoint1, "vip-2", "message-from-vip1-to-vip2");
-    sendMessage(endpoint1, "vip-3", "message-from-vip1-to-vip3");
+    function runTest() {
+        function sendMessage(endpoint, targetVip, message) {
+            endpoint.openConnection(targetVip, function(event){
+                assert.equal(event.status, "CONNECTED", "Verifying status");
+                endpoint.send(targetVip, message);
+            })
+        }
 
-    sendMessage(endpoint2, "vip-1", "message-from-vip2-to-vip1");
-    endpoint2.openConnection("vip-3", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
-        endpoint2.send("vip-3", "1st-message-from-vip2-to-vip3");
-        endpoint2.send("vip-3", "2nd-message-from-vip2-to-vip3");
-    })
+        sendMessage(endpoint1, "vip-2", "message-from-vip1-to-vip2");
+        sendMessage(endpoint1, "vip-3", "message-from-vip1-to-vip3");
 
-    sendMessage(endpoint3, "vip-1", "message-from-vip3-to-vip1");
-    sendMessage(endpoint3, "vip-2", "message-from-vip3-to-vip2");
-    sendMessage(endpoint3, "vip-3", "message-from-vip3-to-vip3");
+        sendMessage(endpoint2, "vip-1", "message-from-vip2-to-vip1");
+        endpoint2.openConnection("vip-3", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying status");
+            endpoint2.send("vip-3", "1st-message-from-vip2-to-vip3");
+            endpoint2.send("vip-3", "2nd-message-from-vip2-to-vip3");
+        })
 
-    capture1.assertSignalsUnordered(["from vip-2: message-from-vip2-to-vip1",
-                                 "from vip-3: message-from-vip3-to-vip1"])
+        sendMessage(endpoint3, "vip-1", "message-from-vip3-to-vip1");
+        sendMessage(endpoint3, "vip-2", "message-from-vip3-to-vip2");
+        sendMessage(endpoint3, "vip-3", "message-from-vip3-to-vip3");
 
-             .then(doneCaptor.signal.bind(null, "done-1"));
+        capture1.assertSignalsUnordered(["from vip-2: message-from-vip2-to-vip1",
+                                     "from vip-3: message-from-vip3-to-vip1"])
 
-    capture2.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip2",
-                                 "from vip-3: message-from-vip3-to-vip2"])
+                 .then(doneCaptor.signal.bind(null, "done-1"));
 
-            .then(doneCaptor.signal.bind(null, "done-2"));
+        capture2.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip2",
+                                     "from vip-3: message-from-vip3-to-vip2"])
 
-    capture3.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip3",
-                                 "from vip-2: 1st-message-from-vip2-to-vip3",
-                                 "from vip-2: 2nd-message-from-vip2-to-vip3",
-                                 "from vip-3: message-from-vip3-to-vip3"])
+                .then(doneCaptor.signal.bind(null, "done-2"));
 
-            .then(doneCaptor.signal.bind(null, "done-3"));
+        capture3.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip3",
+                                     "from vip-2: 1st-message-from-vip2-to-vip3",
+                                     "from vip-2: 2nd-message-from-vip2-to-vip3",
+                                     "from vip-3: message-from-vip3-to-vip3"])
 
-    doneCaptor.assertSignalsUnordered(["done-1", "done-2", "done-3"])
+                .then(doneCaptor.signal.bind(null, "done-3"));
 
-    .then(args.endpointRecipient.destroy)
-    .then(args.endpointSender.destroy)
+        doneCaptor.assertSignalsUnordered(["done-1", "done-2", "done-3"])
 
-    .then(endpoint1.destroy)
-    .then(endpoint2.destroy)
-    .then(endpoint3.destroy)
-    .then(done);
+        .then(args.endpointRecipient.destroy)
+        .then(args.endpointSender.destroy)
+
+        .then(endpoint1.destroy)
+        .then(endpoint2.destroy)
+        .then(endpoint3.destroy)
+        .then(done);
+    }
 });
 
 ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, args) {

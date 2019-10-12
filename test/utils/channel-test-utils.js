@@ -77,7 +77,7 @@ export class ChannelTestUtils {
        // Misc
        integrationChannelTest("Rtc",                 description, callback);
        integrationChannelTest("Big Message Factory", description, callback);
-       //integrationChannelTest("WebSocket",           description, callback);
+       integrationChannelTest("WebSocket",           description, callback);
        integrationChannelTest("Reliable",            description, callback);
        integrationChannelTest("Unreliable",          description, callback);
 

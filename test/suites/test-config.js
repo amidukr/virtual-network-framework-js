@@ -10,7 +10,7 @@ TestingProfiles = {
     rate: 2,
     testLevel: TESTING_LEVEL_RELEASE,
 
-    vnfWebSocketUrl: "ws://localhost:8080/vnf-ws",
+    vnfWebSocketUrl: "wss://aqueous-crag-1991.herokuapp.com/webbroker/vnf-ws",
 
     relative__qunitTestTimeout: 3000,
     relative__logCaptureTimeout: 3000,
