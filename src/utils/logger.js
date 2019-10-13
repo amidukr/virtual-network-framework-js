@@ -17,7 +17,7 @@ var logLevelMap = {
     "trace": TRACE
 }
 
-var defaultLevel = ERROR;
+var defaultLevel = INFO;
 
 var categoryLogLevel = {
     //"reliable-channel-status": DEBUG

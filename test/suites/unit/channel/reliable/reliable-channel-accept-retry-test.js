@@ -9,7 +9,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Connect est
     argument.reliableHub.setConnectionLostTimeout(20);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verif1ying status");
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
 
