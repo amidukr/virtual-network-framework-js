@@ -19,15 +19,7 @@ module.exports = function(config) {
 
       {pattern: 'test/suites/test-config.js'},
       {pattern: 'test/suites/unit/**/*.js'},
-
-      {pattern: 'test/suites/integration/channels/basic/*.js'}
-    ],
-
-
-    // list of files / patterns to exclude
-    exclude: [
-        'test/**/connection-close-channel-test.js',
-        'test/**/reopen-channel-connection-test.js'
+      {pattern: 'test/suites/integration/**/*.js'},
     ],
 
     // preprocess matching files before serving them to the browser
@@ -83,7 +75,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadless', 'FirefoxHeadless'],
 
 
     // Continuous Integration mode

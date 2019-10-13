@@ -4,9 +4,7 @@
   "description": "Virtual Network Framework",
   "main": "src/my-module.js",
   "scripts": {
-    "test": "npm run test-chrome && npm run test-firefox",
-    "test-chrome": "./node_modules/.bin/karma start --single-run --browsers ChromeHeadless",
-    "test-firefox": "./node_modules/.bin/karma start --single-run --browsers ChromeHeadless",
+    "test": "./node_modules/.bin/karma start --single-run",
     "codecov": "./node_modules/.bin/codecov"
   },
   "repository": {
