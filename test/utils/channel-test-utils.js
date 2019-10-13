@@ -1,5 +1,6 @@
 import {Log}         from "../../src/utils/logger.js";
 import {SignalCaptor} from "../../src/utils/signal-captor.js";
+import {Random} from "../../src/utils/random.js";
 
 import {VnfTestUtils} from "./vnf-test-utils.js";
 
@@ -11,7 +12,14 @@ function inBrowserFactory(){
 }
 
 function reliableRtcWebSocketFactory(){
-    return new Vnf.ReliableRtcHub(webSocketFactory());
+
+    var reliableRtc = new Vnf.ReliableRtcHub(webSocketFactory())
+
+    reliableRtc.setHeartbeatInterval(200);
+    reliableRtc.setConnectionInvalidateInterval(1000);
+    reliableRtc.setConnectionLostTimeout(6000);
+
+    return reliableRtc;
 }
 
 function rtcFactory(){
@@ -30,7 +38,11 @@ function webSocketFactory() {
     var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl")));
 
     hub.setResendHandshakeInterval(100);
-    hub.setResendHandshakeRetries(10);
+    hub.setResendHandshakeRetries(50);
+
+    hub.setRpcBusyTimerInterval(500);
+    hub.setRpcIdleTimerInterval(500);
+    hub.setRpcLoginRecreateInterval(50);
 
     return hub;
 }
@@ -44,18 +56,24 @@ function unreliableFactory() {
 }
 
 function reliableRtcFactory() {
-    return new Vnf.BigMessageHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
-}
+    var reliableRtc = new Vnf.ReliableRtcHub(new Vnf.InBrowserHub())
 
+    reliableRtc.setHeartbeatInterval(200);
+    reliableRtc.setConnectionInvalidateInterval(1000);
+    reliableRtc.setConnectionLostTimeout(6000);
+
+    return new Vnf.BigMessageHub(reliableRtc);
+}
 
 
 function integrationChannelTest(channelName, description, callback) {
     VnfTestUtils.test(["Channel Integration Tests", channelName], description,    {hubFactory: ChannelTestUtils.hubFactories[channelName]}, function(assert, args){
         args.vnfHub = args.hubFactory();
         args.channelName = channelName;
-        args.endpointRecipient = args.vnfHub.openEndpoint("recipient");
-        args.endpointSender = args.vnfHub.openEndpoint("sender");
-
+        args.recipientVip = Random.random6() + "-recipient";
+        args.senderVip = Random.random6() + "-sender";
+        args.endpointRecipient = args.vnfHub.openEndpoint(args.recipientVip);
+        args.endpointSender = args.vnfHub.openEndpoint(args.senderVip);
 
         args.recipientCaptor = new SignalCaptor(assert);
         args.senderCaptor    = new SignalCaptor(assert);
@@ -72,10 +90,10 @@ export class ChannelTestUtils {
     static integrationTest(description, callback) {
        // Main cases
        integrationChannelTest("InBrowser",              description, callback);
-       //integrationChannelTest("Reliable Rtc WebSocket", description, callback);
+       integrationChannelTest("Reliable Rtc WebSocket", description, callback);
 
        // Misc
-       integrationChannelTest("Rtc",                 description, callback);
+       //integrationChannelTest("Rtc",                 description, callback);
        integrationChannelTest("Big Message Factory", description, callback);
        integrationChannelTest("WebSocket",           description, callback);
        integrationChannelTest("Reliable",            description, callback);
