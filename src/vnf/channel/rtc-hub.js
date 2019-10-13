@@ -123,13 +123,22 @@ function VnfRtcConnection(connectionId){
     self.destroy = function() {
         destroyed = true;
 
+        // closing rtc connection will increase sending signal to other side to 5 seconds.
+        window.setTimeout(destroyRtcConnection, 1000);
         try{
-            connection.close();
+            if(channel != null) channel.close();
         }catch(e) {
-            Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc endpoint", e]);
+            Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
+        }
+
+        function destroyRtcConnection() {
+            try{
+                connection.close();
+            }catch(e) {
+                Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
+            }
         }
     }
-
 
     self.onChannelOpened = function(callback) {
         onChannelOpenedCallback = callback;
@@ -163,7 +172,7 @@ function VnfRtcConnection(connectionId){
         channel.onclose = function(evt) {
             Log.debug(instanceId, "webrtc-onclose", "\n" + printStatuses(evt.target));
             if(!destroyed) {
-                destroyed = true;
+                self.destroy();
                 onChannelClosedCallback();
             }
         }
@@ -188,6 +197,10 @@ function VnfRtcConnection(connectionId){
             Log.debug(instanceId, "webrtc-onsignalingstatechange", "\n" + printStatuses(evt.target));
 
         };
+
+        connection.onconnectionstatechange = function(evt) {
+            Log.debug(instanceId, "webrtc-onconnectionstatechange", "\n" + printStatuses(evt.target) + ", destroyed: " + destroyed);
+        }
 
         connection.oniceconnectionstatechange = function(evt){
             Log.debug(instanceId, "webrtc-oniceconnectionstatechange", "\n" + printStatuses(evt.target) + ", destroyed: " + destroyed);
@@ -292,7 +305,11 @@ export function RtcHub(signalingHub){
                                         ice: ice,
                                         connectionCreateDate: connection.vnfRtcConnection.createDate};
 
-                        signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                        try{
+                            signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                        }catch(e) {
+                            Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send accept message via signaling endpoint", e]);
+                        }
                     });
 
                     if(existentVnfRtcConnection) {
@@ -325,8 +342,11 @@ export function RtcHub(signalingHub){
                                         requestForNewConnection: true,
                                         ice: ice,
                                         connectionCreateDate: connection.vnfRtcConnection.createDate};
-
-                        signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                        try {
+                            signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                        }catch(e) {
+                            Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send handshake message via signaling endpoint", e]);
+                        }
                     });
                 })
             }

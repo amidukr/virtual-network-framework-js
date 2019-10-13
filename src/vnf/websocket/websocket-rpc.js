@@ -104,10 +104,17 @@ export function WebSocketRpc(vip, webSocketFactory) {
         }
 
         webSocket.onopen = function() {
-            if(destroyed) return;
+            if(destroyed) {
+                Log.debug(vip, "websocket-rtc", [new Error("webscoket destroyed but websocket.onopen signal captured")]);
+                return;
+            }
+
+            Log.debug(vip, "websocket-rtc", ["webSocket open: sending LOGIN"]);
 
             webSocketRpc.invoke("LOGIN", vip, {immediateSend: true})
             .then(function(result){
+                Log.debug(vip, "websocket-rtc", ["webSocket LOGIN response: '" + result.data + "'" ]);
+
                 if(result.data != "OK") {
                     Log.warn(vip, "websocket-rtc", [new Error("Login failed, retrying, error reason is '" +  result.data + "'")]);
                     window.setTimeout(recreateWebSocket, loginRecreateInterval);
@@ -190,6 +197,10 @@ export function WebSocketRpc(vip, webSocketFactory) {
             command: command,
             callId:  callId
         });
+    }
+
+    this.isConnected = function() {
+        return isConnected;
     }
 
     this.setBusyTimerInterval = function(value) {

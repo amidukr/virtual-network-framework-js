@@ -14,6 +14,10 @@ export function WebSocketHub(webSocketFactory){
     var resendHandshakeInterval = 3000;
     var resendHandshakeRetries = 2;
 
+    var rpcBusyTimerInterval = null;
+    var rpcIdleTimerInterval = null;
+    var rpcLoginRecreateInterval = null;
+
 
     selfHub.setResendHandshakeInterval = function(value) {
         resendHandshakeInterval = value;
@@ -23,12 +27,29 @@ export function WebSocketHub(webSocketFactory){
         resendHandshakeRetries = value;
     }
 
+
+    this.setRpcBusyTimerInterval = function(value) {
+        rpcBusyTimerInterval = value;
+    }
+
+    this.setRpcIdleTimerInterval = function(value) {
+        rpcIdleTimerInterval = value;
+    }
+
+    this.setRpcLoginRecreateInterval = function(value) {
+        rpcLoginRecreateInterval = value;
+    }
+
     selfHub.VnfEndpoint = function WebSocketEndpoint(selfVip) {
         var self = this;
         selfHub.BaseEndPoint.call(this, selfVip);
 
         var webSocketRpc = new WebSocketRpc(selfVip, webSocketFactory);
         webSocketRpc.allocateUsage();
+
+        if(rpcBusyTimerInterval != null) webSocketRpc.setBusyTimerInterval(rpcBusyTimerInterval);
+        if(rpcIdleTimerInterval != null) webSocketRpc.setIdleTimerInterval(rpcIdleTimerInterval);
+        if(rpcLoginRecreateInterval != null) webSocketRpc.setLoginRecreateInterval(rpcLoginRecreateInterval);
 
         function sendHandshake(targetVip) {
             var connection = self.getConnection(targetVip);
@@ -39,6 +60,10 @@ export function WebSocketHub(webSocketFactory){
 
             if(!self.isConnected(targetVip)) {
                 if(connection.retryAttempts-- == 0) {
+                    if(!webSocketRpc.isConnected()) {
+                        Log.warn("websocket-hub", "No connection to websocket: Connection to other endpoint '"  + targetVip + "' failed ");
+                    }
+
                     self.closeConnection(targetVip);
                     return;
                 }
@@ -81,7 +106,7 @@ export function WebSocketHub(webSocketFactory){
 
         function handleCloseConnection(sourceVip, messageType, body) {
             var connection = self.getConnection(sourceVip);
-            connection.handlingCloseEvent = true;
+            if(connection) connection.handlingCloseEvent = true;
             self.closeConnection(sourceVip);
         }
 
