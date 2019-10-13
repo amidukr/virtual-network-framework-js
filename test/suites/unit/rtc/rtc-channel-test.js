@@ -45,6 +45,9 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test"
 
     rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
     rootEndpoint.onMessage = captureMessage(rootCaptor);
+    rtcEndpoint.onConnectionLost(function(targetVip) {
+        rtcCaptor.signal(`connection to ${targetVip} closed`);
+    });
 
     rtcEndpoint.openConnection("root-endpoint", function(event){
         assert.equal(event.status, "CONNECTED", "Verifying status");
@@ -114,6 +117,16 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test"
      })
 
      .then(rtcCaptor.assertSignals.bind(null, "message-2"))
+     .then(rtcCaptor.assertSilence.bind(null))
+
+     .then(() => {
+        dataChannel.close();
+      })
+
+     .then(rtcCaptor.assertSignals.bind(null, "connection to root-endpoint closed"))
+
+     .then(rtcCaptor.assertSilence.bind(null))
+     .then(rootCaptor.assertSilence.bind(null))
 
      .then(rootEndpoint.destroy)
      .then(rtcEndpoint.destroy)
@@ -137,6 +150,9 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", 
 
     rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
     rootEndpoint.onMessage = captureMessage(rootCaptor);
+    rtcEndpoint.onConnectionLost(function(targetVip) {
+        rtcCaptor.signal(`connection to ${targetVip} closed`);
+    });
 
     var rtcConnection = new RTCPeerConnection(vnfRtcServers);
 
@@ -198,6 +214,15 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", 
      .then(rtcCaptor.assertSignals.bind(null, "message-1"))
      .then(rtcEndpoint.send.bind(null, "root-endpoint", "message-2"))
      .then(rtcChannelCaptor.assertSignals.bind(null, "message-2"))
+
+     .then(() => {
+         dataChannel.close();
+     })
+
+     .then(rtcCaptor.assertSignals.bind(null, "connection to root-endpoint closed"))
+
+     .then(rtcCaptor.assertSilence.bind(null))
+     .then(rootCaptor.assertSilence.bind(null))
 
      .then(rootEndpoint.destroy)
      .then(rtcEndpoint.destroy)
@@ -331,4 +356,3 @@ QUnit.test("[RtcHub Unit]: connection should failed if no response from other si
         })
     });
 });
-

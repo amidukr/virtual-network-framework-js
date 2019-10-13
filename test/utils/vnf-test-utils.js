@@ -3,7 +3,6 @@ import {Log}        from "../../src/utils/logger.js";
 
 import {Vnf} from "../../src/vnf/vnf.js";
 
-
 var runningTest = "";
 var tearDownListeners = new Observable();
 

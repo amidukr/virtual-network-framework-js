@@ -1,6 +1,7 @@
 import {Vnf} from "../../../../../src/vnf/vnf.js";
 import {SignalCaptor} from "../../../../../src/utils/signal-captor.js";
 import {Log} from "../../../../../src/utils/logger.js";
+import {Random} from "../../../../../src/utils/random.js";
 
 import {VnfTestUtils} from "../../../../../test/utils/vnf-test-utils.js";
 import {ChannelTestUtils} from "../../../../../test/utils/channel-test-utils.js";
@@ -11,8 +12,8 @@ ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, ar
 
     var bigMessageHub = new Vnf.BigMessageHub(args.vnfHub);
 
-    args.endpointRecipient = bigMessageHub.openEndpoint("recipient");
-    args.endpointSender = bigMessageHub.openEndpoint("sender");
+    args.endpointRecipient = bigMessageHub.openEndpoint(args.recipientVip);
+    args.endpointSender = bigMessageHub.openEndpoint(args.senderVip);
 
     args.endpointRecipient.onMessage = function(event) {
         Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
@@ -26,9 +27,9 @@ ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, ar
         done();
     };
 
-    args.endpointSender.openConnection("recipient", function(event){
+    args.endpointSender.openConnection(args.recipientVip, function(event){
         assert.equal(event.status, "CONNECTED", "Verifying status");
-        args.endpointSender.send("recipient", {value1: "object-value-1", sub:{value2: "object-sub-value-2"}});
+        args.endpointSender.send(args.recipientVip, {value1: "object-value-1", sub:{value2: "object-sub-value-2"}});
     });
 });
 
@@ -37,17 +38,17 @@ ChannelTestUtils.integrationTest("Channel Loopback Test", function(assert, args)
 
     var done = assert.async(1);
 
-    args.endpointSender.openConnection("sender", function(event){
+    args.endpointSender.openConnection(args.senderVip, function(event){
         assert.equal(event.status, "CONNECTED", "Verifying status");
-        assert.equal(event.targetVip, "sender", "Verifying targetVip");
+        assert.equal(event.targetVip, args.senderVip, "Verifying targetVip");
         assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
-        assert.equal(event.endpoint.vip, "sender", "Verifying endpoint vip");
+        assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
 
-        args.endpointSender.send("sender", "message-sender-to-self");
+        args.endpointSender.send(args.senderVip, "message-sender-to-self");
     });
 
     Promise.resolve()
-    .then(args.senderCaptor.assertSignals.bind(null, ["from sender: message-sender-to-self"]))
+    .then(args.senderCaptor.assertSignals.bind(null, [`from ${args.senderVip}: message-sender-to-self`]))
 
     .then(args.endpointRecipient.destroy)
     .then(args.endpointSender.destroy)
@@ -62,9 +63,13 @@ ChannelTestUtils.integrationTest("Multiple/Loopback Channels Send Test", functio
 
     var vnfHub = args.hubFactory();
 
-    var endpoint1 = vnfHub.openEndpoint("vip-1");
-    var endpoint2 = vnfHub.openEndpoint("vip-2");
-    var endpoint3 = vnfHub.openEndpoint("vip-3");
+    var vip1 = Random.random6() + "-vip-1";
+    var vip2 = Random.random6() + "-vip-2";
+    var vip3 = Random.random6() + "-vip-3";
+
+    var endpoint1 = vnfHub.openEndpoint(vip1);
+    var endpoint2 = vnfHub.openEndpoint(vip2);
+    var endpoint3 = vnfHub.openEndpoint(vip3);
 
     var capture1 = new SignalCaptor(assert);
     var capture2 = new SignalCaptor(assert);
@@ -72,72 +77,61 @@ ChannelTestUtils.integrationTest("Multiple/Loopback Channels Send Test", functio
 
     var doneCaptor = new SignalCaptor(assert);
 
-    endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-1");
-    endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
-    endpoint3.onMessage = VnfTestUtils.newPrintCallback(capture3, "vip-3");
+    endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, vip1);
+    endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, vip2);
+    endpoint3.onMessage = VnfTestUtils.newPrintCallback(capture3, vip3);
 
-    if(args.channelName == 'WebSocket') {
-        window.setTimeout(runTest, 1000);
-    }else{
-        runTest();
-    }
-
-    function runTest() {
-        function sendMessage(endpoint, targetVip, message) {
-            endpoint.openConnection(targetVip, function(event){
-                assert.equal(event.status, "CONNECTED", "Verifying status");
-                endpoint.send(targetVip, message);
-            })
-        }
-
-        sendMessage(endpoint1, "vip-2", "message-from-vip1-to-vip2");
-        sendMessage(endpoint1, "vip-3", "message-from-vip1-to-vip3");
-
-        sendMessage(endpoint2, "vip-1", "message-from-vip2-to-vip1");
-        endpoint2.openConnection("vip-3", function(event){
+    function sendMessage(endpoint, targetVip, message) {
+        endpoint.openConnection(targetVip, function(event){
             assert.equal(event.status, "CONNECTED", "Verifying status");
-            endpoint2.send("vip-3", "1st-message-from-vip2-to-vip3");
-            endpoint2.send("vip-3", "2nd-message-from-vip2-to-vip3");
+            endpoint.send(targetVip, message);
         })
-
-        sendMessage(endpoint3, "vip-1", "message-from-vip3-to-vip1");
-        sendMessage(endpoint3, "vip-2", "message-from-vip3-to-vip2");
-        sendMessage(endpoint3, "vip-3", "message-from-vip3-to-vip3");
-
-        capture1.assertSignalsUnordered(["from vip-2: message-from-vip2-to-vip1",
-                                     "from vip-3: message-from-vip3-to-vip1"])
-
-                 .then(doneCaptor.signal.bind(null, "done-1"));
-
-        capture2.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip2",
-                                     "from vip-3: message-from-vip3-to-vip2"])
-
-                .then(doneCaptor.signal.bind(null, "done-2"));
-
-        capture3.assertSignalsUnordered(["from vip-1: message-from-vip1-to-vip3",
-                                     "from vip-2: 1st-message-from-vip2-to-vip3",
-                                     "from vip-2: 2nd-message-from-vip2-to-vip3",
-                                     "from vip-3: message-from-vip3-to-vip3"])
-
-                .then(doneCaptor.signal.bind(null, "done-3"));
-
-        doneCaptor.assertSignalsUnordered(["done-1", "done-2", "done-3"])
-
-        .then(args.endpointRecipient.destroy)
-        .then(args.endpointSender.destroy)
-
-        .then(endpoint1.destroy)
-        .then(endpoint2.destroy)
-        .then(endpoint3.destroy)
-        .then(done);
     }
+
+    sendMessage(endpoint1, vip2, "message-from-vip1-to-vip2");
+    sendMessage(endpoint1, vip3, "message-from-vip1-to-vip3");
+
+    sendMessage(endpoint2, vip1, "message-from-vip2-to-vip1");
+    endpoint2.openConnection(vip3, function(event){
+        assert.equal(event.status, "CONNECTED", "Verifying status");
+        endpoint2.send(vip3, "1st-message-from-vip2-to-vip3");
+        endpoint2.send(vip3, "2nd-message-from-vip2-to-vip3");
+    })
+
+    sendMessage(endpoint3, vip1, "message-from-vip3-to-vip1");
+    sendMessage(endpoint3, vip2, "message-from-vip3-to-vip2");
+    sendMessage(endpoint3, vip3, "message-from-vip3-to-vip3");
+
+    capture1.assertSignalsUnordered([`from ${vip2}: message-from-vip2-to-vip1`,
+                                 `from ${vip3}: message-from-vip3-to-vip1`])
+             .then(doneCaptor.signal.bind(null, "done-1"));
+
+    capture2.assertSignalsUnordered([`from ${vip1}: message-from-vip1-to-vip2`,
+                                 `from ${vip3}: message-from-vip3-to-vip2`])
+            .then(doneCaptor.signal.bind(null, "done-2"));
+
+    capture3.assertSignalsUnordered([`from ${vip1}: message-from-vip1-to-vip3`,
+                                 `from ${vip2}: 1st-message-from-vip2-to-vip3`,
+                                 `from ${vip2}: 2nd-message-from-vip2-to-vip3`,
+                                 `from ${vip3}: message-from-vip3-to-vip3`])
+            .then(doneCaptor.signal.bind(null, "done-3"));
+
+    doneCaptor.assertSignalsUnordered(["done-1", "done-2", "done-3"])
+
+    .then(args.endpointRecipient.destroy)
+    .then(args.endpointSender.destroy)
+
+    .then(endpoint1.destroy)
+    .then(endpoint2.destroy)
+    .then(endpoint3.destroy)
+    .then(done);
 });
 
 ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, args) {
     var done = assert.async(1);
 
 
-    if(["WebSocket", "Rtc"].indexOf(args.channelName) != -1) {
+    if(["Reliable Rtc WebSocket", "WebSocket", "Rtc"].indexOf(args.channelName) != -1) {
         assert.ok(true, "Skipping RTC do not supports Big Message");
         done()
         return;
@@ -153,7 +147,7 @@ ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, ar
 
     var index = 0;
     args.endpointRecipient.onMessage = function(event) {
-        Log.info("recipient", "message-test-handler", event.message.substr(0, 100) + "\n.......");
+        Log.info(args.recipientVip, "message-test-handler", event.message.substr(0, 100) + "\n.......");
         assert.deepEqual(event.message, bigMessage[index++],  "Asserting captured logs");
 
         if(index == bigMessage.length) {
@@ -165,11 +159,11 @@ ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, ar
         }
     };
 
-    args.endpointSender.openConnection("recipient", function(event){
+    args.endpointSender.openConnection(args.recipientVip, function(event){
         assert.equal(event.status, "CONNECTED", "Verifying status");
 
         for(var i = 0; i < bigMessage.length; i++) {
-            args.endpointSender.send("recipient", bigMessage[i]);
+            args.endpointSender.send(args.recipientVip, bigMessage[i]);
         }
     });
 });
