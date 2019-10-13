@@ -713,3 +713,25 @@ webSocketTest("Destroy test - idle test", function(assert, argument){
     .then(argument.webSocketCaptor.assertSilence.bind(null, 600))
     .then(done);
 });
+
+webSocketTest("Should Invoke command only after successful login", function(assert, argument){
+    var done = assert.async(1);
+
+    argument.webSocketRpc.invoke("INVOKE-SOME-COMMAND", "My\ntest\ndata for retry", {retryResend: true})
+
+    Promise.resolve()
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
+    .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 LOGIN\nws-endpoint"]))
+    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 LOGIN\nALREADY_USED"))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
+
+
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
+    .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 2 LOGIN\nws-endpoint"]))
+    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "2 LOGIN\nOK"))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 INVOKE-SOME-COMMAND\nMy\ntest\ndata for retry"]))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["close"]))
+    .then(done);
+});

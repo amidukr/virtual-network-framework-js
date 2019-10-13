@@ -111,6 +111,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
                 if(result.data != "OK") {
                     Log.warn(vip, "websocket-rtc", [new Error("Login failed, retrying, error reason is '" +  result.data + "'")]);
                     window.setTimeout(recreateWebSocket, loginRecreateInterval);
+                    return;
                 }
 
                 isConnected = true;
