@@ -26,7 +26,7 @@ export class WebSocketChannelTestUtils{
 
             webSocketRpc.setBusyTimerInterval(200);
             webSocketRpc.setIdleTimerInterval(300);
-            webSocketRpc.setLoginRecreateInterval(200)
+            webSocketRpc.setLoginRecreateInterval(200);
 
             return callback(assert, argument);
         });

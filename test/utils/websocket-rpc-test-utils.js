@@ -1,4 +1,5 @@
-import {MockWebSocketFactory}          from "./mock/mock-websocket-factory.js";
+import {MockWebSocketFactory} from "./mock/mock-websocket-factory.js";
+import {VnfTestUtils} from "./vnf-test-utils.js";
 
 import {Vnf} from "../../src/vnf/vnf.js";
 
@@ -11,6 +12,10 @@ export class WebSocketRpcTestUtils {
         argument.webSocketRpc.setBusyTimerInterval(200);
         argument.webSocketRpc.setIdleTimerInterval(300);
         argument.webSocketRpc.setLoginRecreateInterval(200)
+
+        VnfTestUtils.onTearDown(function(){
+            argument.webSocketRpc.destroy();
+        });
     }
 
     static doLogin(argument, index) {

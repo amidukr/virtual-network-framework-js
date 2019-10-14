@@ -1,0 +1,348 @@
+Test: [Channel Integration Tests, Reliable Rtc WebSocket] Channel Send Test failed
+
+[
+  {
+    "time": 3,
+    "instanceId": 0,
+    "action": "NEW_INSTANCE",
+    "objectType": "WebSocketReplayProxy",
+    "args": [
+      "wss://aqueous-crag-1991.herokuapp.com/webbroker/vnf-ws"
+    ]
+  },
+  {
+    "time": 5,
+    "instanceId": 1,
+    "action": "NEW_INSTANCE",
+    "objectType": "WebSocketReplayProxy",
+    "args": [
+      "wss://aqueous-crag-1991.herokuapp.com/webbroker/vnf-ws"
+    ]
+  },
+  {
+    "time": 342,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onopen",
+    "args": [
+      {
+        "isTrusted": true
+      }
+    ]
+  },
+  {
+    "time": 342,
+    "instanceId": 0,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "0 LOGIN\n7v6i1o-recipient"
+    ]
+  },
+  {
+    "time": 424,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "0 LOGIN\nOK",
+        "target": {},
+        "targetInstanceId": 0
+      }
+    ]
+  },
+  {
+    "time": 585,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onopen",
+    "args": [
+      {
+        "isTrusted": true
+      }
+    ]
+  },
+  {
+    "time": 585,
+    "instanceId": 1,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "1 LOGIN\n8fyq98-sender"
+    ]
+  },
+  {
+    "time": 664,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "1 LOGIN\nOK",
+        "target": {},
+        "targetInstanceId": 1
+      }
+    ]
+  },
+  {
+    "time": 664,
+    "instanceId": 1,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "0 SEND_TO_ENDPOINT\n7v6i1o-recipient\nHANDSHAKE"
+    ]
+  },
+  {
+    "time": 747,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "ENDPOINT_MESSAGE\n8fyq98-sender\nHANDSHAKE",
+        "target": {},
+        "targetInstanceId": 0
+      }
+    ]
+  },
+  {
+    "time": 747,
+    "instanceId": 0,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "1 SEND_TO_ENDPOINT\n8fyq98-sender\nACCEPT"
+    ]
+  },
+  {
+    "time": 843,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "0 SEND_TO_ENDPOINT",
+        "target": {},
+        "targetInstanceId": 1
+      }
+    ]
+  },
+  {
+    "time": 895,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "1 SEND_TO_ENDPOINT",
+        "target": {},
+        "targetInstanceId": 0
+      }
+    ]
+  },
+  {
+    "time": 895,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "ENDPOINT_MESSAGE\n7v6i1o-recipient\nACCEPT",
+        "target": {},
+        "targetInstanceId": 1
+      }
+    ]
+  },
+  {
+    "time": 910,
+    "instanceId": 1,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "2 SEND_TO_ENDPOINT\n7v6i1o-recipient\nMESSAGE\n{\"type\":\"rtc-connection\",\"requestForNewConnection\":true,\"ice\":{\"candidate\":[{\"candidate\":\"candidate:0 1 UDP 2122252543 172.20.20.20 45140 typ host\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"f91b6bab\"},{\"candidate\":\"candidate:1 1 TCP 2105524479 172.20.20.20 9 typ host tcptype active\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"f91b6bab\"},{\"candidate\":\"\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"f91b6bab\"}],\"sdp\":{\"type\":\"offer\",\"sdp\":\"v=0\\r\\no=mozilla...THIS_IS_SDPARTA-69.0.2 6904855679789403801 0 IN IP4 0.0.0.0\\r\\ns=-\\r\\nt=0 0\\r\\na=fingerprint:sha-256 7B:DD:6F:B5:1A:E2:29:66:E9:3E:95:36:DA:5B:E7:DF:D3:C1:4B:CA:4C:71:BF:E0:00:33:74:A8:A8:D3:39:0D\\r\\na=group:BUNDLE 0\\r\\na=ice-options:trickle\\r\\na=msid-semantic:WMS *\\r\\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\\r\\nc=IN IP4 0.0.0.0\\r\\na=sendrecv\\r\\na=ice-pwd:c82919dc012202fbf12da207d256d606\\r\\na=ice-ufrag:f91b6bab\\r\\na=mid:0\\r\\na=setup:actpass\\r\\na=sctp-port:5000\\r\\na=max-message-size:1073741823\\r\\n\"}},\"connectionCreateDate\":1571027981465}"
+    ]
+  },
+  {
+    "time": 1115,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "ENDPOINT_MESSAGE\n8fyq98-sender\nMESSAGE\n{\"type\":\"rtc-connection\",\"requestForNewConnection\":true,\"ice\":{\"candidate\":[{\"candidate\":\"candidate:0 1 UDP 2122252543 172.20.20.20 45140 typ host\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"f91b6bab\"},{\"candidate\":\"candidate:1 1 TCP 2105524479 172.20.20.20 9 typ host tcptype active\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"f91b6bab\"},{\"candidate\":\"\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"f91b6bab\"}],\"sdp\":{\"type\":\"offer\",\"sdp\":\"v=0\\r\\no=mozilla...THIS_IS_SDPARTA-69.0.2 6904855679789403801 0 IN IP4 0.0.0.0\\r\\ns=-\\r\\nt=0 0\\r\\na=fingerprint:sha-256 7B:DD:6F:B5:1A:E2:29:66:E9:3E:95:36:DA:5B:E7:DF:D3:C1:4B:CA:4C:71:BF:E0:00:33:74:A8:A8:D3:39:0D\\r\\na=group:BUNDLE 0\\r\\na=ice-options:trickle\\r\\na=msid-semantic:WMS *\\r\\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\\r\\nc=IN IP4 0.0.0.0\\r\\na=sendrecv\\r\\na=ice-pwd:c82919dc012202fbf12da207d256d606\\r\\na=ice-ufrag:f91b6bab\\r\\na=mid:0\\r\\na=setup:actpass\\r\\na=sctp-port:5000\\r\\na=max-message-size:1073741823\\r\\n\"}},\"connectionCreateDate\":1571027981465}",
+        "target": {},
+        "targetInstanceId": 0
+      }
+    ]
+  },
+  {
+    "time": 1124,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "2 SEND_TO_ENDPOINT",
+        "target": {},
+        "targetInstanceId": 1
+      }
+    ]
+  },
+  {
+    "time": 1137,
+    "instanceId": 0,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "2 SEND_TO_ENDPOINT\n8fyq98-sender\nMESSAGE\n{\"type\":\"rtc-connection\",\"requestForNewConnection\":false,\"ice\":{\"candidate\":[{\"candidate\":\"candidate:0 1 UDP 2122252543 172.20.20.20 33924 typ host\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"12900f2e\"},{\"candidate\":\"candidate:1 1 TCP 2105524479 172.20.20.20 9 typ host tcptype active\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"12900f2e\"},{\"candidate\":\"\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"12900f2e\"}],\"sdp\":{\"type\":\"answer\",\"sdp\":\"v=0\\r\\no=mozilla...THIS_IS_SDPARTA-69.0.2 3522774834964644959 0 IN IP4 0.0.0.0\\r\\ns=-\\r\\nt=0 0\\r\\na=fingerprint:sha-256 09:4C:60:E1:5C:15:31:F3:DC:FB:04:66:C2:46:86:40:A2:FE:C3:07:73:4F:DD:70:A0:4C:69:80:B1:68:13:15\\r\\na=group:BUNDLE 0\\r\\na=ice-options:trickle\\r\\na=msid-semantic:WMS *\\r\\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\\r\\nc=IN IP4 0.0.0.0\\r\\na=sendrecv\\r\\na=ice-pwd:339749477ecd1b6c898c2898ed09913a\\r\\na=ice-ufrag:12900f2e\\r\\na=mid:0\\r\\na=setup:active\\r\\na=sctp-port:5000\\r\\na=max-message-size:1073741823\\r\\n\"}},\"connectionCreateDate\":1571027981685}"
+    ]
+  },
+  {
+    "time": 1305,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "2 SEND_TO_ENDPOINT",
+        "target": {},
+        "targetInstanceId": 0
+      }
+    ]
+  },
+  {
+    "time": 1305,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "ENDPOINT_MESSAGE\n7v6i1o-recipient\nMESSAGE\n{\"type\":\"rtc-connection\",\"requestForNewConnection\":false,\"ice\":{\"candidate\":[{\"candidate\":\"candidate:0 1 UDP 2122252543 172.20.20.20 33924 typ host\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"12900f2e\"},{\"candidate\":\"candidate:1 1 TCP 2105524479 172.20.20.20 9 typ host tcptype active\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"12900f2e\"},{\"candidate\":\"\",\"sdpMid\":\"0\",\"sdpMLineIndex\":0,\"usernameFragment\":\"12900f2e\"}],\"sdp\":{\"type\":\"answer\",\"sdp\":\"v=0\\r\\no=mozilla...THIS_IS_SDPARTA-69.0.2 3522774834964644959 0 IN IP4 0.0.0.0\\r\\ns=-\\r\\nt=0 0\\r\\na=fingerprint:sha-256 09:4C:60:E1:5C:15:31:F3:DC:FB:04:66:C2:46:86:40:A2:FE:C3:07:73:4F:DD:70:A0:4C:69:80:B1:68:13:15\\r\\na=group:BUNDLE 0\\r\\na=ice-options:trickle\\r\\na=msid-semantic:WMS *\\r\\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\\r\\nc=IN IP4 0.0.0.0\\r\\na=sendrecv\\r\\na=ice-pwd:339749477ecd1b6c898c2898ed09913a\\r\\na=ice-ufrag:12900f2e\\r\\na=mid:0\\r\\na=setup:active\\r\\na=sctp-port:5000\\r\\na=max-message-size:1073741823\\r\\n\"}},\"connectionCreateDate\":1571027981685}",
+        "target": {},
+        "targetInstanceId": 1
+      }
+    ]
+  },
+  {
+    "time": 2343,
+    "instanceId": 0,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "3 PING"
+    ]
+  },
+  {
+    "time": 2409,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "3 PING",
+        "target": {},
+        "targetInstanceId": 0
+      }
+    ]
+  },
+  {
+    "time": 3011,
+    "instanceId": 1,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "3 PING"
+    ]
+  },
+  {
+    "time": 3121,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "3 PING",
+        "target": {},
+        "targetInstanceId": 1
+      }
+    ]
+  },
+  {
+    "time": 4343,
+    "instanceId": 0,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "4 PING"
+    ]
+  },
+  {
+    "time": 4409,
+    "instanceId": 0,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "4 PING",
+        "target": {},
+        "targetInstanceId": 0
+      }
+    ]
+  },
+  {
+    "time": 5016,
+    "instanceId": 1,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "4 PING"
+    ]
+  },
+  {
+    "time": 5077,
+    "instanceId": 1,
+    "action": "FIRE_EVENT",
+    "eventType": "onmessage",
+    "args": [
+      {
+        "data": "4 PING",
+        "target": {},
+        "targetInstanceId": 1
+      }
+    ]
+  },
+  {
+    "time": 6018,
+    "instanceId": 0,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "5 SEND_TO_ENDPOINT\n8fyq98-sender\nCLOSE-CONNECTION"
+    ]
+  },
+  {
+    "time": 6018,
+    "instanceId": 0,
+    "action": "METHOD_CALL",
+    "methodName": "close",
+    "args": []
+  },
+  {
+    "time": 6019,
+    "instanceId": 1,
+    "action": "METHOD_CALL",
+    "methodName": "send",
+    "args": [
+      "5 SEND_TO_ENDPOINT\n7v6i1o-recipient\nCLOSE-CONNECTION"
+    ]
+  },
+  {
+    "time": 6020,
+    "instanceId": 1,
+    "action": "METHOD_CALL",
+    "methodName": "close",
+    "args": []
+  }
+]
