@@ -37,12 +37,12 @@ function reliableWebSocketFactory() {
 function webSocketFactory() {
     var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl")));
 
-    hub.setResendHandshakeInterval(100);
-    hub.setResendHandshakeRetries(50);
+    hub.setResendHandshakeInterval(1500);
+    hub.setResendHandshakeRetries(3);
 
-    hub.setRpcBusyTimerInterval(500);
-    hub.setRpcIdleTimerInterval(500);
-    hub.setRpcLoginRecreateInterval(50);
+    hub.setRpcBusyTimerInterval(1000);
+    hub.setRpcIdleTimerInterval(1000);
+    hub.setRpcLoginRecreateInterval(2000);
 
     return hub;
 }
@@ -60,7 +60,7 @@ function reliableRtcFactory() {
 
     reliableRtc.setHeartbeatInterval(200);
     reliableRtc.setConnectionInvalidateInterval(1000);
-    reliableRtc.setConnectionLostTimeout(6000);
+    reliableRtc.setConnectionLostTimeout(3000);
 
     return new Vnf.BigMessageHub(reliableRtc);
 }
@@ -80,6 +80,11 @@ function integrationChannelTest(channelName, description, callback) {
 
         args.endpointRecipient.onMessage = VnfTestUtils.newPrintCallback(args.recipientCaptor, "recipient");
         args.endpointSender.onMessage    = VnfTestUtils.newPrintCallback(args.senderCaptor, "sender");
+
+        VnfTestUtils.onTearDown(function(){
+            args.endpointRecipient.destroy();
+            args.endpointSender.destroy();
+        });
 
         callback(assert, args);
     });

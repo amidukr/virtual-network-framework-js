@@ -78,6 +78,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
             assert.equal(event.status, "CONNECTED", "Verifying status");
+            if(event.status != "CONNECTED") return;
             args.endpointSender.send(args.recipientVip, "sent to recipient message");
         });
     });

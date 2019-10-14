@@ -25,6 +25,8 @@ export function WebSocketRpc(vip, webSocketFactory) {
     var busyTimerInterval     =   20*1000;
     var idleTimerInterval     = 5*60*1000;
 
+    var loginRecreateInterval_id = null;
+
     var idleTimerToken = null;
 
     var allocatedUsagesCounter = 0;
@@ -36,7 +38,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
         // if so then web socket connection alive
         busyTimerActive = false;
 
-        if(destroyed) return;
+        if(destroyed || !isConnected) return;
 
         if(!busyTimerGotResponse) {
             recreateWebSocket();
@@ -53,7 +55,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
     function onIdleTimer() {
         idleTimerToken = null;
 
-        if(destroyed) return;
+        if(destroyed || !isConnected) return;
 
         webSocketRpc.verifyConnection();
     }
@@ -88,7 +90,23 @@ export function WebSocketRpc(vip, webSocketFactory) {
             Log.warn(vip, "websocket-rtc", [new Error("Unable to close websocket"), error]);
         }
 
+        isConnected = false;
+
         createWebSocket();
+    }
+
+    function setupLoginRecreateInterval() {
+        if(loginRecreateInterval_id) {
+            window.clearTimeout(loginRecreateInterval_id);
+            loginRecreateInterval_id = null;
+        }
+
+        loginRecreateInterval_id = window.setTimeout(() => {
+            if(isConnected || destroyed) return;
+
+            recreateWebSocket();
+
+        }, loginRecreateInterval);
     }
 
     function createWebSocket() {
@@ -117,7 +135,6 @@ export function WebSocketRpc(vip, webSocketFactory) {
 
                 if(result.data != "OK") {
                     Log.warn(vip, "websocket-rtc", [new Error("Login failed, retrying, error reason is '" +  result.data + "'")]);
-                    window.setTimeout(recreateWebSocket, loginRecreateInterval);
                     return;
                 }
 
@@ -134,6 +151,14 @@ export function WebSocketRpc(vip, webSocketFactory) {
                 }
 
                 connectionOpenListeners.fire();
+
+                if(!busyTimerActive) {
+                    if(!Utils.isEmptyObject(callMap)) {
+                        startBusyTimer();
+                    }else{
+                        startIdleTimer();
+                    }
+                }
             })
             .catch((e)=> Log.warn(vip, "websocket-rtc", "Unable to send LOGIN to server: " + e));
         }
@@ -183,6 +208,8 @@ export function WebSocketRpc(vip, webSocketFactory) {
                 createWebSocket();
             }
         }
+
+        setupLoginRecreateInterval();
     }
 
     function handleCallResponse(callAction, header, argument) {
@@ -213,6 +240,10 @@ export function WebSocketRpc(vip, webSocketFactory) {
 
     this.setLoginRecreateInterval = function(value) {
         loginRecreateInterval = value;
+
+        if(loginRecreateInterval_id) {
+            setupLoginRecreateInterval();
+        }
     }
 
     this.onConnectionOpen = connectionOpenListeners.addListener;

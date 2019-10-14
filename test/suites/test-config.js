@@ -1,3 +1,9 @@
+import {ReplayProxy} from "../utils/replay-proxy.js";
+
+ReplayProxy.installQUnitHooks();
+ReplayProxy.installWebSocketProxy();
+
+
 window.Timeouts = {}
 window.TestingProfiles = {}
 
@@ -188,3 +194,6 @@ Timeouts.logCaptureTimeout = TestingProfiles.getInterval(null, "logCaptureTimeou
 
 Timeouts.iceSendTimeout = Math.min(Timeouts.logCaptureTimeout/10, 1000);
 
+ReplayProxy.startNewReplay();
+new WebSocket(TestingProfiles.vnfWebSocketUrl);
+ReplayProxy.deleteReplay();

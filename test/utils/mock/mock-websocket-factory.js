@@ -1,4 +1,5 @@
 import {SignalCaptor} from "../../../src/utils/signal-captor.js";
+import {webSocketProxyTypeFactory} from "../replay-proxy.js";
 
 
 function MockWebSocket(assert, captor) {
@@ -54,11 +55,13 @@ export function MockWebSocketFactory(assert) {
     this.newWebSocket = function(){
         mockWebSocket = new MockWebSocket(assert, captor);
 
+        var proxyWebSocketType = webSocketProxyTypeFactory(function() {  return mockWebSocket;});
+
         mockWebSocket.setExceptionOnCall(exceptionOnCall)
 
         captor.signal("new-websocket");
 
-        return mockWebSocket
+        return new proxyWebSocketType("wss://");
     }
 
     function proxyCall(functionName) {
