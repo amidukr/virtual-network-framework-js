@@ -18,15 +18,14 @@ export function WebSocketRpc(vip, webSocketFactory) {
     var nextCallId = 0;
     var isConnected = false;
 
-    var busyTimerActive = false;
     var busyTimerGotResponse = false;
 
     var loginRecreateInterval =   30*1000;
     var busyTimerInterval     =   20*1000;
     var idleTimerInterval     = 5*60*1000;
 
-    var loginRecreateInterval_id = null;
-
+    var busyTimerToken = null;
+    var loginRecreateTimerToken = null;
     var idleTimerToken = null;
 
     var allocatedUsagesCounter = 0;
@@ -36,7 +35,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
 
         // check if at least on call got response
         // if so then web socket connection alive
-        busyTimerActive = false;
+        busyTimerToken = null;
 
         if(destroyed || !isConnected) return;
 
@@ -60,24 +59,47 @@ export function WebSocketRpc(vip, webSocketFactory) {
         webSocketRpc.verifyConnection();
     }
 
-    function startBusyTimer() {
-        stopIdleTimer();
+    function onLoginRecreationTimer() {
+        loginRecreateTimerToken = null;
 
-        if(!busyTimerActive) {
-            busyTimerActive = true;
-            window.setTimeout(onBusyTimer, busyTimerInterval);
-        }
+        if(destroyed || isConnected) return;
+
+        recreateWebSocket();
     }
 
-    function stopIdleTimer() {
+
+    function stopAllTimers(){
         if(idleTimerToken) {
             window.clearTimeout(idleTimerToken);
             idleTimerToken = null;
         }
+
+         if(loginRecreateTimerToken) {
+            window.clearTimeout(loginRecreateTimerToken);
+            loginRecreateTimerToken = null;
+        }
+
+        if(busyTimerToken) {
+            window.clearTimeout(busyTimerToken);
+            busyTimerToken = null;
+        }
+    }
+
+    function startBusyTimer() {
+        stopAllTimers();
+
+        busyTimerToken = window.setTimeout(onBusyTimer, busyTimerInterval);
     }
 
     function startIdleTimer() {
+        stopAllTimers();
         idleTimerToken = window.setTimeout(onIdleTimer, idleTimerInterval);
+    }
+
+
+    function startLoginRecreateTimer() {
+        stopAllTimers();
+        loginRecreateTimerToken = window.setTimeout(onLoginRecreationTimer, loginRecreateInterval);
     }
 
     function recreateWebSocket() {
@@ -90,27 +112,13 @@ export function WebSocketRpc(vip, webSocketFactory) {
             Log.warn(vip, "websocket-rtc", [new Error("Unable to close websocket"), error]);
         }
 
-        isConnected = false;
-
         createWebSocket();
     }
 
-    function setupLoginRecreateInterval() {
-        if(loginRecreateInterval_id) {
-            window.clearTimeout(loginRecreateInterval_id);
-            loginRecreateInterval_id = null;
-        }
-
-        loginRecreateInterval_id = window.setTimeout(() => {
-            if(isConnected || destroyed) return;
-
-            recreateWebSocket();
-
-        }, loginRecreateInterval);
-    }
 
     function createWebSocket() {
         webSocket = webSocketFactory.newWebSocket();
+        isConnected = false;
 
         for(var header in callMap) {
             var callAction = callMap[header];
@@ -152,12 +160,10 @@ export function WebSocketRpc(vip, webSocketFactory) {
 
                 connectionOpenListeners.fire();
 
-                if(!busyTimerActive) {
-                    if(!Utils.isEmptyObject(callMap)) {
-                        startBusyTimer();
-                    }else{
-                        startIdleTimer();
-                    }
+                if(!Utils.isEmptyObject(callMap)) {
+                    startBusyTimer();
+                }else{
+                    startIdleTimer();
                 }
             })
             .catch((e)=> Log.warn(vip, "websocket-rtc", "Unable to send LOGIN to server: " + e));
@@ -209,7 +215,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
             }
         }
 
-        setupLoginRecreateInterval();
+        startLoginRecreateTimer();
     }
 
     function handleCallResponse(callAction, header, argument) {
@@ -241,8 +247,8 @@ export function WebSocketRpc(vip, webSocketFactory) {
     this.setLoginRecreateInterval = function(value) {
         loginRecreateInterval = value;
 
-        if(loginRecreateInterval_id) {
-            setupLoginRecreateInterval();
+        if(loginRecreateTimerToken) {
+            startLoginRecreateTimer();
         }
     }
 
@@ -269,7 +275,9 @@ export function WebSocketRpc(vip, webSocketFactory) {
             return Promise.reject(Global.INSTANCE_DESTROYED);
         }
 
-        startBusyTimer();
+        if(isConnected) {
+            startBusyTimer();
+        }
 
         return new Promise(function(resolve, reject){
             var callId = nextCallId++;
@@ -315,7 +323,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
             Log.warn(vip, "websocket-rtc", [new Error("Unable to close websocket"), error]);
         }
 
-        stopIdleTimer();
+        stopAllTimers();
 
         for(var header in callMap) {
             var callAction = callMap[header];
