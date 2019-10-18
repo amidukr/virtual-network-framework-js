@@ -236,6 +236,9 @@ WebSocketChannelTestUtils.webSocketHubTest("handling closeConnection message tes
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nCLOSE-CONNECTION"))
     .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["from remote-endpoint connection lost"]))
 
+    .then(argument.webSocketCaptor.assertSilence.bind(null))
+    .then(argument.webSocketEndpointCaptor.assertSilence.bind(null))
+
     .then(argument.webSocketEndpoint.destroy)
 
     .then(done)
