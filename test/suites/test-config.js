@@ -1,7 +1,10 @@
 import {ReplayProxy} from "../utils/replay-proxy.js";
 
+Error.stackTraceLimit = Infinity;
+
 ReplayProxy.installQUnitHooks();
 ReplayProxy.installWebSocketProxy();
+ReplayProxy.installRtcProxy();
 
 
 window.Timeouts = {}

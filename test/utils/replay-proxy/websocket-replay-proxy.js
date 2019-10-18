@@ -4,34 +4,50 @@ export function webSocketProxyTypeFactory(nativeWebSocket) {
 
     function WebSocketReplayProxy(url) {
 
-        this.onopen = null;
-        this.onmessage = null;
-        this.onclose = null;
-
         var replay = ReplayProxy.getCurrentReplay();
-        var instanceId = replay.signalNewInstance(WebSocketReplayProxy, arguments);
-        var target = new nativeWebSocket(url);
 
-        var self = this;
-        var selfInstance = replay.captureUndefined(self, instanceId);
+        this.replayInstanceId = replay.signalNewInstance(WebSocketReplayProxy, arguments);
+        this.replayProxyTarget = new nativeWebSocket(url);
 
-        target.onopen = replay.newProxyEvent(instanceId, self, "onopen");
-        target.onmessage = replay.newProxyEvent(instanceId, self, "onmessage", (args) => {
-            return [{data: args[0].data,
-                    target: selfInstance,
-                    targetInstanceId: instanceId}];
+        var selfProxy = replay.captureUndefined(this);
+
+        replay.proxyEvent(this, "onopen");
+        replay.proxyEvent(this, "onmessage", ctx => {
+            ctx.args[0] = {
+                data: ctx.args[0].data,
+                target: selfProxy,
+                targetReplayInstanceId: this.replayInstanceId
+            }
+
+            ctx.toRecordArgs[0] = ctx.args[0];
         });
 
-        target.onclose = replay.newProxyEvent(instanceId, self, "onclose", (args) => {
-            return [{target: selfInstance,
-                     targetInstanceId: instanceId}];
+        replay.proxyEvent(this, "onclose", ctx => {
+            ctx.args[0] = {
+                target: selfProxy,
+                targetReplayInstanceId: this.replayInstanceId
+            }
+
+            ctx.toRecordArgs[0] = ctx.args[0];
         });
 
-        this.close = replay.newProxyMethod(instanceId, target ,"close");
-        this.send = replay.newProxyMethod(instanceId, target ,"send");
+        replay.proxyMethod(this ,"close");
+        replay.proxyMethod(this ,"send");
 
-        return selfInstance;
+        return selfProxy;
     }
 
     return WebSocketReplayProxy;
 }
+
+
+ReplayWriter.registerArgumentsTypeConvertor(function typeConverter(element, ctx) {
+
+    if(element.target && element.target.constructor.name == 'WebSocket') {
+        if(element.type == 'open') {
+            return {};
+        }
+    }
+
+    return undefined;
+});
