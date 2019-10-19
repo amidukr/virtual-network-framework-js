@@ -34,7 +34,7 @@ export function WebSocketStoreClient(webSocketRpc) {
         }
     }
 
-    webSocketRpc.onConnectionOpen(function(){
+    webSocketRpc.onConnectionOpen(function rpcOnConnectionOpenCallback(){
         for(var collectionName in storeCache) {
             var collection = storeCache[collectionName];
 

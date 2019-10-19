@@ -11,13 +11,13 @@ export function ProxyHub(parentHub){
 
     VnfHub.call(selfHub);
 
-    selfHub.ProxyEndpoint = function InBrowserEndpoint(selfVip) {
+    selfHub.ProxyEndpoint = function ProxyEndpoint(selfVip) {
         var self = this;
         selfHub.BaseEndPoint.call(this, selfVip);
 
         self.parentEndpoint = parentHub.openEndpoint(selfVip);
 
-        self.onDestroy(function(){
+        self.onDestroy(function selfOnDestroyCallback(){
             if(self.parentEndpoint) {
                 self.parentEndpoint.destroy();
             }

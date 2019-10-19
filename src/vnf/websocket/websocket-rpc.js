@@ -199,7 +199,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
                 callAction && handleCallResponse(callAction, header, argument);
 
                 if(!handler && !callAction) {
-                    throw new Error("WebSocketRpc: Unexpected message header: '" + header + "'")
+                    Log.warn("WebSocketRpc: Unexpected message header: '" + header + "'");
                 }
 
             }catch(error) {
