@@ -51,47 +51,44 @@ export function WebSocketHub(webSocketFactory){
         if(rpcIdleTimerInterval != null) webSocketRpc.setIdleTimerInterval(rpcIdleTimerInterval);
         if(rpcLoginRecreateInterval != null) webSocketRpc.setLoginRecreateInterval(rpcLoginRecreateInterval);
 
-        function sendHandshake(targetVip) {
-            var connection = self.getConnection(targetVip);
+        self.__doOpenConnection = function(connection) {
+            connection.retryAttempts = resendHandshakeRetries;
+            sendHandshake();
 
-            if(connection == null) {
-                return;
-            }
+            function sendHandshake() {
+                if(connection.isDestroyed || connection.isConnected) {
+                    return;
+                }
 
-            if(!self.isConnected(targetVip)) {
                 if(connection.retryAttempts-- == 0) {
                     if(!webSocketRpc.isConnected()) {
                         Log.warn("websocket-hub", "No connection to websocket: Connection to other endpoint '"  + targetVip + "' failed ");
                     }
 
-                    self.closeConnection(targetVip);
+                    self.__connectionOpenFailed(connection);
                     return;
                 }
 
-
-                webSocketRpc.invoke("SEND_TO_ENDPOINT",  targetVip + "\nHANDSHAKE", {retryResend: true})
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nHANDSHAKE", {retryResend: true})
                 .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + e));
-                window.setTimeout(sendHandshake.bind(null, targetVip), resendHandshakeInterval);
+
+                window.setTimeout(sendHandshake, resendHandshakeInterval);
             }
         }
 
-        self.__doOpenConnection = function(connection) {
-            connection.retryAttempts = resendHandshakeRetries;
-            sendHandshake(connection.targetVip);
-        }
-
         function handleHandshakeMessage(sourceVip, messageType, body) {
-            var connection = self.__lazyNewConnection(sourceVip);
-
-            webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nACCEPT", {retryResend: true})
+            webSocketRpc.invoke("SEND_TO_ENDPOINT",  sourceVip + "\nACCEPT", {retryResend: true})
             .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT ACCEPT not delivered: " + e));
 
-            self.__connectionOpened(connection.targetVip);
+            self.__acceptConnection(sourceVip);
         }
 
         function handleAcceptMessage(sourceVip, messageType, body) {
-            var connection = self.__lazyNewConnection(sourceVip);
-            self.__connectionOpened(connection.targetVip);
+            var  connection  = self.getConnection(sourceVip);
+
+            if(!connection) return;
+
+            self.__connectionOpened(connection);
         }
 
         function handleMessage(sourceVip, messageType, body) {

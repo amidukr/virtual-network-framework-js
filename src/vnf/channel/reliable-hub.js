@@ -350,7 +350,7 @@ export function ReliableHub(hub, args) {
 
                 sendHeartbeatMessage(connection, 0, -1);
 
-                self.__connectionOpened(connection.targetVip);
+                self.__connectionOpened(connection);
             }
         }
 
@@ -392,7 +392,7 @@ export function ReliableHub(hub, args) {
                 setConnectionState(connection, STATE_CONNECTED);
                 connection.remoteSessionId = message.fromSid;
 
-                self.__connectionOpened(connection.targetVip)
+                self.__connectionOpened(connection)
 
                 return;
             }
@@ -502,13 +502,13 @@ export function ReliableHub(hub, args) {
 
             function openParentConnection() {
                 parentEndpoint.openConnection(connection.targetVip, function(event) {
-                    if(self.isConnected(connection.targetVip)) return;
+                    if(connection.isDestroyed || self.isConnected(connection.targetVip)) return;
 
                     if(event.status  == Global.FAILED) {
                         if(connection.retriesBeforeOpenConnectionFailed-- > 0) {
                             openParentConnection();
                         }else{
-                            self.__connectionOpenFailed(connection.targetVip);
+                            self.__connectionOpenFailed(connection);
                         }
 
                         return;

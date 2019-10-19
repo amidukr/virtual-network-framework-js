@@ -16,8 +16,7 @@ export function UnreliableHub(hub) {
         selfHub.ProxyEndpoint.call(self, selfVip);
 
         self.parentEndpoint.onMessage = function(event) {
-            var connection = self.__lazyNewConnection(event.sourceVip);
-            self.__connectionOpened(connection.targetVip)
+            self.__acceptConnection(event.sourceVip)
 
             if(self.onMessage) {
                 self.onMessage({
@@ -31,9 +30,9 @@ export function UnreliableHub(hub) {
         self.__doOpenConnection = function(connection) {
             self.parentEndpoint.openConnection(connection.targetVip, function(event) {
                 if(event.status  == Global.FAILED) {
-                    self.__connectionOpenFailed(connection.targetVip);
+                    self.__connectionOpenFailed(connection);
                 }else{
-                    self.__connectionOpened(connection.targetVip)
+                    self.__connectionOpened(connection)
                 }
             })
         }

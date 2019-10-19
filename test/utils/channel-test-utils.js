@@ -23,7 +23,11 @@ function reliableRtcWebSocketFactory(){
 }
 
 function rtcFactory(){
-    return new Vnf.RtcHub(new Vnf.InBrowserHub());
+    var rtcHub = new Vnf.RtcHub(new Vnf.InBrowserHub())
+
+    rtcHub.setEstablishConnectionTimeout(1500);
+
+    return rtcHub;
 }
 
 function bigMessageFactory(){
@@ -98,7 +102,7 @@ export class ChannelTestUtils {
        integrationChannelTest("Reliable Rtc WebSocket", description, callback);
 
        // Misc
-       //integrationChannelTest("Rtc",                 description, callback);
+       integrationChannelTest("Rtc",                 description, callback);
        integrationChannelTest("Big Message Factory", description, callback);
        integrationChannelTest("WebSocket",           description, callback);
        integrationChannelTest("Reliable",            description, callback);

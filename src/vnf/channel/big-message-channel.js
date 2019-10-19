@@ -22,7 +22,7 @@ export function BigMessageHub(parentHub, configuration){
         self.setAnyTypeSupported(true);
 
         parentEndpoint.onConnectionOpen(function(targetVip){
-            self.__connectionOpened(targetVip);
+            self.__acceptConnection(targetVip);
         })
 
         parentEndpoint.onConnectionLost(function(targetVip){
@@ -67,10 +67,10 @@ export function BigMessageHub(parentHub, configuration){
 
         self.__doOpenConnection = function(connection) {
             parentEndpoint.openConnection(connection.targetVip, function(event) {
-                if(event.status  == Global.FAILED) {
-                    self.__connectionOpenFailed(connection.targetVip);
+                if(event.status == Global.FAILED) {
+                    self.__connectionOpenFailed(connection);
                 }else{
-                    self.__connectionOpened(connection.targetVip);
+                    self.__connectionOpened(connection);
                 }
             })
         }

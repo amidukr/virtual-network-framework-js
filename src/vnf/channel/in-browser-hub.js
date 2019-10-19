@@ -19,6 +19,10 @@ export function InBrowserHub(){
 
         self.__doOpenConnection = function(connection) {
             window.setTimeout(function __doOpenConnectionTimerCallback(){
+                if(connection.isConnected || connection.isDestroyed) {
+                    return;
+                }
+
                 var remoteEndpoint = selfHub.getEndPoint(connection.targetVip);
 
                 if(remoteEndpoint) {
@@ -27,11 +31,11 @@ export function InBrowserHub(){
 
                     var remoteConnection = remoteEndpoint.__lazyNewConnection(selfVip);
                     remoteConnection.remoteEndpoint = self;
-                    remoteEndpoint.__connectionOpened(selfVip);
+                    remoteEndpoint.__acceptConnection(selfVip);
 
-                    self.__connectionOpened(connection.targetVip);
+                    self.__connectionOpened(connection);
                 }else{
-                    self.__connectionOpenFailed(connection.targetVip);
+                    self.__connectionOpenFailed(connection);
                 }
             }, 0);
 

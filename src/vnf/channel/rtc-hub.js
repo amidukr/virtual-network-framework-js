@@ -135,7 +135,7 @@ function VnfRtcConnection(connectionId){
         }
 
         // closing rtc connection will increase sending signal to other side to 5 seconds.
-        window.setTimeout(destroyRtcConnection, 1000);
+        if(connection) window.setTimeout(destroyRtcConnection, 1000);
         try{
             channel.close();
             channel = null;
@@ -145,7 +145,7 @@ function VnfRtcConnection(connectionId){
 
         function destroyRtcConnection() {
             try{
-                connection.close();
+                if(connection) connection.close();
                 connection = null;
             }catch(e) {
                 Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
@@ -276,7 +276,7 @@ export function RtcHub(signalingHub){
 
                 window.clearTimeout(connection.connectTimeoutHandler);
 
-                self.__connectionOpened(targetVip);
+                self.__connectionOpened(connection);
             });
 
             vnfRtcConnection.onChannelMessage(function(message) {
@@ -338,13 +338,17 @@ export function RtcHub(signalingHub){
 
         self.__doOpenConnection = function(connection) {
             function doRunOpenConnection() {
-                if(connection.destroyed) {
+                if(connection.isConnected || connection.isDestroyed) {
                     return;
                 }
 
                 signalingEndpoint.openConnection(connection.targetVip, function(event) {
                     if(event.status  == Global.FAILED) {
-                        self.__connectionOpenFailed(connection.targetVip);
+                        self.__connectionOpenFailed(connection);
+                        return;
+                    }
+
+                    if(connection.isConnected || connection.isDestroyed) {
                         return;
                     }
 
@@ -365,13 +369,13 @@ export function RtcHub(signalingHub){
             }
 
             connection.connectTimeoutHandler = window.setTimeout(function connectionTimeoutTimerCallback(){
-                if(!connection.isConnected && connection.vnfRtcConnection) {
+                if(connection.isConnected) return;
+
+                if(connection.vnfRtcConnection) {
                     connection.vnfRtcConnection.destroy();
                 }
 
-                if(self.isConnected(connection.targetVip)) return;
-
-                self.__connectionOpenFailed(connection.targetVip);
+                self.__connectionOpenFailed(connection);
             }, establishConnectionTimeout);
 
             window.setTimeout(doRunOpenConnection, 0);

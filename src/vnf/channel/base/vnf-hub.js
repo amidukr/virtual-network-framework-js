@@ -52,6 +52,33 @@ export function VnfHub(){
                 Log.error(selfVip, "in-browser-hub", "Error in connection callback\n" + e);
             }
         }
+
+        function destroyConnection(connection) {
+            if(connection.isDestroyed) return;
+            connection.isDestroyed = true;
+
+            if(connections[connection.targetVip] == connection) {
+                delete connections[connection.targetVip];
+                connectionsArray = null;
+
+                var __doReleaseConnection = self.__doReleaseConnection;
+                if(__doReleaseConnection) {
+                    __doReleaseConnection(connection);
+                }
+
+                if(connection.isConnected) {
+                    connectionLostListeners.fire(connection.targetVip);
+                }
+            }
+
+            if(!connection.isConnected && connection.callback) {
+                notifyConnectionFailed(connection.targetVip, connection.callback);
+                connection.callback = null;
+            }
+
+            connection.isConnected = false;
+        }
+
         self.setAnyTypeSupported = function(value) {
             anyTypeSupported = value;
         }
@@ -90,29 +117,35 @@ export function VnfHub(){
             return connection;
         }
 
-
-
-        self.__connectionOpened = function(targetVip) {
+        self.__acceptConnection = function(targetVip) {
             var connection = self.__lazyNewConnection(targetVip);
 
-            if(connection.isConnected) {
+            if(connection.isDestroyed || connection.isConnected) {
+                return;
+            }
+
+            self.__connectionOpened(connection);
+        }
+
+        self.__connectionOpened = function(connection) {
+
+            if(connection.isDestroyed && connection.isConnected) {
                 return;
             }
 
             connection.isConnected = true;
 
-            connectionOpenListeners.fire(targetVip);
+            connectionOpenListeners.fire(connection.targetVip);
 
             var callback = connection.callback;
             connection.callback = null;
             if(callback) {
-                notifyConnectionSuccess(targetVip, callback);
+                notifyConnectionSuccess(connection.targetVip, callback);
             }
         }
 
-        self.__connectionOpenFailed = function(targetVip) {
-            var connection = connections[targetVip];
-            if(!connection) {
+        self.__connectionOpenFailed = function(connection) {
+            if(connection.isDestroyed) {
                 return;
             }
 
@@ -120,7 +153,7 @@ export function VnfHub(){
                 throw new Error("Wrong state, connection is already established.");
             }
 
-            self.closeConnection(targetVip);
+            destroyConnection(connection);
         }
 
         self.openConnection = function openConnection(targetVip, callback) {
@@ -142,7 +175,7 @@ export function VnfHub(){
 
             if(isNewConnection) {
                 if(targetVip == selfVip) {
-                    window.setTimeout(self.__connectionOpened.bind(null, targetVip), 0)
+                    window.setTimeout(self.__connectionOpened.bind(null, connection), 0)
                 }else{
                     self.__doOpenConnection(connection);
                 }
@@ -180,26 +213,7 @@ export function VnfHub(){
                 return;
             }
 
-            connection.destroyed = true;
-
-            delete connections[targetVip];
-            connectionsArray = null;
-
-            var __doReleaseConnection = self.__doReleaseConnection;
-            if(__doReleaseConnection) {
-                __doReleaseConnection(connection);
-            }
-
-            if(connection.isConnected) {
-                connection.isConnected = false;
-                connectionLostListeners.fire(targetVip);
-            }else{
-                var callback = connection.callback;
-                connection.callback = null;
-                if(callback) {
-                    notifyConnectionFailed(targetVip, callback);
-                }
-            }
+            destroyConnection(connection);
         }
 
         self.isDestroyed = function() {
