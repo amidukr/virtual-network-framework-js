@@ -1,11 +1,15 @@
+# In Progress
+1. Refactor Unit Test
+1. Fix/Run integration test
+
 # Todo List
 
-1. Run RTC as Unit
-1. Refactor Unit Test
+1. Review LOG.warn and LOG.error
+    1. web socket broken format error should be just warn, not error.
+    2. Error should be only of library used it in wrong way, internal error should be just warnings
+1. For timer and promise wrap exception into try/catch to run integration tests smoothly
 1. Replace boilerplate code with commonly used JS libraries
    1. Remove TestConfig 
-1. Split src and test
-1. Fix/Run integration test
 1. Implement stress test
 1. Remove/Extract VNF System
 1. Share specification document
@@ -26,3 +30,7 @@
 1. disable rtc tests
 1. clean-up todos again
 1. should be no failing tests
+
+# Done
+1. Split src and test
+1. Run RTC as Unit

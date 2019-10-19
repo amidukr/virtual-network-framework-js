@@ -18,7 +18,7 @@ export function InBrowserHub(){
         selfHub.BaseEndPoint.call(this, selfVip);
 
         self.__doOpenConnection = function(connection) {
-            window.setTimeout(function(){
+            window.setTimeout(function __doOpenConnectionTimerCallback(){
                 var remoteEndpoint = selfHub.getEndPoint(connection.targetVip);
 
                 if(remoteEndpoint) {

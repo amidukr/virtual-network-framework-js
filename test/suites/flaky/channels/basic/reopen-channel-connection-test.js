@@ -77,6 +77,7 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
 
     ChannelTestUtils.integrationTest("Test reopen of closed-connection - close by sender open by recipient test", function(assert, args) {
         var done = assert.async(1);
+        var testDone = false;
 
         var doneCaptor = new SignalCaptor(assert);
 
@@ -87,12 +88,16 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointRecipient.onConnectionLost(function(targetVip){
+                    if(testDone) return;
+
                     assert.equal(targetVip, args.senderVip, "Verifying connection-lost targetVip argument");
                     args.endpointRecipient.openConnection(args.senderVip, function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying sender connection status");
 
                         args.endpointSender.openConnection(args.recipientVip, function(event){
                             assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
+
+                            testDone = true;
 
                             args.endpointSender.destroy();
                             args.endpointRecipient.destroy();
@@ -109,6 +114,7 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
 
     ChannelTestUtils.integrationTest("Test reopen of closed-connection - close by recipient open by sender test", function(assert, args) {
         var done = assert.async(1);
+        var testDone = false;
 
         var doneCaptor = new SignalCaptor(assert);
 
@@ -119,12 +125,16 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointSender.onConnectionLost(function(targetVip){
+                    if(testDone) return;
+
                     assert.equal(targetVip, args.recipientVip, "Verifying connection-lost targetVip argument");
                     args.endpointSender.openConnection(args.recipientVip, function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying sender connection status");
 
                         args.endpointRecipient.openConnection(args.senderVip, function(event){
                             assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
+
+                            testDone = true;
 
                             args.endpointSender.destroy();
                             args.endpointRecipient.destroy();
@@ -140,6 +150,7 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
 
     ChannelTestUtils.integrationTest("Test reopen of connection to destroyed - destroy sender open by recipient", function(assert, args) {
         var done = assert.async(1);
+        var testDone = false;
 
         var doneCaptor = new SignalCaptor(assert);
 
@@ -150,12 +161,16 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointRecipient.onConnectionLost(function(targetVip){
+                    if(testDone) return;
+
                     assert.equal(targetVip, args.senderVip, "Verifying connection-lost targetVip argument");
                     args.endpointRecipient.openConnection(args.senderVip, function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                         args.endpointSender.openConnection(args.recipientVip, function(event){
                             assert.equal(event.status,    "CONNECTED", "Verifying sender connection status");
+
+                            testDone = true;
 
                             args.endpointSender.destroy();
                             args.endpointRecipient.destroy();
@@ -172,6 +187,7 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
 
     ChannelTestUtils.integrationTest("Test reopen of connection to destroyed - destroy recipient open by sender", function(assert, args) {
         var done = assert.async(1);
+        var testDone = false;
 
         var doneCaptor = new SignalCaptor(assert);
 
@@ -182,12 +198,16 @@ QUnit.module("Channel Open Connection Tests", (hooks) => {
                 assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
 
                 args.endpointSender.onConnectionLost(function(targetVip){
+                    if(testDone) return;
+
                     assert.equal(targetVip, args.recipientVip, "Verifying connection-lost targetVip argument");
                     args.endpointSender.openConnection(args.recipientVip, function(event){
                         assert.equal(event.status,    "CONNECTED", "Verifying sender connection status");
 
                         args.endpointRecipient.openConnection(args.senderVip, function(event){
                             assert.equal(event.status,    "CONNECTED", "Verifying recipient connection status");
+
+                            testDone = true;
 
                             args.endpointSender.destroy();
                             args.endpointRecipient.destroy();

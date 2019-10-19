@@ -4,12 +4,6 @@ import {xTimeout} from "../../utils/xtimeout.js";
 import {Global}   from "../global.js";
 import {ProxyHub} from "./base/vnf-proxy-hub.js";
 
-
-
-var RTCPeerConnection     = window.RTCPeerConnection     || window.mozRTCPeerConnection     || window.webkitRTCPeerConnection;
-var RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
-var RTCIceCandidate       = window.RTCIceCandidate       || window.mozRTCIceCandidate       || window.webkitRTCIceCandidate;
-
 window.vnfRtcServers = undefined;
 
 /*window.vnfRtcServers = {
@@ -32,11 +26,10 @@ function printStatuses(connection){
 }
 
 function logErrorCallback(instanceId){
-    var stacktrace = new Error();
-    return function(e) {
+    var stacktrace = Error().stack;
+    return function logError(e) {
         window.RtcDebugLastError = e;
-        Log.error(instanceId, "webrtc-logerror", e + " see RtcDebugLastError for details");
-        console.error(stacktrace);
+        Log.error(instanceId, "webrtc-logerror", e + " see RtcDebugLastError for details\n" + stacktrace);
     }
 
 }
@@ -46,6 +39,11 @@ function logSuccess(e){}
 var connectionNextId = 0;
 
 function VnfRtcConnection(connectionId){
+
+    var RTCPeerConnection     = window.RTCPeerConnection     || window.mozRTCPeerConnection     || window.webkitRTCPeerConnection;
+    var RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
+    var RTCIceCandidate       = window.RTCIceCandidate       || window.mozRTCIceCandidate       || window.webkitRTCIceCandidate;
+
 
     var self = this;
     var instanceId = "rtc[connection-" + connectionId + "]";
@@ -275,7 +273,7 @@ export function RtcHub(signalingHub){
                 }
             })
 
-            vnfRtcConnection.onChannelClosed(function(){
+            vnfRtcConnection.onChannelClosed(function vnfChannelClosedCallback(){
                 self.closeConnection(targetVip);
             });
 
@@ -351,7 +349,7 @@ export function RtcHub(signalingHub){
                 })
             }
 
-            connection.connectTimeoutHandler = window.setTimeout(function(){
+            connection.connectTimeoutHandler = window.setTimeout(function connectionTimeoutTimerCallback(){
                 if(self.isConnected(connection.targetVip)) return;
 
                 self.__connectionOpenFailed(connection.targetVip);
