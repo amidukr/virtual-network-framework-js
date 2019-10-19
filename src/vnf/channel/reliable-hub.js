@@ -115,7 +115,7 @@ export function ReliableHub(hub, args) {
             try{
                 var messageString = ReliableMessageSerializer.serialize(messageJson);
 
-                parentEndpoint.openConnection(targetVip, function(){
+                parentEndpoint.openConnection(targetVip, function parentOpenConnectionCallback(){
                     try{
                         parentEndpoint.send(targetVip, messageString);
                     }catch(error) {
@@ -467,7 +467,7 @@ export function ReliableHub(hub, args) {
 
         parentEndpoint.onMessage = function(event) {
             if(self.isDestroyed()) {
-                console.warn("ReliableHub: Unable to handle message, since endpoint destroyed");
+                console.debug("ReliableHub: Unable to handle message, because endpoint is destroyed");
             }
 
             //Log.debug(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));

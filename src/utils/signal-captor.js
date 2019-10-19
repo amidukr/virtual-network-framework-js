@@ -2,7 +2,7 @@
 function promiseWithTimeout(timeout, getErrorValue, callback) {
   return new Promise(function(r){
     var timeoutFired = false;
-    var timeoutHandle = window.setTimeout(function(){
+    var timeoutHandle = window.setTimeout(function timeoutTimerCallback(){
       timeoutFired = true;
 
       r(getErrorValue());
@@ -86,7 +86,7 @@ export function SignalCaptor(assert) {
 
     self.assertSilence = function(timeout) {
         return new Promise(function(r){
-          window.setTimeout(function(){
+          window.setTimeout(function assertSilenceTimerCallback(){
             var logs = self.peekRemain();
 
             assert.deepEqual(logs, [],  "Captured signals should be empty");

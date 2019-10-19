@@ -93,6 +93,7 @@ WebSocketChannelTestUtils.webSocketHubTest("openConnection call just after close
 
 WebSocketChannelTestUtils.webSocketHubTest("openConnection call just after CLOSE-CONNECTION event", function(assert, argument){
     var done = assert.async(1);
+    var testDone = false;
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
         assert.equal(event.status, "CONNECTED", "Verifying status");
@@ -112,6 +113,8 @@ WebSocketChannelTestUtils.webSocketHubTest("openConnection call just after CLOSE
     .then(function(){
 
         argument.webSocketEndpoint.onConnectionLost(function(targetVip){
+            if(testDone) return;
+
             assert.equal(targetVip, "remote-endpoint", "Verifying connection-lost targetVip argument");
 
             argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -130,6 +133,8 @@ WebSocketChannelTestUtils.webSocketHubTest("openConnection call just after CLOSE
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "ENDPOINT_MESSAGE\nremote-endpoint\nACCEPT"))
 
     .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint connectionOpened-2"]))
+
+    .then(function() { testDone = true; })
 
     .then(argument.webSocketEndpoint.destroy)
 

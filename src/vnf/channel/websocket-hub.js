@@ -127,7 +127,10 @@ export function WebSocketHub(webSocketFactory){
             var endOfLine = message.indexOf("\n");
 
             var sourceVip;
-            if(endOfLine == -1) throw new Error("WebSocketHub: Malformed message retrieved. EOL character is required after endpoint");
+            if(endOfLine == -1) {
+                Log.warn("WebSocketHub: Malformed message retrieved. EOL character is required after endpoint\n" + message);
+                return;
+            }
             var sourceVip = message.substr(0, endOfLine);
 
             var beginOfLine = endOfLine + 1;

@@ -119,7 +119,9 @@ export function VnfHub(){
             if(typeof targetVip != "string")   throw new Error("Wrong first argument type, targetVip as string is expected");
             if(typeof callback  != "function") throw new Error("Wrong second argument type, callback as function is expected");
 
-            if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
+            if(self.isDestroyed()) {
+                throw new Error("Endpoint is destroyed");
+            }
 
             if(self.isConnected(targetVip)) {
                 notifyConnectionSuccess(targetVip, callback);
