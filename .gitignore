@@ -3,3 +3,6 @@ node_modules
 coverage
 /log
 log2
+log.*.log
+run-test-loop.sh
+run.log

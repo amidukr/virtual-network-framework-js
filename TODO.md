@@ -4,6 +4,7 @@
 
 # Todo List
 
+1. RTC openConnection do not retry if parent openConnection failed
 1. Review LOG.warn and LOG.error
     1. web socket broken format error should be just warn, not error.
     2. Error should be only of library used it in wrong way, internal error should be just warnings

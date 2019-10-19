@@ -40,6 +40,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
     });
 
     ChannelTestUtils.integrationTest("Open Connection Failed Test", function(assert, args) {
+        assert.timeout(20000);
         var done = assert.async(1);
 
         args.endpointSender.openConnection("non-existent-recipient", function(event){
