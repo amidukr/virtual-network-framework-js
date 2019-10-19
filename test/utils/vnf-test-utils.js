@@ -84,22 +84,9 @@ var VnfTestUtils = {
                 }
             });
 
-            function getInterval(config) {
-                return TestingProfiles.getInterval(profileKey, config)
-            }
-
-            function toAbsoluteInterval(timePoints) {
-                return TestingProfiles.toAbsoluteInterval(profileKey, timePoints)
-            }
-
             parameter = Object.assign(parameter, {testProfile: testProfile,
                                                   testDescription: description,
-                                                  profileKey:  profileKey,
-                                                  getInterval: getInterval,
-                                                  toAbsoluteInterval: toAbsoluteInterval})
-
-            QUnit.config.testTimeout   = parameter.getInterval("qunitTestTimeout");
-            Timeouts.logCaptureTimeout = parameter.getInterval("logCaptureTimeout");
+                                                  profileKey:  profileKey})
 
             //QUnit defect fix
             var assertAsync = assert.async;
@@ -148,9 +135,9 @@ var VnfTestUtils = {
         function reliableRtcHubFactory() {
             var reliableRtc = new Vnf.ReliableRtcHub(new Vnf.InBrowserHub());
 
-            reliableRtc.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHeartbeatInterval"));
-            reliableRtc.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionInvalidateInterval"));
-            reliableRtc.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionLostTimeout"));
+            reliableRtc.setHeartbeatInterval(50);
+            reliableRtc.setConnectionInvalidateInterval(500);
+            reliableRtc.setConnectionLostTimeout(5000);
 
             return reliableRtc;
         };
@@ -158,9 +145,9 @@ var VnfTestUtils = {
         function reliableHubFactory() {
             var reliableRtc = new Vnf.ReliableHub(new Vnf.InBrowserHub());
 
-            reliableRtc.setHeartbeatInterval(                 TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcHeartbeatInterval"));
-            reliableRtc.setConnectionInvalidateInterval(      TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionInvalidateInterval"));
-            reliableRtc.setConnectionLostTimeout(             TestingProfiles.getInterval("root:ReliableRtc", "reliableRtcConnectionLostTimeout"));
+            reliableRtc.setHeartbeatInterval(50);
+            reliableRtc.setConnectionInvalidateInterval(500);
+            reliableRtc.setConnectionLostTimeout(5000);
 
             return reliableRtc;
         };

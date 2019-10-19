@@ -24,7 +24,7 @@ function(  Vnf,
 
 
         function webSocketArgument() {
-            var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl"));
+            var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl);
 
             function newWebSocketClient(vip) {
                 var client = new Vnf.WebSocketStoreClient(new Vnf.WebSocketRpc(vip, webSocketFactory));
