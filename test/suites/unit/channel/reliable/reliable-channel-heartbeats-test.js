@@ -4,9 +4,9 @@ QUnit.module("ReliableHub Heartbeats");
 ReliableTestUtils.reliableVnfTest("Connection Lost: by timeout", function(assert, argument) {
     var done = assert.async(1);
 
-    argument.reliableHub.setHeartbeatInterval(argument.toAbsoluteInterval(30));
-    argument.reliableHub.setConnectionInvalidateInterval(argument.toAbsoluteInterval(90));
-    argument.reliableHub.setConnectionLostTimeout(argument.toAbsoluteInterval(149));
+    argument.reliableHub.setHeartbeatInterval(30);
+    argument.reliableHub.setConnectionInvalidateInterval(90);
+    argument.reliableHub.setConnectionLostTimeout(149);
 
     Promise.resolve()
 
