@@ -16,8 +16,8 @@ module.exports = function(config) {
       {pattern: 'src/**/*.js'},
 
       {pattern: 'test/utils/**/*.js'},
-
       {pattern: 'test/suites/test-config.js'},
+
       {pattern: 'test/suites/unit/**/*.js'},
       {pattern: 'test/suites/integration/**/*.js'},
       {pattern: 'test/suites/flaky/channels/basic/**/*.js'}

@@ -35,7 +35,7 @@ export function ReliableHub(hub, args) {
     var connectionInvalidateInterval = 9000;
     var connectionLostTimeout = 30000;
 
-
+    var openConnectionRetries = 5;
     var heartbeatsToInvalidate = 0;
     var heartbeatsToDropConnection = 0;
 
@@ -497,15 +497,27 @@ export function ReliableHub(hub, args) {
         }
 
         self.__doOpenConnection = function(connection) {
-            parentEndpoint.openConnection(connection.targetVip, function(event) {
-                if(event.status  == Global.FAILED) {
-                    self.__connectionOpenFailed(connection.targetVip);
-                    return;
-                }
+            connection.retriesBeforeOpenConnectionFailed = openConnectionRetries;
+            openParentConnection();
 
-                resetConnection(connection, event.targetVip, STATE_HANDSHAKING);
-                sendHandshakeMessage(connection);
-            })
+            function openParentConnection() {
+                parentEndpoint.openConnection(connection.targetVip, function(event) {
+                    if(self.isConnected(connection.targetVip)) return;
+
+                    if(event.status  == Global.FAILED) {
+                        if(connection.retriesBeforeOpenConnectionFailed-- > 0) {
+                            openParentConnection();
+                        }else{
+                            self.__connectionOpenFailed(connection.targetVip);
+                        }
+
+                        return;
+                    }
+
+                    resetConnection(connection, event.targetVip, STATE_HANDSHAKING);
+                    sendHandshakeMessage(connection);
+                })
+            }
         }
 
         self.__doSend = function(connection, message) {

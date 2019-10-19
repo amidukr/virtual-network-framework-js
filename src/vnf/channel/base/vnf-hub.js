@@ -30,19 +30,27 @@ export function VnfHub(){
         var destroyed = false;
 
         function notifyConnectionSuccess(targetVip, callback) {
-            callback({
-                status: Global.CONNECTED,
-                targetVip: targetVip,
-                endpoint: self
-            });
+            try{
+                callback({
+                    status: Global.CONNECTED,
+                    targetVip: targetVip,
+                    endpoint: self
+                });
+            }catch(e) {
+                Log.error(selfVip, "in-browser-hub", "Error in connection callback\n" + e);
+            }
         }
 
         function notifyConnectionFailed(targetVip, callback) {
-            callback({
-                status: Global.FAILED,
-                targetVip: targetVip,
-                endpoint: self
-            });
+            try{
+                callback({
+                    status: Global.FAILED,
+                    targetVip: targetVip,
+                    endpoint: self
+                });
+            }catch(e) {
+                Log.error(selfVip, "in-browser-hub", "Error in connection callback\n" + e);
+            }
         }
         self.setAnyTypeSupported = function(value) {
             anyTypeSupported = value;
