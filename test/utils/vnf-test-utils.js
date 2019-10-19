@@ -27,22 +27,6 @@ QUnit.done(function(details){
 
 var VnfTestUtils = {
 
-    isTestingLevelEnabled: function(testLevel, testProfile) {
-        var activeTestingLevel = TestingProfiles.getValue(testProfile, "activeTestingLevel");
-        return activeTestingLevel >= testLevel;
-    },
-
-    isTestEnabled: function(testProfile) {
-        var testLevel = TestingProfiles.getValue(testProfile, "testLevel");
-        var enabled = TestingProfiles.getValue(testProfile, "enabled");
-
-        if(enabled === undefined) {
-            enabled  = true;
-        }
-
-        return enabled && VnfTestUtils.isTestingLevelEnabled(testLevel, testProfile);
-    },
-
     onTearDown: function(callback) {
          tearDownListeners.addListener(callback);
     },
@@ -74,10 +58,6 @@ var VnfTestUtils = {
         var description = "["+profileKeyDescription+"] " + shortDescription;
 
         profileKey.splice(0, 0, description);
-
-        if(!VnfTestUtils.isTestEnabled(profileKey)) {
-            return;
-        }
 
         QUnit.test(description, function(assert){
             Log.info("test", description);
