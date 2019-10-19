@@ -121,10 +121,24 @@ function VnfRtcConnection(connectionId){
     self.destroy = function() {
         destroyed = true;
 
+        if(channel != null) {
+            channel.onopen = function(){};
+            channel.onmessage = function(){};
+            channel.onclose = function(){};
+        }
+
+        if(connection != null) {
+            connection.ondatachannel = function(){};
+            connection.onsignalingstatechange = function(){};
+            connection.onconnectionstatechange = function(){};
+            connection.oniceconnectionstatechange = function(){};
+        }
+
         // closing rtc connection will increase sending signal to other side to 5 seconds.
         window.setTimeout(destroyRtcConnection, 1000);
         try{
-            if(channel != null) channel.close();
+            channel.close();
+            channel = null;
         }catch(e) {
             Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
         }
@@ -132,6 +146,7 @@ function VnfRtcConnection(connectionId){
         function destroyRtcConnection() {
             try{
                 connection.close();
+                connection = null;
             }catch(e) {
                 Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
             }
@@ -350,6 +365,10 @@ export function RtcHub(signalingHub){
             }
 
             connection.connectTimeoutHandler = window.setTimeout(function connectionTimeoutTimerCallback(){
+                if(!connection.isConnected && connection.vnfRtcConnection) {
+                    connection.vnfRtcConnection.destroy();
+                }
+
                 if(self.isConnected(connection.targetVip)) return;
 
                 self.__connectionOpenFailed(connection.targetVip);

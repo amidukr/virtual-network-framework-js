@@ -102,16 +102,25 @@ export function WebSocketRpc(vip, webSocketFactory) {
         loginRecreateTimerToken = window.setTimeout(onLoginRecreationTimer, loginRecreateInterval);
     }
 
-    function recreateWebSocket() {
+    function closeWebSocket() {
         var previousWebSocket = webSocket;
         webSocket = null;
 
         try{
-            previousWebSocket && previousWebSocket.close();
+            if(previousWebSocket) {
+                previousWebSocket.onopen = function(){};
+                previousWebSocket.onmessage = function(){};
+                previousWebSocket.onclose = function(){};
+
+                previousWebSocket.close()
+            }
         }catch(error) {
             Log.warn(vip, "websocket-rtc", [new Error("Unable to close websocket"), error]);
         }
+    }
 
+    function recreateWebSocket() {
+        closeWebSocket();
         createWebSocket();
     }
 
@@ -317,12 +326,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
 
         destroyed = true;
 
-        try{
-            webSocket.close();
-        }catch(error) {
-            Log.warn(vip, "websocket-rtc", [new Error("Unable to close websocket"), error]);
-        }
-
+        closeWebSocket();
         stopAllTimers();
 
         for(var header in callMap) {
