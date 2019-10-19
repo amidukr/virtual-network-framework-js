@@ -53,12 +53,6 @@ export class ReliableTestUtils {
                     .then(args.reliableCapture.assertSignals.bind(null, ['openConnection captured']))
             }
 
-            function fastHeartbeats() {
-                reliableHub.setHeartbeatInterval(args.getInterval("reliableFastHeartbeatInterval"));
-                reliableHub.setConnectionInvalidateInterval(args.getInterval("reliableFastConnectionInvalidateInterval"));
-                reliableHub.setConnectionLostTimeout(args.getInterval("reliableFastConnectionLostTimeout"));
-            }
-
             return Object.assign({}, {  reliableHub:      reliableHub,
                                         reliableEndpoint: reliableEndpoint,
                                         reliableCapture:  reliableCapture,
@@ -68,7 +62,6 @@ export class ReliableTestUtils {
                                         rootCapture:  rootCapture,
 
                                         makeConnection: makeConnection,
-                                        fastHeartbeats: fastHeartbeats,
                                         destroy: destroy},
                            args);
         }

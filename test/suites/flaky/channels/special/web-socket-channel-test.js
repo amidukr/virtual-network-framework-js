@@ -18,7 +18,7 @@ function(  Vnf,
     VnfTestUtils.test("WebSocketHub-Integration", "closeConnection after send failed integration test", function(assert){
         var done = assert.async(1);
 
-        var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl"));
+        var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl);
         var webSocketRpc = new Vnf.WebSocketRpc("manual-rpc-endpoint", webSocketFactory);
 
         var captor = new SignalCaptor(assert);

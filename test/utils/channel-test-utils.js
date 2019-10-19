@@ -35,7 +35,7 @@ function reliableWebSocketFactory() {
 }
 
 function webSocketFactory() {
-    var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.getValue(null, "vnfWebSocketUrl")));
+    var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl));
 
     hub.setResendHandshakeInterval(1500);
     hub.setResendHandshakeRetries(3);
