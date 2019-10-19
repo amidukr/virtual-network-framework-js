@@ -34,7 +34,7 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection join test", function(
 WebSocketChannelTestUtils.webSocketHubTest("New connection join - retry test", function(assert, argument){
     var done = assert.async(1);
 
-    argument.webSocketHub.setResendHandshakeInterval(300);
+    argument.webSocketHub.setEstablishConnectionTimeout(300);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
         assert.equal(event.status, "CONNECTED", "Verifying status");
@@ -62,7 +62,7 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection join - retry test", f
 WebSocketChannelTestUtils.webSocketHubTest("New connection join - failed due to timeout test", function(assert, argument){
     var done = assert.async(1);
 
-    argument.webSocketHub.setResendHandshakeInterval(300);
+    argument.webSocketHub.setEstablishConnectionTimeout(300);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
         assert.equal(event.status, "FAILED", "Verifying status");

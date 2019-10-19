@@ -23,6 +23,36 @@ ChannelTestUtils.integrationTest("Open connection in open connection", function(
      });
 });
 
+ChannelTestUtils.integrationTest("Recipient is not immediately available", function(assert, args) {
+    var done = assert.async(1);
+
+    var connected = false;
+    var recipientCreated = false;
+
+    var hub = args.vnfHub;
+
+    hub.setRetryConnectAfterDelay(50);
+    hub.setOpenConnectionRetries(100);
+
+    args.endpointRecipient.destroy();
+    args.endpointSender.openConnection(args.recipientVip, function(event) {
+        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(recipientCreated, true, "Verifying recipient created after some delay");
+        connected = true;
+
+        args.endpointRecipient.destroy();
+        args.endpointSender.destroy();
+
+        done();
+    });
+
+    window.setTimeout(function() {
+        assert.equal(connected, false, "Verifying not yet connected after some delay");
+        args.endpointRecipient = args.vnfHub.openEndpoint(args.recipientVip)
+        recipientCreated = true;
+    }, 300);
+});
+
 ChannelTestUtils.integrationTest("Recipient open connection in Sender open connection callback", function(assert, args) {
      var done = assert.async(1);
 

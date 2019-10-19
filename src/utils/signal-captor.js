@@ -43,6 +43,7 @@ export function SignalCaptor(assert) {
 
     self.takeNext = function takeNext(amount) {
         function getStream() {
+            readers = [];
             var signalStreamClone = signalStream.slice(0)
             signalStreamClone.push("<Captor timeout>");
             return signalStreamClone;

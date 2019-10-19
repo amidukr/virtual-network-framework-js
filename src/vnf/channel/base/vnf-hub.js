@@ -7,11 +7,27 @@ import {Global} from "../../global.js";
 window.vnfActiveEndpoints = [];
     
 export function VnfHub(){
-    var self = this;
+    var selfHub = this;
 
     var hub = {};
 
-    self.BaseEndPoint = function BaseEndPoint(selfVip) {
+    var openConnectionRetries = 3;
+    var retryConnectAfterDelay = 0;
+    var establishConnectionTimeout = 5000;
+
+    selfHub.setEstablishConnectionTimeout = function(value) {
+        establishConnectionTimeout = value;
+    }
+
+    selfHub.setRetryConnectAfterDelay = function(value) {
+        retryConnectAfterDelay = value;
+    }
+
+    selfHub.setOpenConnectionRetries = function(value) {
+        openConnectionRetries = value;
+    }
+
+    selfHub.BaseEndPoint = function BaseEndPoint(selfVip) {
         var self = this;
         var destroyListeners = new Observable();
         var connectionOpenListeners = new Observable();
@@ -108,6 +124,7 @@ export function VnfHub(){
             if(!connection) {
                 connection = {isConnected: false,
                               destroyed: false,
+                              openConnectionRetriesLeft: 0,
                               targetVip: targetVip};
                 connections[targetVip] = connection;
 
@@ -129,7 +146,7 @@ export function VnfHub(){
 
         self.__connectionOpened = function(connection) {
 
-            if(connection.isDestroyed && connection.isConnected) {
+            if(connection.isDestroyed || connection.isConnected) {
                 return;
             }
 
@@ -156,6 +173,45 @@ export function VnfHub(){
             destroyConnection(connection);
         }
 
+        self.__connectionNextTryFailed = function(connection) {
+            if(connection.retryTimeoutToken) {
+                window.clearTimeout(connection.retryTimeoutToken);
+                connection.retryTimeoutToken = null;
+            }
+
+            if(connection.isConnected || connection.isDestroyed) {
+                return;
+            }
+
+            if(connection.openConnectionRetriesLeft-- > 0) {
+                if(self.__doOpenConnection_CleanBeforeNextTry) self.__doOpenConnection_CleanBeforeNextTry(connection);
+                window.setTimeout(openConnectionRetryLoop.bind(null, connection), retryConnectAfterDelay);
+            }else{
+                self.__connectionOpenFailed(connection);
+            }
+        }
+
+        self.__rejectConnection = function(connection) {
+            if(connection.isDestroyed) {
+                return;
+            }
+
+            if(connection.isConnected) {
+                self.closeConnection(connection.targetVip);
+            }else{
+                self.__connectionNextTryFailed(connection);
+            }
+        }
+
+        function openConnectionRetryLoop(connection) {
+            if(connection.isConnected || connection.isDestroyed) {
+                return;
+            }
+
+            if(self.__doOpenConnection_NextTry) self.__doOpenConnection_NextTry(connection);
+            connection.retryTimeoutToken = window.setTimeout(self.__connectionNextTryFailed.bind(self, connection), establishConnectionTimeout);
+        }
+
         self.openConnection = function openConnection(targetVip, callback) {
             if(typeof targetVip != "string")   throw new Error("Wrong first argument type, targetVip as string is expected");
             if(typeof callback  != "function") throw new Error("Wrong second argument type, callback as function is expected");
@@ -177,7 +233,9 @@ export function VnfHub(){
                 if(targetVip == selfVip) {
                     window.setTimeout(self.__connectionOpened.bind(null, connection), 0)
                 }else{
-                    self.__doOpenConnection(connection);
+                    connection.openConnectionRetriesLeft = openConnectionRetries;
+                    if(self.__doOpenConnection) self.__doOpenConnection(connection);
+                    openConnectionRetryLoop(connection);
                 }
             }
         }
@@ -245,14 +303,14 @@ export function VnfHub(){
         }
     }
 
-    self.getEndPoint = function(vip) {
+    selfHub.getEndPoint = function(vip) {
        return hub[vip];
     }
 
-    self.openEndpoint = function openEndpoint(vip) {
+    selfHub.openEndpoint = function openEndpoint(vip) {
        var endpoint = hub[vip];
        if(!endpoint) {
-            endpoint = new self.VnfEndpoint(vip);
+            endpoint = new selfHub.VnfEndpoint(vip);
             hub[vip] = endpoint;
        }
 

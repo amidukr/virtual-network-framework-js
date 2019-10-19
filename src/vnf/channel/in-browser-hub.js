@@ -17,7 +17,7 @@ export function InBrowserHub(){
         var self = this;
         selfHub.BaseEndPoint.call(this, selfVip);
 
-        self.__doOpenConnection = function(connection) {
+        self.__doOpenConnection_NextTry = function(connection) {
             window.setTimeout(function __doOpenConnectionTimerCallback(){
                 if(connection.isConnected || connection.isDestroyed) {
                     return;
@@ -35,10 +35,9 @@ export function InBrowserHub(){
 
                     self.__connectionOpened(connection);
                 }else{
-                    self.__connectionOpenFailed(connection);
+                    self.__connectionNextTryFailed(connection);
                 }
             }, 0);
-
         }
 
         function sendFunction(connection, message) {
@@ -46,10 +45,11 @@ export function InBrowserHub(){
 
             if(!remoteEndpoint)  return;
             if(remoteEndpoint.isDestroyed()) return;
-            if(remoteEndpoint.getConnection(selfVip).remoteEndpoint != self) return;
+            var remoteConnection = remoteEndpoint.getConnection(selfVip);
+
+            if(!remoteConnection || remoteConnection.remoteEndpoint != self) return;
 
             var onMessage = remoteEndpoint.onMessage;
-
 
             if(onMessage) {
                 onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});

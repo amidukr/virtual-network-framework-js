@@ -1,6 +1,9 @@
 import "./utils/cycle-buffer-test.js";
 import "./utils/signal-captor-test.js";
 
+// VnfHub base channel
+import "./channel/base/vnf-hub-retry-test.js";
+
 // Reliable channel
 import "./channel/reliable-channel-test.js";
 

@@ -11,22 +11,9 @@ export function WebSocketHub(webSocketFactory){
 
     VnfHub.call(selfHub);
 
-    var resendHandshakeInterval = 3000;
-    var resendHandshakeRetries = 2;
-
     var rpcBusyTimerInterval = null;
     var rpcIdleTimerInterval = null;
     var rpcLoginRecreateInterval = null;
-
-
-    selfHub.setResendHandshakeInterval = function(value) {
-        resendHandshakeInterval = value;
-    }
-
-    selfHub.setResendHandshakeRetries = function(value) {
-        resendHandshakeRetries = value;
-    }
-
 
     this.setRpcBusyTimerInterval = function(value) {
         rpcBusyTimerInterval = value;
@@ -51,29 +38,18 @@ export function WebSocketHub(webSocketFactory){
         if(rpcIdleTimerInterval != null) webSocketRpc.setIdleTimerInterval(rpcIdleTimerInterval);
         if(rpcLoginRecreateInterval != null) webSocketRpc.setLoginRecreateInterval(rpcLoginRecreateInterval);
 
-        self.__doOpenConnection = function(connection) {
-            connection.retryAttempts = resendHandshakeRetries;
-            sendHandshake();
-
-            function sendHandshake() {
-                if(connection.isDestroyed || connection.isConnected) {
-                    return;
-                }
-
-                if(connection.retryAttempts-- == 0) {
-                    if(!webSocketRpc.isConnected()) {
-                        Log.warn("websocket-hub", "No connection to websocket: Connection to other endpoint '"  + targetVip + "' failed ");
-                    }
-
-                    self.__connectionOpenFailed(connection);
-                    return;
-                }
-
-                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nHANDSHAKE", {retryResend: true})
-                .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + e));
-
-                window.setTimeout(sendHandshake, resendHandshakeInterval);
-            }
+        self.__doOpenConnection_NextTry = function(connection) {
+             webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nHANDSHAKE", {retryResend: true})
+             .then(function(response) {
+                 if(response) {
+                     Log.warn("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + data);
+                     self.__connectionNextTryFailed(connection);
+                 }
+             })
+             .catch((e) => {
+                 Log.warn("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + e);
+                 self.__connectionNextTryFailed(connection);
+             });
         }
 
         function handleHandshakeMessage(sourceVip, messageType, body) {

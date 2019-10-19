@@ -31,11 +31,9 @@ export function ReliableHub(hub, args) {
     args = args || {};
 
     var heartbeatInterval = 3000;
-
     var connectionInvalidateInterval = 9000;
     var connectionLostTimeout = 30000;
 
-    var openConnectionRetries = 5;
     var heartbeatsToInvalidate = 0;
     var heartbeatsToDropConnection = 0;
 
@@ -467,7 +465,7 @@ export function ReliableHub(hub, args) {
 
         parentEndpoint.onMessage = function(event) {
             if(self.isDestroyed()) {
-                console.debug("ReliableHub: Unable to handle message, because endpoint is destroyed");
+                Log.debug("reliable-hub", "ReliableHub: Unable to handle message, because endpoint is destroyed")
             }
 
             //Log.debug(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));
@@ -496,28 +494,22 @@ export function ReliableHub(hub, args) {
             handler(event, connection, message);
         }
 
-        self.__doOpenConnection = function(connection) {
-            connection.retriesBeforeOpenConnectionFailed = openConnectionRetries;
-            openParentConnection();
+        self.__doOpenConnection_NextTry = function(connection) {
+            parentEndpoint.openConnection(connection.targetVip, function(event) {
+                if(connection.isDestroyed || connection.isConnected) return;
 
-            function openParentConnection() {
-                parentEndpoint.openConnection(connection.targetVip, function(event) {
-                    if(connection.isDestroyed || self.isConnected(connection.targetVip)) return;
+                if(event.status  == Global.FAILED) {
+                    self.__connectionNextTryFailed(connection);
+                    return;
+                }
 
-                    if(event.status  == Global.FAILED) {
-                        if(connection.retriesBeforeOpenConnectionFailed-- > 0) {
-                            openParentConnection();
-                        }else{
-                            self.__connectionOpenFailed(connection);
-                        }
+                resetConnection(connection, event.targetVip, STATE_HANDSHAKING);
+                sendHandshakeMessage(connection);
+            })
+        }
 
-                        return;
-                    }
-
-                    resetConnection(connection, event.targetVip, STATE_HANDSHAKING);
-                    sendHandshakeMessage(connection);
-                })
-            }
+        self.__doOpenConnection_CleanBeforeNextTry = function(connection) {
+            parentEndpoint.closeConnection(connection.targetVip);
         }
 
         self.__doSend = function(connection, message) {

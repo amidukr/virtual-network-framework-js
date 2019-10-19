@@ -248,20 +248,15 @@ export function RtcHub(signalingHub){
     var selfHub = this;
     ProxyHub.call(selfHub, signalingHub);
 
-    var establishConnectionTimeout = 10000;
-    selfHub.setEstablishConnectionTimeout = function(value) {
-        establishConnectionTimeout = value;
-    }
-
     selfHub.VnfEndpoint = function RTCEndpoint(selfVip) {
         var self = this;
         selfHub.ProxyEndpoint.call(self, selfVip);
 
         var signalingEndpoint = self.parentEndpoint;
 
-        function createVnfRtcConnection(targetVip) {
+        function createVnfRtcConnection(connection) {
             var connectionIndex = connectionNextId++;
-            var vnfRtcConnection = new VnfRtcConnection(connectionIndex + ": " + selfVip + "->" + targetVip )
+            var vnfRtcConnection = new VnfRtcConnection(connectionIndex + ": " + selfVip + "->" + connection.targetVip )
 
             vnfRtcConnection.onChannelOpened(function() {
                 if(self.isDestroyed()) {
@@ -270,12 +265,6 @@ export function RtcHub(signalingHub){
                     return;
                 }
 
-                var connection = self.getConnection(targetVip);
-
-                if(!connection) return;
-
-                window.clearTimeout(connection.connectTimeoutHandler);
-
                 self.__connectionOpened(connection);
             });
 
@@ -283,13 +272,13 @@ export function RtcHub(signalingHub){
                 var onMessage = self.onMessage;
                 if(onMessage) {
                     self.onMessage({message: message,
-                                    sourceVip: targetVip,
+                                    sourceVip: connection.targetVip,
                                     endpoint:  self});
                 }
             })
 
             vnfRtcConnection.onChannelClosed(function vnfChannelClosedCallback(){
-                self.closeConnection(targetVip);
+                self.__rejectConnection(connection);
             });
 
             return vnfRtcConnection;
@@ -311,7 +300,7 @@ export function RtcHub(signalingHub){
                         return;
                     }
 
-                    connection.vnfRtcConnection = createVnfRtcConnection(targetVip);
+                    connection.vnfRtcConnection = createVnfRtcConnection(connection);
                     connection.vnfRtcConnection.startCallee(message.ice, function(ice){
                         var message =  {type: "rtc-connection",
                                         requestForNewConnection: false,
@@ -336,49 +325,37 @@ export function RtcHub(signalingHub){
            }
         }
 
-        self.__doOpenConnection = function(connection) {
-            function doRunOpenConnection() {
+        self.__doOpenConnection_NextTry = function(connection) {
+            signalingEndpoint.openConnection(connection.targetVip, function(event) {
                 if(connection.isConnected || connection.isDestroyed) {
                     return;
                 }
 
-                signalingEndpoint.openConnection(connection.targetVip, function(event) {
-                    if(event.status  == Global.FAILED) {
-                        self.__connectionOpenFailed(connection);
-                        return;
-                    }
-
-                    if(connection.isConnected || connection.isDestroyed) {
-                        return;
-                    }
-
-                    connection.vnfRtcConnection = createVnfRtcConnection(connection.targetVip);
-                    connection.vnfRtcConnection.startCaller(function(ice){
-
-                        var message =  {type: "rtc-connection",
-                                        requestForNewConnection: true,
-                                        ice: ice,
-                                        connectionCreateDate: connection.vnfRtcConnection.createDate};
-                        try {
-                            signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
-                        }catch(e) {
-                            Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send handshake message via signaling endpoint", e]);
-                        }
-                    });
-                })
-            }
-
-            connection.connectTimeoutHandler = window.setTimeout(function connectionTimeoutTimerCallback(){
-                if(connection.isConnected) return;
-
-                if(connection.vnfRtcConnection) {
-                    connection.vnfRtcConnection.destroy();
+                if(event.status  == Global.FAILED) {
+                    self.__connectionNextTryFailed(connection);
+                    return;
                 }
 
-                self.__connectionOpenFailed(connection);
-            }, establishConnectionTimeout);
+                connection.vnfRtcConnection = createVnfRtcConnection(connection);
+                connection.vnfRtcConnection.startCaller(function(ice){
 
-            window.setTimeout(doRunOpenConnection, 0);
+                    var message =  {type: "rtc-connection",
+                                    requestForNewConnection: true,
+                                    ice: ice,
+                                    connectionCreateDate: connection.vnfRtcConnection.createDate};
+                    try {
+                        signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                    }catch(e) {
+                        Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send handshake message via signaling endpoint", e]);
+                    }
+                });
+            })
+        }
+
+        self.__doOpenConnection_CleanBeforeNextTry = function(connection) {
+            if(connection.vnfRtcConnection) {
+                connection.vnfRtcConnection.destroy();
+            }
         }
 
         self.getRtcConnection = function(vip) {

@@ -41,8 +41,9 @@ function reliableWebSocketFactory() {
 function webSocketFactory() {
     var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl));
 
-    hub.setResendHandshakeInterval(1500);
-    hub.setResendHandshakeRetries(3);
+    hub.setEstablishConnectionTimeout(1500);
+    hub.setRetryConnectAfterDelay(400);
+    hub.setOpenConnectionRetries(10);
 
     hub.setRpcBusyTimerInterval(1000);
     hub.setRpcIdleTimerInterval(1000);

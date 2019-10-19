@@ -11,6 +11,18 @@ export function ProxyHub(parentHub){
 
     VnfHub.call(selfHub);
 
+    selfHub.setEstablishConnectionTimeout = function(value) {
+        parentHub.setEstablishConnectionTimeout(value);
+    }
+
+    selfHub.setRetryConnectAfterDelay = function(value) {
+        parentHub.setRetryConnectAfterDelay(value);
+    }
+
+    selfHub.setOpenConnectionRetries = function(value) {
+        parentHub.setOpenConnectionRetries(value);
+    }
+
     selfHub.ProxyEndpoint = function ProxyEndpoint(selfVip) {
         var self = this;
         selfHub.BaseEndPoint.call(this, selfVip);
