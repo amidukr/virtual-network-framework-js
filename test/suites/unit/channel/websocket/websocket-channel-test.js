@@ -12,7 +12,7 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection join test", function(
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -37,7 +37,7 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection join - retry test", f
     argument.webSocketHub.setEstablishConnectionTimeout(300);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -67,7 +67,7 @@ WebSocketChannelTestUtils.webSocketHubTest("Close immediately after openConnecti
     argument.webSocketHub.setEstablishConnectionTimeout(20);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "FAILED", "Verifying status");
+        assert.equal(event.status, "FAILED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint openConnection failed");
     });
@@ -111,7 +111,7 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection join - failed due to 
     argument.webSocketHub.setEstablishConnectionTimeout(300);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "FAILED", "Verifying status");
+        assert.equal(event.status, "FAILED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint openConnection failed");
     });
@@ -143,7 +143,7 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection accept test", functio
 
     .then(function(){
         argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             argument.webSocketEndpoint.destroy();
             done();
@@ -155,7 +155,7 @@ WebSocketChannelTestUtils.webSocketHubTest("Send message test", function(assert,
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpoint.send("remote-endpoint", "my test\nmessage")
     });
@@ -179,7 +179,7 @@ WebSocketChannelTestUtils.webSocketHubTest("onMessage test", function(assert, ar
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -205,7 +205,7 @@ WebSocketChannelTestUtils.webSocketHubTest("Fail-over malformed message test", f
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -235,7 +235,7 @@ WebSocketChannelTestUtils.webSocketHubTest("closeConnection notification test", 
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -266,7 +266,7 @@ WebSocketChannelTestUtils.webSocketHubTest("handling closeConnection message tes
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -294,7 +294,7 @@ WebSocketChannelTestUtils.webSocketHubTest("closeConnection after send failed te
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpoint.send("remote-endpoint", "my test\nmessage")
     });
@@ -320,7 +320,7 @@ WebSocketChannelTestUtils.webSocketHubTest("Endpoint destroy test", function(ass
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
     });
 
     Promise.resolve()

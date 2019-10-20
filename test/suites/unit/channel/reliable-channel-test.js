@@ -21,7 +21,7 @@ import {Vnf} from "../../../../src/vnf/vnf.js";
         endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture1, "vip-2");
 
         endpoint1.openConnection("vip-2", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             endpoint1.send("vip-2", "vip-1-to-vip-2-message-delivered-1");
             unreliableHub.blockChannel("vip-1", "vip-2");
@@ -55,7 +55,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages
     endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
     endpoint1.openConnection("vip-2", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpoint1.send("vip-2", "vip-1-to-vip-2-message-delivered-1");
         unreliableHub.blockChannel("vip-1", "vip-2");
@@ -92,7 +92,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages
 
     endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
     endpoint1.openConnection("vip-2", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpoint1.send("vip-2", "vip-1-to-vip-2-message-delivered-1");
         unreliableHub.blockChannel("vip-1", "vip-2");
@@ -130,7 +130,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Retrying Handshakes", func
 
     unreliableHub.blockChannel("vip-1", "vip-2");
     endpoint1.openConnection("vip-2", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpoint1.send("vip-2", "vip-1-to-vip-2-message-delivered-1");
         unreliableHub.blockChannel("vip-1", "vip-2");
@@ -169,7 +169,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages
     endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
     endpoint1.openConnection("vip-2", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpoint1.send("vip-2", "vip-1-to-vip-2-message-1");
         unreliableHub.blockChannel("vip-1", "vip-2");
@@ -220,7 +220,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Send message to existing peer", funct
     endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
     endpoint1.openConnection("vip-2", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpoint1.send("vip-2", "send-to-existing-connection-message-1");
     });
@@ -232,7 +232,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Send message to existing peer", funct
         endpoint1 = reliableHub.openEndpoint("vip-1");
 
         endpoint1.openConnection("vip-2", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             endpoint1.send("vip-2", "send-to-existing-connection-message-2");
         });
@@ -259,7 +259,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Receive message from existing peer", 
         endpoint2.onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(capture2, "vip-2"));
 
         endpoint2.openConnection("vip-1", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             endpoint2.send("vip-1", "receive-from-existing-connection-message-1");
         });
@@ -274,7 +274,7 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Receive message from existing peer", 
             endpoint1V2.onMessage = VnfTestUtils.newPrintCallback(capture1V2, "vip-1-new");
 
             endpoint2.openConnection("vip-1", function(event){
-                assert.equal(event.status, "CONNECTED", "Verifying status");
+                assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
                 endpoint2.send("vip-1", "receive-from-existing-connection-message-2");
             });

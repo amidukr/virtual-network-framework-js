@@ -50,7 +50,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test"
     });
 
     rtcEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         rtcEndpoint.send("root-endpoint", "message-1");
     });
 
@@ -168,7 +168,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", 
             assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
 
             rootEndpoint.openConnection("rtc-endpoint", function(event){
-                assert.equal(event.status, "CONNECTED", "Verifying status");
+                assert.equal(event.status, "CONNECTED", "Verifying connection status");
                 rootEndpoint.send("rtc-endpoint", JSON.stringify({type: "rtc-connection",
                                                                   requestForNewConnection: true,
                                                                   ice: ice,
@@ -246,7 +246,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc synchronous connection es
     rootEndpoint.onMessage = captureMessage(rootCaptor);
 
     rtcEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         rtcEndpoint.send("root-endpoint", "message-1");
     })
 
@@ -275,7 +275,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc synchronous connection es
                 assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
 
                 rootEndpoint.openConnection("rtc-endpoint", function(event){
-                    assert.equal(event.status, "CONNECTED", "Verifying status");
+                    assert.equal(event.status, "CONNECTED", "Verifying connection status");
                     rootEndpoint.send("rtc-endpoint", JSON.stringify({type: "rtc-connection",
                                                                       requestForNewConnection: true,
                                                                       ice: ice,

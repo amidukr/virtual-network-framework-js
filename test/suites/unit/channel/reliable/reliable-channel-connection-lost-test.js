@@ -60,7 +60,7 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: openConnection just after cl
     .then(function(){
         argument.reliableEndpoint.closeConnection("root-endpoint");
         argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             argument.reliableCapture.signal("openConnection captured")
         })
@@ -104,7 +104,7 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: HANDSHAKE just after CLOSE-C
 
     .then(function(){
       argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             argument.destroy();
             done();
@@ -132,7 +132,7 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: Close connection by reliable
 
 
     .then(argument.reliableEndpoint.openConnection.bind(null, "root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
     }))
 
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HANDSHAKE rel1-2']))
@@ -213,7 +213,7 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: Reply with CLOSE-CONNECTION 
     argument.reliableHub.setConnectionLostTimeout(600);
 
     argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "FAILED", "Verifying status");
+        assert.equal(event.status, "FAILED", "Verifying connection status");
 
         argument.reliableCapture.signal("openConnection captured");
     });

@@ -5,7 +5,7 @@ ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<--Root) Test handshake 
     var done = assert.async(1);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
 
@@ -15,7 +15,7 @@ ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<--Root) Test handshake 
 
     .then(function() {
         argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             argument.reliableEndpoint.send("root-endpoint", "message1");
             argument.reliableEndpoint.send("root-endpoint", "message2");
@@ -40,7 +40,7 @@ ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<--Root) Test handshake 
     var done = assert.async(1);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
 
@@ -69,7 +69,7 @@ ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable-->Root) Test handshake 
     var done = assert.async(1);
 
     argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.reliableEndpoint.send("root-endpoint", "message1");
         argument.reliableEndpoint.send("root-endpoint", "message2");
@@ -99,7 +99,7 @@ ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<->Root) Test concurrent
     argument.rootHub.setImmediateSend(false);
 
     argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.reliableEndpoint.send("root-endpoint", "message1");
         argument.reliableEndpoint.send("root-endpoint", "message2");

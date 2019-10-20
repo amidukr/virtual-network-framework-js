@@ -29,7 +29,7 @@ VnfTestUtils.test("WebSocketHub-Integration", "closeConnection after send failed
     var endpoint = hub.openEndpoint(wsEndpointVip);
 
     endpoint.openConnection(manualRpcEndpointVip, function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpoint.send(manualRpcEndpointVip, "my-test-message-1");
     });

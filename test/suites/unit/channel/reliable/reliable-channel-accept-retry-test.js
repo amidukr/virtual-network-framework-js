@@ -9,7 +9,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Connect est
     argument.reliableHub.setConnectionLostTimeout(20);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
 
@@ -25,7 +25,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Connect est
 
     .then(function(){
         argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
             argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-2");
         })
     })
@@ -35,7 +35,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Connect est
 
     .then(function(){
         argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             argument.destroy();
             done();
@@ -51,7 +51,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Accept retr
     argument.reliableHub.setConnectionLostTimeout(20);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
 
@@ -88,7 +88,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Accept retr
     argument.reliableHub.setConnectionLostTimeout(200);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
 
@@ -97,7 +97,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Accept retr
 
     .then(function(){
         argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
             argument.reliableCapture.signal("openConnection captured");
         });
@@ -130,7 +130,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Accept retr
     argument.reliableHub.setConnectionLostTimeout(200);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
 
@@ -139,7 +139,7 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Accept retr
 
     .then(function(){
         argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-            assert.equal(event.status, "FAILED", "Verifying status");
+            assert.equal(event.status, "FAILED", "Verifying connection status");
 
             argument.reliableCapture.signal("openConnection captured");
         });

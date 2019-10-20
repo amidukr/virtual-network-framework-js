@@ -28,7 +28,7 @@ bigMessageTest("Serialize message test", function(assert, argument){
     var done = assert.async(1);
 
     argument.bigMessageEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.bigMessageEndpoint.send("root-endpoint", "abcdefghijk");
         argument.bigMessageEndpoint.send("root-endpoint", "lmnopqrstu");
@@ -54,7 +54,7 @@ bigMessageTest("Deserialize message test", function(assert, argument){
     var done = assert.async(1);
 
     argument.rootEndpoint.openConnection("big-message-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.rootEndpoint.send("big-message-endpoint", "S13ab");
         argument.rootEndpoint.send("big-message-endpoint", "c");
@@ -77,7 +77,7 @@ bigMessageTest("Send object message test", function(assert, argument){
     var done = assert.async(1);
 
     argument.bigMessageEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.bigMessageEndpoint.send("root-endpoint", {json:'value'});
     })
@@ -98,7 +98,7 @@ bigMessageTest("Receive object message test", function(assert, argument){
     var done = assert.async(1);
 
     argument.rootEndpoint.openConnection("big-message-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.rootEndpoint.send("big-message-endpoint", 'J216{"jso');
         argument.rootEndpoint.send("big-message-endpoint", 'n":"v');
@@ -121,7 +121,7 @@ bigMessageTest("End-to-end-test", function(assert, argument){
     var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
 
     endpointBigSender.openConnection("big-message-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpointBigSender.send("big-message-endpoint", "a1b2c3d4e5f6g7h8j9k0l1m2n3")
         endpointBigSender.send("big-message-endpoint", "o4p5q6r7s8");
@@ -144,7 +144,7 @@ bigMessageTest("Object End-to-end-test", function(assert, argument){
     var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
 
     endpointBigSender.openConnection("big-message-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         endpointBigSender.send("big-message-endpoint", {json:"value"})
     });
