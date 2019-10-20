@@ -27,7 +27,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         args.endpointSender.openConnection(args.recipientVip, function(event){
             Log.info(event.endpoint.vip, "connection opened", JSON.stringify(event));
 
-            assert.equal(event.status,    "CONNECTED", "Verifying status");
+            assert.equal(event.status,    "CONNECTED", "Verifying connection status");
             assert.equal(event.targetVip, args.recipientVip, "Verifying targetVip");
             assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
             assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
@@ -45,7 +45,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         args.endpointSender.openConnection("non-existent-recipient", function(event){
             Log.info(event.endpoint.vip, "connection opened", JSON.stringify(event));
 
-            assert.equal(event.status,   "FAILED", "Verifying status");
+            assert.equal(event.status,   "FAILED", "Verifying connection status");
             assert.equal(event.targetVip, "non-existent-recipient", "Verifying targetVip");
             assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
             assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
@@ -77,7 +77,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         };
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
             if(event.status != "CONNECTED") return;
             args.endpointSender.send(args.recipientVip, "sent to recipient message");
         });
@@ -107,7 +107,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         };
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
             args.endpointSender.send(args.recipientVip, "sent to recipient message");
         });
     });

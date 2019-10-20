@@ -11,7 +11,7 @@ ReliableTestUtils.reliableVnfTest("ReliableHub Handshake Retry test", function(a
     var connectionFailedCaptured = false;
 
     argument.reliableEndpoint.openConnection('root-endpoint', function(event){
-        assert.equal(event.status, "FAILED", "Verifying status");
+        assert.equal(event.status, "FAILED", "Verifying connection status");
 
         connectionFailedCaptured = true;
     })

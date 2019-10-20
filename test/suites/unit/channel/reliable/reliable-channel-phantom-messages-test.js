@@ -13,7 +13,7 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: No-Action state", function
     .then(function(){
         return new Promise(function(r){
             argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-                assert.equal(event.status, "CONNECTED", "Verifying status");
+                assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
                 r();
             });
@@ -51,7 +51,7 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: Handshaking state", functi
     argument.reliableHub.setConnectionLostTimeout(1000);
 
     argument.reliableEndpoint.openConnection("root-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.reliableCapture.signal("openConnection captured");
     });
@@ -96,7 +96,7 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: Accepting state", function
     argument.reliableHub.setConnectionLostTimeout(1000);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })
@@ -150,7 +150,7 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: Connected state", function
     argument.reliableHub.setConnectionLostTimeout(1000);
 
     argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.rootEndpoint.send("reliable-endpoint", "HANDSHAKE root1-1");
     })

@@ -12,7 +12,7 @@ WebSocketChannelTestUtils.webSocketHubTest("HANDSHAKE after CLOSE-CONNECTION", f
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -52,7 +52,7 @@ WebSocketChannelTestUtils.webSocketHubTest("openConnection call just after close
     var done = assert.async(1);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });
@@ -96,7 +96,7 @@ WebSocketChannelTestUtils.webSocketHubTest("openConnection call just after CLOSE
     var testDone = false;
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         argument.webSocketEndpointCaptor.signal("ws-endpoint connectionOpened");
     });

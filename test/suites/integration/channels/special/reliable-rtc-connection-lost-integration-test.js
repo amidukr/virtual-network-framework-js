@@ -26,7 +26,7 @@ VnfTestUtils.test("Reliable-RTC", "Rtc Connection restore test", function(assert
     endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, "vip-2");
 
     endpoint1.openConnection("vip-2", function(event){
-        assert.equal(event.status,    "CONNECTED", "Verifying status");
+        assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
         endpoint1.send("vip-2", "rtc-message-1");
         endpoint1.send("vip-2", "rtc-message-2");

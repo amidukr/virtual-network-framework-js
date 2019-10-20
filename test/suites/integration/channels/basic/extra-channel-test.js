@@ -28,7 +28,7 @@ ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, ar
     };
 
     args.endpointSender.openConnection(args.recipientVip, function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         args.endpointSender.send(args.recipientVip, {value1: "object-value-1", sub:{value2: "object-sub-value-2"}});
     });
 });
@@ -39,7 +39,7 @@ ChannelTestUtils.integrationTest("Channel Loopback Test", function(assert, args)
     var done = assert.async(1);
 
     args.endpointSender.openConnection(args.senderVip, function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         assert.equal(event.targetVip, args.senderVip, "Verifying targetVip");
         assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
         assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
@@ -83,7 +83,7 @@ ChannelTestUtils.integrationTest("Multiple/Loopback Channels Send Test", functio
 
     function sendMessage(endpoint, targetVip, message) {
         endpoint.openConnection(targetVip, function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
             endpoint.send(targetVip, message);
         })
     }
@@ -93,7 +93,7 @@ ChannelTestUtils.integrationTest("Multiple/Loopback Channels Send Test", functio
 
     sendMessage(endpoint2, vip1, "message-from-vip2-to-vip1");
     endpoint2.openConnection(vip3, function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
         endpoint2.send(vip3, "1st-message-from-vip2-to-vip3");
         endpoint2.send(vip3, "2nd-message-from-vip2-to-vip3");
     })
@@ -160,7 +160,7 @@ ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, ar
     };
 
     args.endpointSender.openConnection(args.recipientVip, function(event){
-        assert.equal(event.status, "CONNECTED", "Verifying status");
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         for(var i = 0; i < bigMessage.length; i++) {
             args.endpointSender.send(args.recipientVip, bigMessage[i]);

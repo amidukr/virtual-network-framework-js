@@ -13,9 +13,9 @@ QUnit.module("Channel Connection Close Tests", (hooks) => {
         var doneCaptor = new SignalCaptor(assert);
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            assert.equal(event.status, "CONNECTED", "Verifying status");
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
             args.endpointRecipient.openConnection(args.senderVip, function(event) {
-                assert.equal(event.status, "CONNECTED", "Verifying status");
+                assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
                 args.endpointSender.onConnectionLost(function(targetVip){
                     assert.equal(targetVip, args.recipientVip);
@@ -45,7 +45,7 @@ QUnit.module("Channel Connection Close Tests", (hooks) => {
         var doneCaptor = new SignalCaptor(assert);
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            assert.equal(event.status,    "CONNECTED", "Verifying status");
+            assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
 
             args.endpointSender.onConnectionLost(function(targetVip){
@@ -59,7 +59,7 @@ QUnit.module("Channel Connection Close Tests", (hooks) => {
             })
 
             args.endpointRecipient.openConnection(args.senderVip, function(event){
-                assert.equal(event.status, "CONNECTED", "Verifying status");
+                assert.equal(event.status, "CONNECTED", "Verifying connection status");
                 args.endpointRecipient.closeConnection(args.senderVip);
             });
         });
@@ -78,9 +78,9 @@ QUnit.module("Channel Connection Close Tests", (hooks) => {
         var doneCaptor = new SignalCaptor(assert);
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            assert.equal(event.status,    "CONNECTED", "Verifying status");
+            assert.equal(event.status,    "CONNECTED", "Verifying connection status");
             args.endpointRecipient.openConnection(args.senderVip, function(event) {
-                assert.equal(event.status, "CONNECTED", "Verifying status");
+                assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
 
                 args.endpointSender.onConnectionLost(function(targetVip){
@@ -109,7 +109,7 @@ QUnit.module("Channel Connection Close Tests", (hooks) => {
         var doneCaptor = new SignalCaptor(assert);
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            assert.equal(event.status,    "CONNECTED", "Verifying status");
+            assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
 
             args.endpointSender.onConnectionLost(function(targetVip){
@@ -123,7 +123,7 @@ QUnit.module("Channel Connection Close Tests", (hooks) => {
             })
 
             args.endpointRecipient.openConnection(args.senderVip, function(event){
-                assert.equal(event.status, "CONNECTED", "Verifying status");
+                assert.equal(event.status, "CONNECTED", "Verifying connection status");
                 args.endpointRecipient.destroy();
             });
         });
@@ -138,10 +138,10 @@ QUnit.module("Channel Connection Close Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            assert.equal(event.status,    "CONNECTED", "Verifying status");
+            assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
             args.endpointRecipient.openConnection(args.senderVip, function(event){
-                assert.equal(event.status,    "CONNECTED", "Verifying status");
+                assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
                 args.endpointRecipient.onConnectionLost(function(targetVip){
                     assert.equal(targetVip, args.senderVip);
