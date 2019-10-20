@@ -358,6 +358,13 @@ export function RtcHub(signalingHub){
             }
         }
 
+        var __superDoReleaseConnection = self.__doReleaseConnection;
+        self.__doReleaseConnection = function(connection) {
+            self.__doOpenConnection_CleanBeforeNextTry(connection);
+
+            __superDoReleaseConnection(connection);
+        }
+
         self.getRtcConnection = function(vip) {
             return self.getConnection(vip).vnfRtcConnection.getRtcConnection();
         }
@@ -368,14 +375,6 @@ export function RtcHub(signalingHub){
            }catch(e) {
                Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send message via RTC", e]);
            }
-        }
-
-        var __superDoReleaseConnection = self.__doReleaseConnection;
-        self.__doReleaseConnection = function(connection) {
-            if(connection.vnfRtcConnection) {
-                connection.vnfRtcConnection.destroy();
-            }
-            __superDoReleaseConnection(connection);
         }
     };
 };

@@ -22,11 +22,11 @@ export class WebSocketChannelTestUtils{
                    .onConnectionLost(VnfTestUtils.newConnectionLostPrintCallback(argument.webSocketEndpointCaptor,
                                                                                  "ws-endpoint"));
 
-            var webSocketRpc = argument.webSocketEndpoint.getWebSocketRpc();
+            argument.webSocketRpc = argument.webSocketEndpoint.getWebSocketRpc();
 
-            webSocketRpc.setBusyTimerInterval(200);
-            webSocketRpc.setIdleTimerInterval(300);
-            webSocketRpc.setLoginRecreateInterval(200);
+            argument.webSocketRpc.setBusyTimerInterval(200);
+            argument.webSocketRpc.setIdleTimerInterval(300);
+            argument.webSocketRpc.setLoginRecreateInterval(200);
 
             return callback(assert, argument);
         });

@@ -62,6 +62,8 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection join - retry test", f
 WebSocketChannelTestUtils.webSocketHubTest("Close immediately after openConnection", function(assert, argument){
     var done = assert.async(1);
 
+    argument.webSocketRpc.setIdleTimerInterval(0);
+
     argument.webSocketHub.setEstablishConnectionTimeout(20);
 
     argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
@@ -80,13 +82,23 @@ WebSocketChannelTestUtils.webSocketHubTest("Close immediately after openConnecti
 
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
-
-    .then(argument.webSocketEndpoint.closeConnection.bind(null, "remote-endpoint"))
-    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 SEND_TO_ENDPOINT\nremote-endpoint\nCLOSE-CONNECTION"]))
-    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 SEND_TO_ENDPOINT"))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
 
     .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
     .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 5))
+
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+
+
+    .then(argument.webSocketEndpoint.closeConnection.bind(null, "remote-endpoint"))
+
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 6 SEND_TO_ENDPOINT\nremote-endpoint\nCLOSE-CONNECTION"]))
+    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "6 SEND_TO_ENDPOINT"))
+
+    .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
+    .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 7))
+
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 8 PING"]))
 
     .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint openConnection failed"]))
     .then(argument.webSocketCaptor.assertSilence.bind(null))

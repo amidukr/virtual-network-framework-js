@@ -59,6 +59,14 @@ export function WebSocketHub(webSocketFactory){
             }
         }
 
+        self.__doReleaseConnection = function(connection) {
+            self.__doOpenConnection_CleanBeforeNextTry(connection);
+
+            if(!connection.handlingCloseEvent) {
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true})
+                .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT CLOSE-CONNECTION not delivered: " + e));
+            }
+        };
 
         function handleHandshakeMessage(sourceVip, messageType, body) {
             webSocketRpc.invoke("SEND_TO_ENDPOINT",  sourceVip + "\nACCEPT", {retryResend: true})
@@ -149,17 +157,6 @@ export function WebSocketHub(webSocketFactory){
         self.destroy = function() {
             parentDestroy();
             webSocketRpc.releaseUsage();
-        };
-
-        self.__doReleaseConnection = function(connection) {
-            if(!connection.handlingCloseEvent) {
-                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true})
-                .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT CLOSE-CONNECTION not delivered: " + e));
-            }
-
-            if(connection.rpcInvokeFuture) {
-                connection.rpcInvokeFuture.cancel();
-            }
         };
     };
 };
