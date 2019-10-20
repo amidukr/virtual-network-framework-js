@@ -39,8 +39,9 @@ export function WebSocketHub(webSocketFactory){
         if(rpcLoginRecreateInterval != null) webSocketRpc.setLoginRecreateInterval(rpcLoginRecreateInterval);
 
         self.__doOpenConnection_NextTry = function(connection) {
-             webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nHANDSHAKE", {retryResend: true})
-             .then(function(response) {
+            connection.rpcInvokeFuture = webSocketRpc.invokeFuture("SEND_TO_ENDPOINT",  connection.targetVip + "\nHANDSHAKE", {retryResend: true});
+
+             connection.rpcInvokeFuture.promise.then(function(response) {
                  if(response) {
                      Log.warn("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + data);
                      self.__connectionNextTryFailed(connection);
@@ -51,6 +52,13 @@ export function WebSocketHub(webSocketFactory){
                  self.__connectionNextTryFailed(connection);
              });
         }
+
+        self.__doOpenConnection_CleanBeforeNextTry = function(connection) {
+            if(connection.rpcInvokeFuture) {
+                connection.rpcInvokeFuture.cancel();
+            }
+        }
+
 
         function handleHandshakeMessage(sourceVip, messageType, body) {
             webSocketRpc.invoke("SEND_TO_ENDPOINT",  sourceVip + "\nACCEPT", {retryResend: true})
@@ -147,6 +155,10 @@ export function WebSocketHub(webSocketFactory){
             if(!connection.handlingCloseEvent) {
                 webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true})
                 .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT CLOSE-CONNECTION not delivered: " + e));
+            }
+
+            if(connection.rpcInvokeFuture) {
+                connection.rpcInvokeFuture.cancel();
             }
         };
     };

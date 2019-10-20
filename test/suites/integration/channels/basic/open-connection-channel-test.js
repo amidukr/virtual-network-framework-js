@@ -53,6 +53,25 @@ ChannelTestUtils.integrationTest("Recipient is not immediately available", funct
     }, 300);
 });
 
+ChannelTestUtils.integrationTest("Close connection immediately after open", function(assert, args) {
+    var done = assert.async(1);
+    args.endpointSender.openConnection(args.recipientVip, function(event) {
+        assert.equal(event.status, "FAILED", "Verifying openConnection status");
+    });
+
+    if(["InBrowser", "Big Message Factory", "Unreliable"].indexOf(args.channelName) != -1) {
+        args.endpointSender.closeConnection(args.recipientVip);
+    }else{
+        window.setTimeout(args.endpointSender.closeConnection.bind(null, args.recipientVip), 10);
+    }
+
+    args.endpointRecipient.onConnectionOpen(function() {
+        assert.notOk(true, "onConnectionOpen should not be called");
+    });
+
+    window.setTimeout(done, 1000);
+});
+
 ChannelTestUtils.integrationTest("Recipient open connection in Sender open connection callback", function(assert, args) {
      var done = assert.async(1);
 

@@ -377,7 +377,7 @@ webSocketTest("No retries for LOGIN request", function(assert, argument){
 });
 
 webSocketTest("Multiple Retries after multiple reconnects", function(assert, argument){
-    var done = assert.async(1);
+    var done = assert.async(2);
 
     argument.mockWebSocketFactory.fireOnopen();
 
@@ -402,11 +402,47 @@ webSocketTest("Multiple Retries after multiple reconnects", function(assert, arg
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 1 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "1 INVOKE-TEST-COMMAND\nresponse\nto call - 0"))
 
+    .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["new-websocket"]))
+    .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 LOGIN\nws-endpoint"]))
+    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 LOGIN\nOK"))
+    .then(argument.webSocketCaptor.assertSilence.bind(null))
+
+    .then(done);
+
 
     argument.webSocketRpc.invoke("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true})
     .then(function(responseEvent){
         assert.equal(responseEvent.data, "response\nto call - 0",  "asserting call-0 response data after retries")
     })
+    .then(done);
+});
+
+webSocketTest("Cancel retry", function(assert, argument){
+    var done = assert.async(1);
+
+    var rpcInvokeFuture = argument.webSocketRpc.invokeFuture("INVOKE-TEST-COMMAND", "My\ntest\ndata-1", {retryResend: true});
+
+    rpcInvokeFuture.promise.then(function(responseEvent){
+        assert.notOk(true, "should be no success response");
+    })
+    .catch(function(){
+        assert.notOk(true, "should be no error response");
+    });
+
+    Promise.resolve()
+    .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+
+    .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
+    .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 2))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 INVOKE-TEST-COMMAND\nMy\ntest\ndata-1"]))
+    .then(rpcInvokeFuture.cancel.bind())
+
+    .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
+    .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 3))
+    .then(argument.webSocketCaptor.assertSilence.bind(null))
 
     .then(done);
 });
@@ -660,9 +696,9 @@ webSocketTest("Destroy test", function(assert, argument){
     .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
     .then(argument.mockWebSocketFactory.fireOnopen.bind(null))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "PUSH-COMMAND\nargument"))
-    .then(argument.webSocketRpc.invoke.bind("INVOKE-TEST-COMMAND", "My\ntest\ndata-2"))
+    .then(argument.webSocketRpc.invoke.bind(null, "INVOKE-TEST-COMMAND", "My\ntest\ndata-2"))
     .then(function(evt){
-        assert.notOk("Web socket should be destroyed, successful response instead" + evt);
+        assert.notOk("Web socket should be destroyed, successful response instead: " + evt);
     },
     function(reason){
         assert.equal(reason, Vnf.Global.INSTANCE_DESTROYED, "asserting call rejection reason - called after destroy");

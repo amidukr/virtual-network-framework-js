@@ -59,6 +59,40 @@ WebSocketChannelTestUtils.webSocketHubTest("New connection join - retry test", f
     .then(done)
 });
 
+WebSocketChannelTestUtils.webSocketHubTest("Close immediately after openConnection", function(assert, argument){
+    var done = assert.async(1);
+
+    argument.webSocketHub.setEstablishConnectionTimeout(20);
+
+    argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
+        assert.equal(event.status, "FAILED", "Verifying status");
+
+        argument.webSocketEndpointCaptor.signal("ws-endpoint openConnection failed");
+    });
+
+    Promise.resolve()
+    .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
+
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+
+    .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
+    .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 2))
+
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 3 SEND_TO_ENDPOINT\nremote-endpoint\nHANDSHAKE"]))
+
+    .then(argument.webSocketEndpoint.closeConnection.bind(null, "remote-endpoint"))
+    .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 4 SEND_TO_ENDPOINT\nremote-endpoint\nCLOSE-CONNECTION"]))
+    .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "4 SEND_TO_ENDPOINT"))
+
+    .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
+    .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 5))
+
+    .then(argument.webSocketEndpointCaptor.assertSignals.bind(null, ["ws-endpoint openConnection failed"]))
+    .then(argument.webSocketCaptor.assertSilence.bind(null))
+    .then(done);
+})
+
 WebSocketChannelTestUtils.webSocketHubTest("New connection join - failed due to timeout test", function(assert, argument){
     var done = assert.async(1);
 

@@ -280,46 +280,74 @@ export function WebSocketRpc(vip, webSocketFactory) {
     }
 
     this.invoke = function(command, valueArgument, callParameters) {
-        if(destroyed) {
-            return Promise.reject(Global.INSTANCE_DESTROYED);
-        }
+        var future = webSocketRpc.invokeFuture(command, valueArgument, callParameters);
+        return future.promise;
+    }
 
-        if(isConnected) {
-            startBusyTimer();
-        }
-
-        return new Promise(function(resolve, reject){
-            var callId = nextCallId++;
-
-            var header = callId + " " + command;
-
-            var message;
-            if(valueArgument === null | valueArgument === undefined) {
-                message = header;
-            }else{
-                message = header + "\n" + valueArgument;
+    this.invokeFuture = function(command, valueArgument, callParameters) {
+            if(destroyed) {
+                return {
+                    cancel: cancel,
+                    promise: Promise.reject(Global.INSTANCE_DESTROYED)
+                };
             }
 
-            callMap[header] = {
-                message: message,
-                resolve: resolve,
-                reject:  reject,
-                retryResend: callParameters && callParameters.retryResend
+            if(isConnected) {
+                startBusyTimer();
             }
 
-            var immediateSend = callParameters && callParameters.immediateSend;
+            var cancelled = false;
+            var header;
 
-            if(isConnected || immediateSend) {
+            function cancel() {
+                if(cancelled) {
+                    return;
+                }
 
-                try{
-                    webSocket.send(message);
-                }catch(error) {
-                    Log.warn(vip, "websocket-rtc", [new Error("Unable to send message via websocket"), error]);
+                if(callMap[header]) {
+                    callMap[header].resolve = function(){}
+                    callMap[header].reject = function(){}
+                    delete callMap[header];
                 }
             }
-        });
 
-    }
+            var promise = new Promise(function (resolve, reject){
+
+                var callId = nextCallId++;
+
+                header = callId + " " + command;
+
+                var message;
+                if(valueArgument === null | valueArgument === undefined) {
+                    message = header;
+                }else{
+                    message = header + "\n" + valueArgument;
+                }
+
+                callMap[header] = {
+                    message: message,
+                    resolve: resolve,
+                    reject:  reject,
+                    retryResend: callParameters && callParameters.retryResend
+                }
+
+                var immediateSend = callParameters && callParameters.immediateSend;
+
+                if(isConnected || immediateSend) {
+
+                    try{
+                        webSocket.send(message);
+                    }catch(error) {
+                        Log.warn(vip, "websocket-rtc", [new Error("Unable to send message via websocket"), error]);
+                    }
+                }
+            });
+
+            return {
+                cancel: cancel,
+                promise: promise
+            };
+        }
 
     this.destroy = function() {
         if(destroyed) return;
