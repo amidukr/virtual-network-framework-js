@@ -7,18 +7,6 @@ import {ChannelTestUtils} from "../../../../../test/utils/channel-test-utils.js"
 
 QUnit.module("Channel Connection Close Tests", (hooks) => {
 
-    var prevCaptorTimeout = -1;
-
-    hooks.beforeEach(function(assert){
-         prevCaptorTimeout = Timeouts.logCaptureTimeout;
-         Timeouts.logCaptureTimeout = 30000;
-         assert.timeout( 30000 );
-    });
-
-    hooks.afterEach(function() {
-        Timeouts.logCaptureTimeout = prevCaptorTimeout;
-    });
-
     ChannelTestUtils.integrationTest("Connection close - close by sender", function(assert, args) {
         var done = assert.async(1);
 
