@@ -285,6 +285,10 @@ export function WebSocketRpc(vip, webSocketFactory) {
     }
 
     this.invokeFuture = function(command, valueArgument, callParameters) {
+            if(command.indexOf("\n") != -1) {
+                throw new Error("End line character: '\\n' is not allowed for WebbSocketRpc method name");
+            }
+
             if(destroyed) {
                 return {
                     cancel: cancel,

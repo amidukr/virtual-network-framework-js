@@ -53,11 +53,20 @@ self = {
 
           var formattedDate = Date.prototype.toISOString ? new Date().toISOString() : "";
 
+           var args;
           if(instance) {
-            console[level](formattedDate + " [" + category + "] - [" + instance  + "]: ", message);
+            args = [formattedDate + " [" + category + "] - [" + instance  + "]: "];
           }else{
-            console[level](formattedDate + " [" + category + "]: ", message);
+            args = [formattedDate + " [" + category + "]: "];
           }
+
+          if(message && message.constructor.name == "Array" ) {
+            args.push.apply(args, message);
+          }else{
+            args.push(message);
+          }
+
+          console[level].apply(console[level], args);
       }
     },
 

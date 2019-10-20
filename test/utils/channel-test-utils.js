@@ -47,7 +47,7 @@ function webSocketFactory() {
 
     hub.setRpcBusyTimerInterval(1000);
     hub.setRpcIdleTimerInterval(1000);
-    hub.setRpcLoginRecreateInterval(2000);
+    hub.setRpcLoginRecreateInterval(3000);
 
     return hub;
 }
