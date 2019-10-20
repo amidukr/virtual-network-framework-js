@@ -5,9 +5,8 @@ import "./channels/basic/extra-channel-test.js";
 import "./channels/basic/open-connection-channel-test.js";
 import "./channels/basic/reopen-channel-connection-test.js";
 
-//import "./channels/special/reliable-rtc-connection-lost-integration-test.js";
-//import "./channels/special/rtc-channel-test.js";
-//import "./channels/special/web-socket-channel-test.js";
+import "../flaky/channels/special/reliable-rtc-connection-lost-integration-test.js";
+import "../flaky/channels/special/web-socket-channel-test.js";
 
 //Store test suite
-//import "./store/store-integration-test";
+import "../flaky/store/store-integration-test.js";

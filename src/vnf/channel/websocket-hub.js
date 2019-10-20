@@ -41,16 +41,16 @@ export function WebSocketHub(webSocketFactory){
         self.__doOpenConnection_NextTry = function(connection) {
             connection.rpcInvokeFuture = webSocketRpc.invokeFuture("SEND_TO_ENDPOINT",  connection.targetVip + "\nHANDSHAKE", {retryResend: true});
 
-             connection.rpcInvokeFuture.promise.then(function(response) {
-                 if(response) {
-                     Log.warn("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + data);
-                     self.__connectionNextTryFailed(connection);
-                 }
-             })
-             .catch((e) => {
-                 Log.warn("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + e);
-                 self.__connectionNextTryFailed(connection);
-             });
+            connection.rpcInvokeFuture.promise.then(function(e) {
+                if(e.data) {
+                    Log.debug("websocket-hub", "SEND_TO_ENDPOINT HANDSHAKE not delivered: " + e.data);
+                    self.__connectionNextTryFailed(connection);
+                }
+            })
+            .catch((e) => {
+                Log.warn("websocket-hub", ["SEND_TO_ENDPOINT HANDSHAKE not delivered: ", e]);
+                self.__connectionNextTryFailed(connection);
+            });
         }
 
         self.__doOpenConnection_CleanBeforeNextTry = function(connection) {

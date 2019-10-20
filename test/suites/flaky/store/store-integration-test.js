@@ -1,63 +1,71 @@
-requirejs(["vnf/vnf",
-           "utils/signal-captor",
-           "utils/logger",
-           "test/utils/vnf-test-utils",
-           "lib/bluebird"],
-function(  Vnf,
-           SignalCaptor,
-           Log,
-           VnfTestUtils,
-           Promise){
+import {Vnf} from "../../../../src/vnf/vnf.js";
+import {sleeper} from "../../../../src/utils/promise-utils.js";
+import {Random} from "../../../../src/utils/random.js";
 
-    function storeIntegrationTest(description, callback) {
+import {VnfTestUtils} from "../../../../test/utils/vnf-test-utils.js";
 
-        function inBrowserArgumentFactory() {
+function storeIntegrationTest(description, callback) {
 
-            var sharedStore = new Vnf.InBrowserStore();
+    function inBrowserArgumentFactory() {
 
-            function newInBrowserClient(vip) {
-                return sharedStore.connect(vip);
-            }
+        var sharedStore = new Vnf.InBrowserStore();
 
-            return {newStoreClient: newInBrowserClient};
+        function newInBrowserClient(vip) {
+            return sharedStore.connect(vip);
         }
 
-
-        function webSocketArgument() {
-            var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl);
-
-            function newWebSocketClient(vip) {
-                var client = new Vnf.WebSocketStoreClient(new Vnf.WebSocketRpc(vip, webSocketFactory));
-
-                VnfTestUtils.onTearDown(function(){
-                    client.destroy();
-                })
-
-                return client;
-            }
-
-            return {
-                newStoreClient: newWebSocketClient
-            }
-        }
-
-        VnfTestUtils.test("store:InBrowser", "[Store Integration tests]: " + description, inBrowserArgumentFactory, callback);
-        VnfTestUtils.test("store:WebSocket", "[Store Integration tests]: " + description, webSocketArgument, callback);
+        return {newStoreClient: newInBrowserClient};
     }
 
 
-    QUnit.module("Store Integration Tests");
+    function webSocketArgument() {
+        var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl);
+
+        function newWebSocketClient(vip) {
+            var client = new Vnf.WebSocketStoreClient(new Vnf.WebSocketRpc(vip, webSocketFactory));
+
+            VnfTestUtils.onTearDown(function(){
+                client.destroy();
+            })
+
+            return client;
+        }
+
+        return {
+            newStoreClient: newWebSocketClient
+        }
+    }
+
+    VnfTestUtils.test("store:InBrowser", "[Store Integration tests]: " + description, inBrowserArgumentFactory, callback);
+    VnfTestUtils.test("store:WebSocket", "[Store Integration tests]: " + description, webSocketArgument, callback);
+}
+
+
+QUnit.module("Store Integration Tests", hooks => {
+
+    var owner1Vip;
+    var owner2Vip;
+    var collection1Name;
+    var collection2Name;
+    hooks.beforeEach(function beforeEach(){
+        owner1Vip = Random.random6() + "-owner-1";
+        owner2Vip = Random.random6() + "-owner-2";
+
+        collection1Name = Random.random6() + "-collection1";
+        collection2Name = Random.random6() + "-collection2";
+    });
+
     storeIntegrationTest("Create and get string data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value"))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value"))
         .then(function(status) {
             assert.equal(status, Vnf.Global.OK, "asserting status");
         })
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
             assert.equal(value, "entry value", "asserting inserted entry");
         })
@@ -67,14 +75,14 @@ function(  Vnf,
     storeIntegrationTest("Create and get json data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, {"key":"value"}))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, {"key":"value"}))
         .then(function(status) {
             assert.equal(status, Vnf.Global.OK, "asserting status");
         })
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
             assert.deepEqual(value, {"key":"value"}, "asserting inserted entry");
         })
@@ -84,12 +92,12 @@ function(  Vnf,
     storeIntegrationTest("Create or Update data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value"))
-        .then(storeClient.createOrUpdate.bind(null, {collection: "collection1", name:"entry1"}, "updated entry value"))
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value"))
+        .then(storeClient.createOrUpdate.bind(null, {collection: collection1Name, name:"entry1"}, "updated entry value"))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
             assert.equal(value, "updated entry value", "asserting updated entry");
         })
@@ -99,18 +107,18 @@ function(  Vnf,
     storeIntegrationTest("Create and Delete data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value"))
-        .then(storeClient.deleteEntry.bind(null, {collection: "collection1", name:"entry1"}))
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value"))
+        .then(storeClient.deleteEntry.bind(null, {collection: collection1Name, name:"entry1"}))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
             assert.equal(reason, Vnf.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
-        .then(storeClient.deleteEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.deleteEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
@@ -122,10 +130,10 @@ function(  Vnf,
     storeIntegrationTest("Get failed due to entry not found test",    function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
@@ -138,17 +146,17 @@ function(  Vnf,
     storeIntegrationTest("Create failed due to entry already exists test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value 1"))
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value 2"))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value 1"))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value 2"))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
             assert.equal(reason, Vnf.Global.CREATE_FAILED_ENTRY_ALREADY_EXISTS, "asserting error reason");
         })
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
             assert.equal(value, "entry value 1", "asserting created entry");
         })
@@ -158,10 +166,10 @@ function(  Vnf,
     storeIntegrationTest("Delete failed due to entry not exists yet test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
-        .then(storeClient.deleteEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.deleteEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
@@ -173,32 +181,32 @@ function(  Vnf,
     storeIntegrationTest("Create-Get-Delete-Get-Create-Get-Delete-Get test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
 
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value 1"))
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value 1"))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
             assert.equal(value, "entry value 1", "asserting updated entry");
         })
 
-        .then(storeClient.deleteEntry.bind(null, {collection: "collection1", name:"entry1"}))
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.deleteEntry.bind(null, {collection: collection1Name, name:"entry1"}))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
             assert.notOk(true, "successful execution should fail");
         }, function(reason){
             assert.equal(reason, Vnf.Global.GET_FAILED_ENTRY_NOT_FOUND, "asserting error reason");
         })
 
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry value 2"))
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value 2"))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
            assert.equal(value, "entry value 2", "asserting updated entry");
         })
 
-        .then(storeClient.deleteEntry.bind(null, {collection: "collection1", name:"entry1"}))
-        .then(storeClient.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient.deleteEntry.bind(null, {collection: collection1Name, name:"entry1"}))
+        .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
@@ -212,25 +220,25 @@ function(  Vnf,
     storeIntegrationTest("Create or Update failed due to owner conflict test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient1 = argument.newStoreClient("owner-1");
-        var storeClient2 = argument.newStoreClient("owner-2");
+        var storeClient1 = argument.newStoreClient(owner1Vip);
+        var storeClient2 = argument.newStoreClient(owner2Vip);
 
         Promise.resolve()
 
-        .then(storeClient1.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "client-1 entry value 1"))
-        .then(storeClient2.createOrUpdate.bind(null, {collection: "collection1", name:"entry1"}, "client-2 entry value 1"))
+        .then(storeClient1.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "client-1 entry value 1"))
+        .then(storeClient2.createOrUpdate.bind(null, {collection: collection1Name, name:"entry1"}, "client-2 entry value 1"))
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
            assert.equal(reason, Vnf.Global.UPDATE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
         })
 
-        .then(storeClient1.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient1.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
            assert.equal(value, "client-1 entry value 1", "asserting updated entry");
         })
 
-        .then(storeClient2.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient2.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
            assert.equal(value, "client-1 entry value 1", "asserting updated entry");
         })
@@ -242,25 +250,25 @@ function(  Vnf,
     storeIntegrationTest("Delete failed due to owner conflict test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient1 = argument.newStoreClient("owner-1");
-        var storeClient2 = argument.newStoreClient("owner-2");
+        var storeClient1 = argument.newStoreClient(owner1Vip);
+        var storeClient2 = argument.newStoreClient(owner2Vip);
 
         Promise.resolve()
 
-        .then(storeClient1.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "client-1 entry value 1"))
-        .then(storeClient2.deleteEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient1.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "client-1 entry value 1"))
+        .then(storeClient2.deleteEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
            assert.equal(reason, Vnf.Global.DELETE_FAILED_DUE_TO_OWNERSHIP_CHECK, "asserting error reason");
         })
 
-        .then(storeClient1.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient1.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
            assert.equal(value, "client-1 entry value 1", "asserting updated entry");
         })
 
-        .then(storeClient2.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient2.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
            assert.equal(value, "client-1 entry value 1", "asserting updated entry");
         })
@@ -271,22 +279,22 @@ function(  Vnf,
     storeIntegrationTest("Data List with body test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
 
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry1 value"))
-        .then(storeClient.createEntry.bind(null, {collection: "collection1", name:"entry2"}, "entry2 value"))
-        .then(storeClient.createEntry.bind(null, {collection: "collection2", name:"entry3"}, "entry3 value"))
-        .then(storeClient.createEntry.bind(null, {collection: "collection2", name:"entry4"}, "entry4 value"))
-        .then(storeClient.createEntry.bind(null, {collection: "collection2", name:"entry5"}, {"json":"value"}))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry1 value"))
+        .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry2"}, "entry2 value"))
+        .then(storeClient.createEntry.bind(null, {collection: collection2Name, name:"entry3"}, "entry3 value"))
+        .then(storeClient.createEntry.bind(null, {collection: collection2Name, name:"entry4"}, "entry4 value"))
+        .then(storeClient.createEntry.bind(null, {collection: collection2Name, name:"entry5"}, {"json":"value"}))
 
-        .then(storeClient.getEntriesWithBody.bind(null, "collection1"))
+        .then(storeClient.getEntriesWithBody.bind(null, collection1Name))
         .then(function(collection1Entries){
             assert.deepEqual(collection1Entries, {"entry1": "entry1 value",
                                                   "entry2": "entry2 value"});
         })
-        .then(storeClient.getEntriesWithBody.bind(null, "collection2"))
+        .then(storeClient.getEntriesWithBody.bind(null, collection2Name))
         .then(function(collection2Entries){
             assert.deepEqual(collection2Entries, {"entry3": "entry3 value",
                                                   "entry4": "entry4 value",
@@ -299,11 +307,11 @@ function(  Vnf,
     storeIntegrationTest("Get non-created collection test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         Promise.resolve()
 
-        .then(storeClient.getEntriesWithBody.bind(null, "collection1"))
+        .then(storeClient.getEntriesWithBody.bind(null, collection1Name))
         .then(function(collection1Entries){
             assert.deepEqual(collection1Entries, {});
         })
@@ -316,23 +324,23 @@ function(  Vnf,
     storeIntegrationTest("Create multiple entries, destroy client, records should disappear", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient1 = argument.newStoreClient("owner-1");
-        var storeClient2 = argument.newStoreClient("owner-2");
+        var storeClient1 = argument.newStoreClient(owner1Vip);
+        var storeClient2 = argument.newStoreClient(owner2Vip);
 
         Promise.resolve()
 
-        .then(storeClient1.createEntry.bind(null, {collection: "collection1", name:"entry1"}, "entry1 value"))
-        .then(storeClient1.createEntry.bind(null, {collection: "collection1", name:"entry2"}, "entry2 value"))
-        .then(storeClient2.createEntry.bind(null, {collection: "collection1", name:"entry3"}, "entry3 value"))
+        .then(storeClient1.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry1 value"))
+        .then(storeClient1.createEntry.bind(null, {collection: collection1Name, name:"entry2"}, "entry2 value"))
+        .then(storeClient2.createEntry.bind(null, {collection: collection1Name, name:"entry3"}, "entry3 value"))
 
-        .then(storeClient2.getEntriesWithBody.bind(null, "collection1"))
+        .then(storeClient2.getEntriesWithBody.bind(null, collection1Name))
         .then(function(collection1Entries){
             assert.deepEqual(collection1Entries, {"entry1": "entry1 value",
                                                   "entry2": "entry2 value",
                                                   "entry3": "entry3 value"}, "Verifying initial stored data");
         })
 
-        .then(storeClient2.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient2.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(value){
             assert.equal(value, "entry1 value", "getting single inserted entry");
         })
@@ -341,15 +349,14 @@ function(  Vnf,
         .then(storeClient1.destroy.bind(null))
 
         // WebSocket.close doesn't works immediately
-        .delay(200)
+        .then(sleeper(200))
 
-
-        .then(storeClient2.getEntriesWithBody.bind(null, "collection1"))
+        .then(storeClient2.getEntriesWithBody.bind(null, collection1Name))
         .then(function(collection1Entries){
             assert.deepEqual(collection1Entries, {"entry3": "entry3 value"}, "Verifying entry that should be destroyed");
         })
 
-        .then(storeClient2.getEntry.bind(null, {collection: "collection1", name:"entry1"}))
+        .then(storeClient2.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
         .then(function(){
            assert.notOk(true, "successful execution should fail");
         }, function(reason){
@@ -362,7 +369,7 @@ function(  Vnf,
 
     storeIntegrationTest("Test invalid character handling",  function(assert, argument){
 
-        var storeClient = argument.newStoreClient("owner-1");
+        var storeClient = argument.newStoreClient(owner1Vip);
 
         function verifyInvalidEOLArguments(methodName, callback) {
             try{

@@ -20,6 +20,7 @@ module.exports = function(config) {
 
       {pattern: 'test/suites/unit/**/*.js'},
       {pattern: 'test/suites/integration/**/*.js'},
+      {pattern: 'test/suites/flaky/**/*.js'}
     ],
 
     // preprocess matching files before serving them to the browser
