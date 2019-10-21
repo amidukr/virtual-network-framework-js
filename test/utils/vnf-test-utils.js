@@ -6,23 +6,23 @@ import {Vnf} from "../../src/vnf/vnf.js";
 var runningTest = "";
 var tearDownListeners = new Observable();
 
-function clearResource() {
-    tearDownListeners.fire();
+function doTearDown(details) {
+    tearDownListeners.fire(details);
     tearDownListeners = new Observable();
 }
 
 var counter = 1;
 
 QUnit.testDone( function(details) {
-    clearResource();
+    doTearDown(details);
 });
 
 QUnit.moduleDone(function(details){
-    clearResource();
+    doTearDown(details);
 })
 
 QUnit.done(function(details){
-    clearResource();
+    doTearDown(details);
 })
 
 var VnfTestUtils = {
@@ -68,17 +68,27 @@ var VnfTestUtils = {
 
             // testDone wasn't executed couple time due to timeouts,
             // but resource still have to be cleared
-            clearResource();
+            doTearDown();
 
-            VnfTestUtils.onTearDown(function(){
+            VnfTestUtils.onTearDown(function(details){
+
                 if(window.vnfActiveEndpoints.length > 0) {
-                    Log.warn("test", ["Active endpoints left:", window.vnfActiveEndpoints.slice(), "test:", previousTest]);
+                    var testName = details && details.name;
+
+                    var vnfActiveEndpointNames = window.vnfActiveEndpoints.map(x => `${x.constructor.name}(${x.vip})`);
+
+                    Log.warn("test", [
+                        `Active endpoints left, testName: ${testName}` +
+                        `, previousTest: ${previousTest}` +
+                        `, active endpoints:  [${vnfActiveEndpointNames}]`
+                    ]);
+
                     var vnfActiveEndpointsClone = window.vnfActiveEndpoints.slice();
                     for(var i = 0; i < vnfActiveEndpointsClone.length; i++) {
                         try{
                             vnfActiveEndpointsClone[i].destroy();
                         }catch(e) {
-                            Log.warn("test", ["Exception during endpoint destroy: ", e]);
+                            Log.debug("test", ["Exception during endpoint destroy: ", e]);
                         }
                     }
                 }
@@ -183,7 +193,7 @@ var VnfTestUtils = {
             }
             description += "from " + event.sourceVip + ": " + message;
 
-            Log.info(instance, "message-test-handler", description);
+            Log.verbose(instance, "message-test-handler", description);
             captor.signal(description);
         }
     },
@@ -193,7 +203,7 @@ var VnfTestUtils = {
 
             var description = "from " + targetVip + " connection lost";
 
-            Log.info(instance, "connection-lost-handler", description);
+            Log.verbose(instance, "connection-lost-handler", description);
             captor.signal(description);
         }
     },
@@ -203,18 +213,18 @@ var VnfTestUtils = {
 
             var description = event.sourceVip + " heartbeat message";
 
-            Log.info(instance, "connection-lost-handler", description);
+            Log.verbose(instance, "connection-lost-handler", description);
             captor.signal(description);
         }
     },
 
     onHeartbeatPromise: function(reliableEndpoint) {
-        Log.debug(reliableEndpoint.vip, "waiting-info", "Waiting for heartbeat");
+        Log.verbose(reliableEndpoint.vip, "waiting-info", "Waiting for heartbeat");
 
         return new Promise(function(r) {
             reliableEndpoint.onHeartbeat = r;
         }).then(function(){
-            Log.debug(reliableEndpoint.vip, "waiting-info", "Heartbeat triggered");
+            Log.verbose(reliableEndpoint.vip, "waiting-info", "Heartbeat triggered");
         });
     },
 

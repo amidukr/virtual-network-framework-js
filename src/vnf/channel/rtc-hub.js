@@ -64,7 +64,7 @@ function VnfRtcConnection(connectionId){
     self.createDate = new Date().getTime();
 
     self.startCaller = function(callback) {
-        Log.debug(instanceId, "webrtc-connecting", "startCaller");
+        Log.verbose(instanceId, "webrtc-connecting", "startCaller");
 
         self.isCaller = true;
         onIceCandidatesCallback = callback;
@@ -77,7 +77,7 @@ function VnfRtcConnection(connectionId){
     }
 
     self.startCallee = function(ice, callback) {
-        Log.debug(instanceId, "webrtc-connecting", "startCallee: " + JSON.stringify(ice));
+        Log.verbose(instanceId, "webrtc-connecting", "startCallee: " + JSON.stringify(ice));
 
         self.isCaller = false;
         onIceCandidatesCallback = callback;
@@ -95,13 +95,13 @@ function VnfRtcConnection(connectionId){
         }, logErrorCallback(instanceId));
 
         connection.ondatachannel = function(evt){
-            Log.debug(instanceId, "webrtc-connecting", "ondatachannel: " + JSON.stringify(evt));
+            Log.verbose(instanceId, "webrtc-connecting", "ondatachannel: " + JSON.stringify(evt));
             handleNewChannel(evt.channel);
         }
     }
 
     self.acceptCalleeResponse = function(ice) {
-        Log.debug(instanceId, "webrtc-connecting", "acceptCalleeResponse: " + JSON.stringify(ice));
+        Log.verbose(instanceId, "webrtc-connecting", "acceptCalleeResponse: " + JSON.stringify(ice));
 
         connection.setRemoteDescription(new RTCSessionDescription(ice.sdp), logSuccess, logErrorCallback(instanceId));
 
@@ -121,13 +121,13 @@ function VnfRtcConnection(connectionId){
     self.destroy = function() {
         destroyed = true;
 
-        if(channel != null) {
+        if(channel) {
             channel.onopen = function(){};
             channel.onmessage = function(){};
             channel.onclose = function(){};
         }
 
-        if(connection != null) {
+        if(connection) {
             connection.ondatachannel = function(){};
             connection.onsignalingstatechange = function(){};
             connection.onconnectionstatechange = function(){};
@@ -137,10 +137,12 @@ function VnfRtcConnection(connectionId){
         // closing rtc connection will increase sending signal to other side to 5 seconds.
         if(connection) window.setTimeout(destroyRtcConnection, 1000);
         try{
-            channel.close();
-            channel = null;
+            if(channel) {
+                channel.close();
+                channel = null;
+            }
         }catch(e) {
-            Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
+            Log.debug(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
         }
 
         function destroyRtcConnection() {
@@ -148,7 +150,7 @@ function VnfRtcConnection(connectionId){
                 if(connection) connection.close();
                 connection = null;
             }catch(e) {
-                Log.warn(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
+                Log.debug(instanceId, "web-rtc", ["Unable to destroy Rtc connection", e]);
             }
         }
     }
@@ -167,11 +169,11 @@ function VnfRtcConnection(connectionId){
 
 
     function handleNewChannel(channelArgument) {
-        Log.debug(instanceId, "webrtc-connecting", "onChannelCreated: " + channelArgument);
+        Log.verbose(instanceId, "webrtc-connecting", "onChannelCreated: " + channelArgument);
         channel = channelArgument;
 
         channel.onopen = function(event) {
-            Log.debug(instanceId, "webrtc-connecting", "onChannelOpened: " + event);
+            Log.verbose(instanceId, "webrtc-connecting", "onChannelOpened: " + event);
 
             if(onChannelOpenedCallback) {
                 onChannelOpenedCallback();
@@ -183,7 +185,7 @@ function VnfRtcConnection(connectionId){
         }
 
         channel.onclose = function(evt) {
-            Log.debug(instanceId, "webrtc-onclose", "\n" + printStatuses(evt.target));
+            Log.verbose(instanceId, "webrtc-onclose", "\n" + printStatuses(evt.target));
             if(!destroyed) {
                 self.destroy();
                 onChannelClosedCallback();
@@ -202,21 +204,21 @@ function VnfRtcConnection(connectionId){
 
         var sendCandidates = xTimeout(Timeouts.iceSendTimeout, function sendCandidates() {
             if(destroyed) return;
-            Log.debug(instanceId, "webrtc-ice-gathered", "\n" + JSON.stringify(ice));
+            Log.verbose(instanceId, "webrtc-ice-gathered", "\n" + JSON.stringify(ice));
             onIceCandidatesCallback(ice);
         });
 
         connection.onsignalingstatechange = function(evt){
-            Log.debug(instanceId, "webrtc-onsignalingstatechange", "\n" + printStatuses(evt.target));
+            Log.verbose(instanceId, "webrtc-onsignalingstatechange", "\n" + printStatuses(evt.target));
 
         };
 
         connection.onconnectionstatechange = function(evt) {
-            Log.debug(instanceId, "webrtc-onconnectionstatechange", "\n" + printStatuses(evt.target) + ", destroyed: " + destroyed);
+            Log.verbose(instanceId, "webrtc-onconnectionstatechange", "\n" + printStatuses(evt.target) + ", destroyed: " + destroyed);
         }
 
         connection.oniceconnectionstatechange = function(evt){
-            Log.debug(instanceId, "webrtc-oniceconnectionstatechange", "\n" + printStatuses(evt.target) + ", destroyed: " + destroyed);
+            Log.verbose(instanceId, "webrtc-oniceconnectionstatechange", "\n" + printStatuses(evt.target) + ", destroyed: " + destroyed);
             if(evt.target.iceConnectionState == "disconnected" && !destroyed) {
                 destroyed = true;
                 onChannelClosedCallback();
@@ -224,7 +226,7 @@ function VnfRtcConnection(connectionId){
         };
 
         connection.onicecandidate = function(evt){
-            Log.debug(instanceId, "webrtc-connecting", "onicecandidate: " + JSON.stringify(evt.candidate));
+            Log.verbose(instanceId, "webrtc-connecting", "onicecandidate: " + JSON.stringify(evt.candidate));
 
             if(evt.candidate != null) ice.candidate.push(evt.candidate);
 
@@ -237,7 +239,7 @@ function VnfRtcConnection(connectionId){
     }
 
     function onGotDescription(desc) {
-        Log.debug(instanceId, "webrtc-connecting", "onGotDescription: " + JSON.stringify(desc));
+        Log.verbose(instanceId, "webrtc-connecting", "onGotDescription: " + JSON.stringify(desc));
 
         connection.setLocalDescription(desc);
         ice.sdp = desc;
@@ -287,7 +289,7 @@ export function RtcHub(signalingHub){
         signalingEndpoint.onMessage = function(event) {
             var message = JSON.parse(event.message);
             if(message.type == "rtc-connection") {
-                Log.debug("rtc[" + selfVip + "->" + event.sourceVip + "]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
+                Log.verbose("rtc[" + selfVip + "->" + event.sourceVip + "]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
 
                 var targetVip = event.sourceVip;
 
@@ -296,7 +298,7 @@ export function RtcHub(signalingHub){
 
                 if(message.requestForNewConnection) {
                     if(existentVnfRtcConnection && existentVnfRtcConnection.isCaller && message.connectionCreateDate < existentVnfRtcConnection.createDate) {
-                        Log.debug("rtc[" + selfVip + "->...]", "webrtc-connecting", "ignore-action/connection-expired:" + JSON.stringify(event));
+                        Log.verbose("rtc[" + selfVip + "->...]", "webrtc-connecting", "ignore-action/connection-expired:" + JSON.stringify(event));
                         return;
                     }
 
@@ -310,7 +312,7 @@ export function RtcHub(signalingHub){
                         try{
                             signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
                         }catch(e) {
-                            Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send accept message via signaling endpoint", e]);
+                            Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send accept message via signaling endpoint", e]);
                         }
                     });
 
@@ -346,7 +348,7 @@ export function RtcHub(signalingHub){
                     try {
                         signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
                     }catch(e) {
-                        Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send handshake message via signaling endpoint", e]);
+                        Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send handshake message via signaling endpoint", e]);
                     }
                 });
             })
@@ -370,10 +372,14 @@ export function RtcHub(signalingHub){
         }
 
         self.__doSend = function(connection, message) {
-           try{
-               connection.vnfRtcConnection.send(message);
-           }catch(e) {
-               Log.warn("rtc[" + selfVip + "]", "web-rtc", ["Unable to send message via RTC", e]);
+            try{
+                connection.vnfRtcConnection.send(message);
+            }catch(e) {
+                if(!connection.isConnected && !connection.isDestroyed()) {
+                    Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send message via RTC"]);
+                }
+
+                Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send message via RTC", e]);
            }
         }
     };

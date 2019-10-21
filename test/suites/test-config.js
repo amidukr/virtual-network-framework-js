@@ -1,4 +1,7 @@
 import {ReplayProxy} from "../utils/replay-proxy.js";
+import {Log, DEBUG, WARN} from "../../src/utils/logger.js";
+
+Log.setDefaultLogLevel(DEBUG);
 
 Error.stackTraceLimit = Infinity;
 

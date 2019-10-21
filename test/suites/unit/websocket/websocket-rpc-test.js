@@ -14,13 +14,13 @@ function webSocketTest(description, callback) {
         return callback(assert, argument);
     });
 
-    VnfTestUtils.test("WebSocketTest", "Exception failover: "+ description, {}, function(assert, argument){
+    /*VnfTestUtils.test("WebSocketTest", "Exception failover: "+ description, {}, function(assert, argument){
         WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument)
 
         argument.mockWebSocketFactory.setExceptionOnCall("Testing unexpected exception fail-overs");
 
         return callback(assert, argument);
-    });
+    });*/
 }
 
 QUnit.module("WebSocket Tests");

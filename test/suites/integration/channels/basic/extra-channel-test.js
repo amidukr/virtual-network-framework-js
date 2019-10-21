@@ -16,7 +16,7 @@ ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, ar
     args.endpointSender = bigMessageHub.openEndpoint(args.senderVip);
 
     args.endpointRecipient.onMessage = function(event) {
-        Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
+        Log.verbose(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
         assert.equal(event.message.value1,       "object-value-1", "Verifying message value1");
         assert.equal(event.message.sub.value2,   "object-sub-value-2", "Verifying message value2");
@@ -147,7 +147,7 @@ ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, ar
 
     var index = 0;
     args.endpointRecipient.onMessage = function(event) {
-        Log.info(args.recipientVip, "message-test-handler", event.message.substr(0, 100) + "\n.......");
+        Log.verbose(args.recipientVip, "message-test-handler", event.message.substr(0, 100) + "\n.......");
         assert.deepEqual(event.message, bigMessage[index++],  "Asserting captured logs");
 
         if(index == bigMessage.length) {

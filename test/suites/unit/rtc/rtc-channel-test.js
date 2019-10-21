@@ -24,7 +24,7 @@ function logSuccess(e){}
 
 function captureMessage(captor) {
     return function onMessage(event) {
-        Log.info("test-message", event.message);
+        Log.verbose("test-message", event.message);
         captor.signal(event.message);
     }
 }
@@ -70,11 +70,11 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test"
         var ice = {candidate: [], sdp: null}
 
         rtcConnection.onicecandidate = function(evt){
-            Log.info("test", "on ice candidate")
+            Log.verbose("test", "on ice candidate")
             if(evt.candidate != null) {
                 ice.candidate.push(evt.candidate);
             }else{
-                Log.info("test", "Send rtc ice candidates")
+                Log.verbose("test", "Send rtc ice candidates")
 
                 assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
 
@@ -86,7 +86,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test"
         };
 
         rtcConnection.ondatachannel = function(evt){
-            Log.info("test", ["ondatachannel: ", evt]);
+            Log.verbose("test", ["ondatachannel: ", evt]);
 
             dataChannel = evt.channel;
 
@@ -98,7 +98,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test"
         rtcConnection.setRemoteDescription(new RTCSessionDescription(message.ice.sdp));
 
         rtcConnection.createAnswer(function(desc){
-            Log.info("test", "Answer created")
+            Log.verbose("test", "Answer created")
 
             for(var i = 0; i < message.ice.candidate.length; i++) {
                 rtcConnection.addIceCandidate(new RTCIceCandidate(message.ice.candidate[i]));
@@ -159,11 +159,11 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", 
     var ice = {candidate: [], sdp: null};
 
     rtcConnection.onicecandidate = function(evt){
-        Log.info("test", "on ice candidate")
+        Log.verbose("test", "on ice candidate")
         if(evt.candidate != null) {
             ice.candidate.push(evt.candidate);
         }else{
-            Log.info("test", "Send rtc ice candidates")
+            Log.verbose("test", "Send rtc ice candidates")
 
             assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
 
@@ -180,7 +180,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", 
 
     var dataChannel = rtcConnection.createDataChannel("data");
     dataChannel.onopen = function(event) {
-        Log.info("test", "Data Channel opened")
+        Log.verbose("test", "Data Channel opened")
 
         dataChannel.send("message-1");
     }
@@ -190,7 +190,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", 
     }
 
     rtcConnection.createOffer(function(desc){
-        Log.info("test", "Offer created")
+        Log.verbose("test", "Offer created")
         rtcConnection.setLocalDescription(desc);
         ice.sdp = desc;
     }, logErrorCallback());
@@ -266,11 +266,11 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc synchronous connection es
         var ice = {candidate: [], sdp: null}
 
         rtcConnection.onicecandidate = function(evt){
-            Log.info("test", "on ice candidate")
+            Log.verbose("test", "on ice candidate")
             if(evt.candidate != null) {
                 ice.candidate.push(evt.candidate);
             }else{
-                Log.info("test", "Send rtc ice candidates")
+                Log.verbose("test", "Send rtc ice candidates")
 
                 assert.notEqual(ice.sdp, null, "Asserting ice sdp is not null");
 
@@ -286,7 +286,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc synchronous connection es
 
         dataChannel = rtcConnection.createDataChannel("data");
         dataChannel.onopen = function(event) {
-            Log.info("test", "Data Channel opened")
+            Log.verbose("test", "Data Channel opened")
 
             dataChannel.send("message-2");
         }
@@ -296,7 +296,7 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc synchronous connection es
         }
 
         rtcConnection.createOffer(function(desc){
-            Log.info("test", "Offer created")
+            Log.verbose("test", "Offer created")
             rtcConnection.setLocalDescription(desc);
             ice.sdp = desc;
         }, logErrorCallback());

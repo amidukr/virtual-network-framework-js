@@ -8,6 +8,7 @@ import {ProxyHub} from "./base/vnf-proxy-hub.js";
 import {ReliableMessageSerializer}  from "./reliable/reliable-message-serializer.js";
 
 var STATE_NO_ACTION   = 'NO-ACTION';
+var OPENING_CONNECTION = 'OPENING_CONNECTION';
 var STATE_HANDSHAKING = 'HANDSHAKING';
 var STATE_ACCEPTING   = 'ACCEPTING';
 var STATE_CONNECTED   = 'CONNECTED';
@@ -19,7 +20,7 @@ var MESSAGE_HEARTBEAT   = 'HEARTBEAT';
 var MESSAGE_CLOSE_CONNECTION  = 'CLOSE-CONNECTION';
 
 
-export function ReliableHub(hub, args) {
+export function ReliableHub(hub) {
     var selfHub = this;
 
     ProxyHub.call(selfHub, hub);
@@ -27,8 +28,6 @@ export function ReliableHub(hub, args) {
     if(!hub) {
         throw new Error("Unable to create instnce of ReliableHub, argument 'hub' cannot be null");
     }
-
-    args = args || {};
 
     var heartbeatInterval = 3000;
     var connectionInvalidateInterval = 9000;
@@ -45,17 +44,7 @@ export function ReliableHub(hub, args) {
         heartbeatsToDropConnection = Math.round(connectionLostTimeout        / heartbeatInterval);
     }
 
-    if(args.heartbeatInterval) {
-        heartbeatInterval = args.heartbeatInterval;
-        Log.warn(self.vip, "reliable-hub", ["Deprecated code executed, please consider to delete"]);
-    }
-
     updateHeartbeatCounters();
-
-    if(args.heartbeatsToInvalidate) {
-        heartbeatsToInvalidate = args.heartbeatsToInvalidate;
-        Log.warn(self.vip, "reliable-hub", ["Deprecated code executed, please consider to delete"]);
-    }
 
     selfHub.setHeartbeatInterval = function(value) {
         heartbeatInterval = value;
@@ -111,17 +100,16 @@ export function ReliableHub(hub, args) {
 
         function parentSend(targetVip, messageJson) {
             try{
-                var messageString = ReliableMessageSerializer.serialize(messageJson);
-
-                parentEndpoint.openConnection(targetVip, function parentOpenConnectionCallback(){
+                parentEndpoint.openConnection(targetVip, function parentOpenConnectionCallback(e){
                     try{
+                        var messageString = ReliableMessageSerializer.serialize(messageJson);
                         parentEndpoint.send(targetVip, messageString);
                     }catch(error) {
-                        Log.warn(self.vip, "reliable-hub", [new Error("Unable to send message"), error]);
+                        Log.debug(self.vip, "reliable-hub", ["Unable to send message: ", error]);
                     }
-                })
+                });
             }catch(error) {
-                Log.warn(self.vip, "reliable-hub", [new Error("Unable to send message"), error]);
+                Log.debug(self.vip, "reliable-hub", ["Unable to open connection to send message: ", error]);
             }
         }
 
@@ -203,12 +191,17 @@ export function ReliableHub(hub, args) {
 
         function refreshConnection(connection) {
 
+            if(connection.targetVip == self.vip || connection.state == OPENING_CONNECTION) {
+                return;
+            }
+
             connection.silenceCounter++;
+
             var invalidateConnectionCounter = connection.silenceCounter % heartbeatsToInvalidate;
 
             var instanceId = "reliable[" + endpointId + ":" + vip + "->" + connection.targetVip + "]";
 
-            Log.debug(instanceId, "reliable-channel-status",
+            Log.verbose(instanceId, "reliable-channel-status",
               "connection-invalidate: " + invalidateConnectionCounter + "/" + heartbeatsToInvalidate + "; "
             + "connection-keep-alive: " + connection.silenceCounter   + "/" + heartbeatsToDropConnection);
 
@@ -216,11 +209,11 @@ export function ReliableHub(hub, args) {
 
             if(connection.silenceCounter >= heartbeatsToDropConnection) {
                 if(connection.state == STATE_ACCEPTING && connection.callback != null) {
-                    Log.debug(instanceId, "reliable-channel-status", "fallback to handshake state");
+                    Log.verbose(instanceId, "reliable-channel-status", "fallback to handshake state");
 
                     resetConnection(connection, connection.targetVip, STATE_HANDSHAKING)
                 }else{
-                    Log.debug(instanceId, "reliable-channel-status", "connection lost");
+                    Log.verbose(instanceId, "reliable-channel-status", "connection lost");
 
                     self.closeConnection(connection.targetVip);
                     return;
@@ -228,11 +221,11 @@ export function ReliableHub(hub, args) {
             }
 
             if(invalidateConnectionCounter == 0) {
-                Log.debug(instanceId, "reliable-channel-status", "re-invalidate connection");
+                Log.verbose(instanceId, "reliable-channel-status", "re-invalidate connection");
                 parentEndpoint.closeConnection(connection.targetVip);
             }
 
-            Log.debug(instanceId, "reliable-channel-status", "connection refresh message sent")
+            Log.verbose(instanceId, "reliable-channel-status", "connection refresh message sent")
             sendRefreshConnectionMessage(connection);
         }
 
@@ -324,7 +317,7 @@ export function ReliableHub(hub, args) {
 
             connection.state = newState;
 
-            Log.debug(instanceId, "reliable-channel-status", "channel state changed to: " + connection.state);
+            Log.verbose(instanceId, "reliable-channel-status", "channel state changed to: " + connection.state);
         }
 
 
@@ -465,10 +458,10 @@ export function ReliableHub(hub, args) {
 
         parentEndpoint.onMessage = function(event) {
             if(self.isDestroyed()) {
-                Log.debug("reliable-hub", "ReliableHub: Unable to handle message, because endpoint is destroyed")
+                Log.verbose("reliable-hub", "ReliableHub: Unable to handle message, because endpoint is destroyed")
             }
 
-            //Log.debug(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));
+            //Log.verbose(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));
 
             var message = ReliableMessageSerializer.deserialize(event.message);
 
@@ -485,7 +478,7 @@ export function ReliableHub(hub, args) {
 
             var phantomError = verifyIfPhantom(connection, message);
             if(phantomError) {
-                Log.warn("reliable-hub", ["Phantom detected: " + phantomError,  event, connection])
+                Log.debug("reliable-hub", ["Phantom detected: " + phantomError,  event, connection])
                 return;
             }
 
@@ -495,6 +488,9 @@ export function ReliableHub(hub, args) {
         }
 
         self.__doOpenConnection_NextTry = function(connection) {
+
+            setConnectionState(connection, OPENING_CONNECTION);
+
             parentEndpoint.openConnection(connection.targetVip, function(event) {
                 if(connection.isDestroyed || connection.isConnected) return;
 

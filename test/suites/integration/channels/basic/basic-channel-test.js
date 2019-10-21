@@ -25,7 +25,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointSender.openConnection(args.recipientVip, function(event){
-            Log.info(event.endpoint.vip, "connection opened", JSON.stringify(event));
+            Log.verbose(event.endpoint.vip, "connection opened", JSON.stringify(event));
 
             assert.equal(event.status,    "CONNECTED", "Verifying connection status");
             assert.equal(event.targetVip, args.recipientVip, "Verifying targetVip");
@@ -43,7 +43,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointSender.openConnection("non-existent-recipient", function(event){
-            Log.info(event.endpoint.vip, "connection opened", JSON.stringify(event));
+            Log.verbose(event.endpoint.vip, "connection opened", JSON.stringify(event));
 
             assert.equal(event.status,   "FAILED", "Verifying connection status");
             assert.equal(event.targetVip, "non-existent-recipient", "Verifying targetVip");
@@ -61,7 +61,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointRecipient.onMessage = function(event) {
-            Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
+            Log.verbose(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
             assert.ok(args.endpointRecipient.isConnected(event.sourceVip), "Verifying connection established");
 
@@ -88,7 +88,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointRecipient.onMessage = function(event) {
-            Log.info(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
+            Log.verbose(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
 
             args.endpointRecipient.send(args.senderVip, "pong to: " + event.message);
         };

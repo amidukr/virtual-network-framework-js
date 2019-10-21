@@ -1,20 +1,16 @@
 # In Progress
-1. Review LOG.warn and LOG.error
-    1. web socket broken format error should be just warn, not error.
-    2. Error should be only of library used it in wrong way, internal error should be just warnings
+
 
 # Todo List
 
-1. For timer and promise wrap exception into try/catch to run integration tests smoothly
-1. Replace boilerplate code with commonly used JS libraries 
-1. Implement stress test
-1. Remove/Extract VNF System
+1. Reliable close connection, only one message send, no retries to resend cancel connection. 
 1. Share specification document
    1. algin application according to spec
         1. rename packages and namings to Neuron-Vnf
         1. rename vip to eva
         1. rename big message to name according to specification document
         1. Rename store to registry - Update specification and update code (store persistent thing) 
+1. Remove/Extract VNF System
 
 
 # On-Hold
@@ -36,3 +32,11 @@
 1. Refactor Unit Test
 1. Migrate integration test to new stack
 1. Remove TestConfig
+
+1. Review LOG.warn and LOG.error
+    1. Change Debug to Verbose
+    1. Change WARN/ERROR to DEBUG
+    1. web socket broken format error should be just warn, not error.
+1. Review LOG.warn and LOG.error
+    1. Error should be only of library used it in wrong way, internal error should be just warnings
+1. For timer and promise wrap exception into try/catch to run integration tests smoothly

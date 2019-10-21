@@ -40,7 +40,7 @@ export function WebSocketStoreClient(webSocketRpc) {
 
             for(var entryName in collection) {
                 webSocketStoreClient.createOrUpdate({collection: collectionName, name: entryName}, collection[entryName])
-                .catch(() => Log.warn("websocket-store-client", "Unable to createOrUpdate cached object on connection open"));
+                .catch((e) => Log.debug("websocket-store-client", "Unable to createOrUpdate cached object on connection open: ", e));
             }
         }
 

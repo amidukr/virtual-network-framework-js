@@ -115,7 +115,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
                 previousWebSocket.close()
             }
         }catch(error) {
-            Log.warn(vip, "websocket-rtc", [new Error("Unable to close websocket"), error]);
+            Log.debug(vip, "websocket-rtc", [new Error("Unable to close websocket"), error]);
         }
     }
 
@@ -144,14 +144,14 @@ export function WebSocketRpc(vip, webSocketFactory) {
                 return;
             }
 
-            Log.debug(vip, "websocket-rtc", ["webSocket open: sending LOGIN"]);
+            Log.verbose(vip, "websocket-rtc", ["webSocket open: sending LOGIN"]);
 
             webSocketRpc.invoke("LOGIN", vip, {immediateSend: true})
             .then(function(result){
-                Log.debug(vip, "websocket-rtc", ["webSocket LOGIN response: '" + result.data + "'" ]);
+                Log.verbose(vip, "websocket-rtc", ["webSocket LOGIN response: '" + result.data + "'" ]);
 
                 if(result.data != "OK") {
-                    Log.warn(vip, "websocket-rtc", [new Error("Login failed, retrying, error reason is '" +  result.data + "'")]);
+                    Log.debug(vip, "websocket-rtc", [new Error("Login failed, retrying, error reason is '" +  result.data + "'")]);
                     return;
                 }
 
@@ -162,7 +162,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
                     try{
                         webSocket.send(callAction.message);
                     }catch(error) {
-                        Log.warn(vip, "websocket-rtc", [new Error("Unable to send message via websocket"), error]);
+                        Log.debug(vip, "websocket-rtc", ["Unable to send message via websocket: ", error]);
                     }
 
                 }
@@ -175,7 +175,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
                     startIdleTimer();
                 }
             })
-            .catch((e)=> Log.warn(vip, "websocket-rtc", "Unable to send LOGIN to server: " + e));
+            .catch((e)=> Log.debug(vip, "websocket-rtc", ["Unable to send LOGIN to server: ", e]));
         }
 
         webSocket.onmessage = function(event) {
@@ -208,7 +208,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
                 callAction && handleCallResponse(callAction, header, argument);
 
                 if(!handler && !callAction) {
-                    Log.warn("WebSocketRpc: Unexpected message header: '" + header + "'");
+                    Log.debug("WebSocketRpc: Unexpected message header: '" + header + "'");
                 }
 
             }catch(error) {
@@ -276,7 +276,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
 
     this.verifyConnection = function() {
         webSocketRpc.invoke("PING", null, {retryResend: true})
-        .catch((e)=> Log.warn(vip, "websocket-rtc", "Unable to send PING to server: " + e));
+        .catch((e)=> Log.debug(vip, "websocket-rtc", "Unable to send PING to server: " + e));
     }
 
     this.invoke = function(command, valueArgument, callParameters) {
@@ -342,7 +342,7 @@ export function WebSocketRpc(vip, webSocketFactory) {
                     try{
                         webSocket.send(message);
                     }catch(error) {
-                        Log.warn(vip, "websocket-rtc", [new Error("Unable to send message via websocket"), error]);
+                        Log.debug(vip, "websocket-rtc", ["Unable to send message via websocket: ", error]);
                     }
                 }
             });

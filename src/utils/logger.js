@@ -3,96 +3,82 @@
 //  Log.debug("instance-id", "category", "message")
 //  Log.debug("category", "message")
 
-var ERROR = 0;
-var WARN  = 1;
-var INFO = 2;
-var DEBUG = 3;
-var TRACE = 4;
+export const ERROR = 0;
+export const WARN  = 1;
+export const INFO = 2;
+export const DEBUG = 3;
+export const VERBOSE = 4;
 
 var logLevelMap = {
     "error": ERROR,
     "warn": WARN,
     "info": INFO,
     "debug": DEBUG,
-    "trace": TRACE
+    "verbose": VERBOSE
 }
 
-var defaultLevel = ERROR;
+var defaultLevel = INFO;
 
-var categoryLogLevel = {
-    //"reliable-channel-status": DEBUG
-    //"webrtc-connecting": INFO,
-    //"webrtc-oniceconnectionstatechange": INFO,
-    //"webrtc-onsignalingstatechange": INFO
-}
+var categoryLogLevel = {}
 
-var self;
-var listeners = [];
+export class Log {
+    static setDefaultLogLevel(value) {
+        defaultLevel = value;
+    }
 
-self = {
-    log: function(level, instance, category, message) {
-      if(message == undefined) {
-        message = category;
-        category = instance;
-        instance = undefined;
-      }
+    static log(level, instance, category, message) {
+        var allowedLogLevel = categoryLogLevel[category] || defaultLevel;
+        var currentLogLevel = logLevelMap[level];
 
-      var event = {level: level,
+        if(allowedLogLevel < currentLogLevel) return;
+
+        if(message == undefined) {
+            message = category;
+            category = instance;
+            instance = undefined;
+        }
+
+        var event = {level: level,
                    instance: instance,
                    category: category,
                    message: message};
 
-      for(var i = 0; i < listeners.length; i++) {
-        listeners[i](event);
-      }
+        var formattedDate = Date.prototype.toISOString ? new Date().toISOString() : "";
 
-      var allowedLogLevel = categoryLogLevel[category] || defaultLevel;
-      var currentLogLevel = logLevelMap[level];
-
-      if(allowedLogLevel >= currentLogLevel) {
-
-          var formattedDate = Date.prototype.toISOString ? new Date().toISOString() : "";
-
-           var args;
-          if(instance) {
+        var args;
+        if(instance) {
             args = [formattedDate + " [" + category + "] - [" + instance  + "]: "];
-          }else{
+        }else{
             args = [formattedDate + " [" + category + "]: "];
-          }
+        }
 
-          if(message && message.constructor.name == "Array" ) {
+        if(message && message.constructor.name == "Array" ) {
             args.push.apply(args, message);
-          }else{
+        }else{
             args.push(message);
-          }
+        }
 
-          console[level].apply(console[level], args);
-      }
-    },
+        var logMethod = level == 'verbose' ? "debug" : level;
+        console[logMethod].apply(console[level], args);
+    }
 
-    trace: function(instance, category, message) {
-      self.log("trace", instance, category, message)
-    },
+    static verbose(instance, category, message) {
+        Log.log("verbose", instance, category, message)
+    }
 
-    debug: function(instance, category, message) {
-      self.log("debug", instance, category, message)
-    },
+    static debug(instance, category, message) {
+        Log.log("debug", instance, category, message)
+    }
 
-    info: function(instance, category, message) {
-      self.log("info", instance, category, message)
-    },
+    static info(instance, category, message) {
+        Log.log("info", instance, category, message)
+    }
 
-    warn: function(instance, category, message) {
-      self.log("warn", instance, category, message)
-    },
+    static warn(instance, category, message) {
+        Log.log("warn", instance, category, message)
+    }
 
-    error: function(instance, category, message) {
-      self.log("error", instance, category, message)
-    },
-
-    registerListener: function(listener) {
-      listeners.push(listener);
+    static error(instance, category, message) {
+        Log.log("error", instance, category, message)
     }
 };
-
-export {self as Log}

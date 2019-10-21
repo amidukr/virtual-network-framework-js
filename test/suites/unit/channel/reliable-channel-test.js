@@ -7,8 +7,6 @@ import {Vnf} from "../../../../src/vnf/vnf.js";
 
  QUnit.module("Reliable Channel Tests");
  QUnit.test("[Unreliable Hub]: Testing Unreliable hub", function(assert){
-        Log.info("test", "[Unreliable Hub]: Testing Unreliable hub");
-
         var done = assert.async(1);
 
         var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
@@ -36,8 +34,6 @@ import {Vnf} from "../../../../src/vnf/vnf.js";
 });
 
 QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Middle", function(assert){
-    Log.info("test", "[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Middle");
-
     var done = assert.async(1);
 
     var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
@@ -74,8 +70,6 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages
 });
 
 QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - End", function(assert){
-    Log.info("test", "[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - End");
-
     var done = assert.async(1);
 
     var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
@@ -110,8 +104,6 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages
 });
 
 QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Retrying Handshakes", function(assert){
-    Log.info("test", "[Reliable Hub-2-Reliable Hub]: Testing of Retrying Handshakes");
-
     var done = assert.async(1);
 
     var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());
@@ -150,8 +142,6 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Retrying Handshakes", func
 });
 
 QUnit.test("[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Multiple", function(assert){
-    Log.info("test", "[Reliable Hub-2-Reliable Hub]: Testing of Redelivering Lost Messages - Multiple");
-
     var done = assert.async(1);
 
     var unreliableHub = new Vnf.UnreliableHub(new Vnf.InBrowserHub());

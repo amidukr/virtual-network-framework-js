@@ -185,7 +185,7 @@ export function VnfHub(){
 
             if(connection.openConnectionRetriesLeft-- > 0) {
                 if(self.__doOpenConnection_CleanBeforeNextTry) self.__doOpenConnection_CleanBeforeNextTry(connection);
-                window.setTimeout(openConnectionRetryLoop.bind(null, connection), retryConnectAfterDelay);
+                window.setTimeout(self.__doOpenConnectionRetryLoop.bind(null, connection), retryConnectAfterDelay);
             }else{
                 self.__connectionOpenFailed(connection);
             }
@@ -203,7 +203,7 @@ export function VnfHub(){
             }
         }
 
-        function openConnectionRetryLoop(connection) {
+        self.__doOpenConnectionRetryLoop = function __doOpenConnectionRetryLoop(connection) {
             if(connection.isConnected || connection.isDestroyed) {
                 return;
             }
@@ -235,7 +235,7 @@ export function VnfHub(){
                 }else{
                     connection.openConnectionRetriesLeft = openConnectionRetries;
                     if(self.__doOpenConnection) self.__doOpenConnection(connection);
-                    openConnectionRetryLoop(connection);
+                    self.__doOpenConnectionRetryLoop(connection);
                 }
             }
         }

@@ -4,5 +4,4 @@ coverage
 /log
 log2
 log.*.log
-run-test-loop.sh
 run.log

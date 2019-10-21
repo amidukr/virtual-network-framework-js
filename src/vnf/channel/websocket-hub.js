@@ -48,7 +48,7 @@ export function WebSocketHub(webSocketFactory){
                 }
             })
             .catch((e) => {
-                Log.warn("websocket-hub", ["SEND_TO_ENDPOINT HANDSHAKE not delivered: ", e]);
+                Log.debug("websocket-hub", ["SEND_TO_ENDPOINT HANDSHAKE not delivered: ", e]);
                 self.__connectionNextTryFailed(connection);
             });
         }
@@ -64,13 +64,15 @@ export function WebSocketHub(webSocketFactory){
 
             if(!connection.handlingCloseEvent) {
                 webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true})
-                .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT CLOSE-CONNECTION not delivered: " + e));
+                .catch((e) => Log.debug("websocket-hub", "SEND_TO_ENDPOINT CLOSE-CONNECTION not delivered: " + e));
             }
         };
 
         function handleHandshakeMessage(sourceVip, messageType, body) {
+            if(self.isDestroyed()) return;
+
             webSocketRpc.invoke("SEND_TO_ENDPOINT",  sourceVip + "\nACCEPT", {retryResend: true})
-            .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT ACCEPT not delivered: " + e));
+            .catch((e) => Log.debug("websocket-hub", "SEND_TO_ENDPOINT ACCEPT not delivered: " + e));
 
             self.__acceptConnection(sourceVip);
         }
@@ -117,7 +119,7 @@ export function WebSocketHub(webSocketFactory){
 
             var sourceVip;
             if(endOfLine == -1) {
-                Log.warn("WebSocketHub: Malformed message retrieved. EOL character is required after endpoint\n" + message);
+                Log.debug("WebSocketHub: Malformed message retrieved. EOL character is required after endpoint\n" + message);
                 return;
             }
             var sourceVip = message.substr(0, endOfLine);
@@ -150,7 +152,7 @@ export function WebSocketHub(webSocketFactory){
                     self.closeConnection(connection.targetVip);
                 }
             })
-            .catch((e) => Log.warn("websocket-hub", "SEND_TO_ENDPOINT MESSAGE not delivered: " + e));
+            .catch((e) => Log.debug("websocket-hub", "SEND_TO_ENDPOINT MESSAGE not delivered: " + e));
         };
 
         var parentDestroy = self.destroy;
