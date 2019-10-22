@@ -181,7 +181,11 @@ function VnfRtcConnection(connectionId){
         }
 
         channel.onmessage = function(e) {
-            onChannelMessageCallback(e.data);
+            try{
+                onChannelMessageCallback(e.data);
+            }catch(e) {
+                Log.error(instanceId, "webrtc-onmessage", ["Error in onmessage handler", e]);
+            }
         }
 
         channel.onclose = function(evt) {
@@ -250,6 +254,8 @@ export function RtcHub(signalingHub){
     var selfHub = this;
     ProxyHub.call(selfHub, signalingHub);
 
+    selfHub.setEstablishConnectionTimeout(1500);
+
     selfHub.VnfEndpoint = function RTCEndpoint(selfVip) {
         var self = this;
         selfHub.ProxyEndpoint.call(self, selfVip);
@@ -271,11 +277,18 @@ export function RtcHub(signalingHub){
             });
 
             vnfRtcConnection.onChannelMessage(function(message) {
-                var onMessage = self.onMessage;
-                if(onMessage) {
-                    self.onMessage({message: message,
-                                    sourceVip: connection.targetVip,
-                                    endpoint:  self});
+                if(!connection.isConnected || connection.isDestroyed) {
+                    return;
+                }
+
+                try {
+                    self.onMessage && self.onMessage({
+                        message: message,
+                        sourceVip: connection.targetVip,
+                        endpoint:  self
+                    });
+                }catch(e) {
+                    Log.error("rtc[" + selfVip + "->" + event.sourceVip + "]", "web-rtc", ["Error in onMessage handler ", e]);
                 }
             })
 

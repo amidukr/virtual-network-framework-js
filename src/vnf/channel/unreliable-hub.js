@@ -18,12 +18,14 @@ export function UnreliableHub(hub) {
         self.parentEndpoint.onMessage = function(event) {
             self.__acceptConnection(event.sourceVip)
 
-            if(self.onMessage) {
-                self.onMessage({
+            try{
+                self.onMessage && self.onMessage({
                     message:   event.message,
                     sourceVip: event.sourceVip,
                     endpoint:   self
                 });
+            }catch(e) {
+                Log.error("unreliable-hub", ["Error in onMessage handler: ", e]);
             }
         }
 

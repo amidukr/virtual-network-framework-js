@@ -90,9 +90,13 @@ export function WebSocketHub(webSocketFactory){
                 return false;
             }
 
-            self.onMessage && self.onMessage({sourceVip: sourceVip,
-                                              message:   body,
-                                              endpoint:  self});
+            try{
+                self.onMessage && self.onMessage({sourceVip: sourceVip,
+                                                  message:   body,
+                                                  endpoint:  self});
+            }catch(e) {
+                Log.error("websocket-hub", ["Error in onMessage handler: ", e]);
+            }
         }
 
         function handleCloseConnection(sourceVip, messageType, body) {

@@ -56,9 +56,13 @@ export function BigMessageHub(parentHub, configuration){
                 var message = connection.messageType == "J" ? JSON.parse(messageFragment) : messageFragment;
 
                 var onMessage = self.onMessage;
-                onMessage && onMessage({message: message,
-                                        sourceVip: event.sourceVip,
-                                        endpoint: self});
+                try {
+                    onMessage && onMessage({message: message,
+                                            sourceVip: event.sourceVip,
+                                            endpoint: self});
+                }catch(e) {
+                    Log.error(selfVip, "big-message", ["Error in onMessage handler: ", e]);
+                }
 
                 connection.messageFragment = null;
                 connection.messageType = null;

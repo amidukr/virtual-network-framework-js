@@ -51,8 +51,10 @@ export function InBrowserHub(){
 
             var onMessage = remoteEndpoint.onMessage;
 
-            if(onMessage) {
-                onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
+            try{
+                onMessage && onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
+            }catch(e) {
+                Log.error(selfVip, "in-browser-message", ["Error in onMessage handler: ", e]);
             }
         }
 

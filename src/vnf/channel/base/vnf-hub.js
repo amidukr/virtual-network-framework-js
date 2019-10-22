@@ -53,7 +53,7 @@ export function VnfHub(){
                     endpoint: self
                 });
             }catch(e) {
-                Log.error(selfVip, "in-browser-hub", "Error in connection callback\n" + e);
+                Log.error(selfVip, "vnf-hub", "Error in connection callback\n" + e);
             }
         }
 
@@ -65,7 +65,7 @@ export function VnfHub(){
                     endpoint: self
                 });
             }catch(e) {
-                Log.error(selfVip, "in-browser-hub", "Error in connection callback\n" + e);
+                Log.error(selfVip, "vnf-hub", "Error in connection callback\n" + e);
             }
         }
 
@@ -254,9 +254,14 @@ export function VnfHub(){
             }
 
             if(targetVip == selfVip) {
-                if(self.onMessage) {
-                    window.setTimeout(self.onMessage.bind(null, {sourceVip: selfVip, message: message, endpoint: self}), 0)
-                }
+                window.setTimeout(function(){
+                    try{
+                        self.onMessage && self.onMessage({sourceVip: selfVip, message: message, endpoint: self});
+                    }catch(e) {
+                        Log.error("vnf-hub", ["Error in onMessage handler: ", e]);
+                    }
+
+                }, 0);
             }else{
                 self.__doSend(connection, message);
             }
@@ -291,7 +296,7 @@ export function VnfHub(){
                 try{
                     self.closeConnection(targetVip);
                 }catch(e){
-                    Log.error(selfVip, "in-browser-hub", ["Error closing connection", e]);
+                    Log.error(selfVip, "vnf-hub", ["Error closing connection", e]);
                 }
             }
 
