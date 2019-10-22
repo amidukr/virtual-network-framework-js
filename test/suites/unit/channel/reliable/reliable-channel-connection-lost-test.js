@@ -164,8 +164,17 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: ignore close connection with
 
     .then(argument.rootEndpoint.closeConnection.bind(null, "reliable-endpoint"))
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+
+    .then(argument.rootEndpoint.closeConnection.bind(null, "reliable-endpoint"))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
 
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
+
+    .then(argument.rootEndpoint.closeConnection.bind(null, "reliable-endpoint"))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
 
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))

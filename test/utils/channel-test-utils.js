@@ -12,22 +12,11 @@ function inBrowserFactory(){
 }
 
 function reliableRtcWebSocketFactory(){
-
-    var reliableRtc = new Vnf.ReliableRtcHub(webSocketFactory())
-
-    reliableRtc.setHeartbeatInterval(200);
-    reliableRtc.setConnectionInvalidateInterval(1000);
-    reliableRtc.setConnectionLostTimeout(6000);
-
-    return reliableRtc;
+    return new Vnf.ReliableRtcHub(webSocketFactory())
 }
 
 function rtcFactory(){
-    var rtcHub = new Vnf.RtcHub(new Vnf.InBrowserHub())
-
-    rtcHub.setEstablishConnectionTimeout(1500);
-
-    return rtcHub;
+    return new Vnf.RtcHub(new Vnf.InBrowserHub())
 }
 
 function bigMessageFactory(){
@@ -61,13 +50,7 @@ function unreliableFactory() {
 }
 
 function reliableRtcFactory() {
-    var reliableRtc = new Vnf.ReliableRtcHub(new Vnf.InBrowserHub())
-
-    reliableRtc.setHeartbeatInterval(200);
-    reliableRtc.setConnectionInvalidateInterval(1000);
-    reliableRtc.setConnectionLostTimeout(3000);
-
-    return new Vnf.BigMessageHub(reliableRtc);
+    return new Vnf.BigMessageHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
 }
 
 

@@ -8,7 +8,6 @@ import {ProxyHub} from "./base/vnf-proxy-hub.js";
 import {ReliableMessageSerializer}  from "./reliable/reliable-message-serializer.js";
 
 var STATE_NO_ACTION   = 'NO-ACTION';
-var OPENING_CONNECTION = 'OPENING_CONNECTION';
 var STATE_HANDSHAKING = 'HANDSHAKING';
 var STATE_ACCEPTING   = 'ACCEPTING';
 var STATE_CONNECTED   = 'CONNECTED';
@@ -29,14 +28,26 @@ export function ReliableHub(hub) {
         throw new Error("Unable to create instnce of ReliableHub, argument 'hub' cannot be null");
     }
 
-    var heartbeatInterval = 3000;
-    var connectionInvalidateInterval = 9000;
-    var connectionLostTimeout = 30000;
+    var heartbeatInterval = 1000;
+    var connectionInvalidateInterval = 50000;
+    var connectionLostTimeout = 15000;
 
     var heartbeatsToInvalidate = 0;
     var heartbeatsToDropConnection = 0;
 
     var heartbeatDeviation = 0.3;
+
+    selfHub.setEstablishConnectionTimeout = function(value) {
+        Log.warn("reliable-hub", "ReliableHub do not support setEstablishConnectionTimeout, please use ReliableHub heartbeat specific configure");
+    }
+
+    selfHub.setRetryConnectAfterDelay = function(value) {
+        Log.warn("reliable-hub", "ReliableHub do not support setEstablishConnectionTimeout, please use ReliableHub heartbeat specific configure");
+    }
+
+    selfHub.setOpenConnectionRetries = function(value) {
+        Log.warn("reliable-hub", "ReliableHub do not support setEstablishConnectionTimeout, please use ReliableHub heartbeat specific configure");
+    }
 
 
     function updateHeartbeatCounters() {
@@ -100,18 +111,42 @@ export function ReliableHub(hub) {
 
         function parentSend(targetVip, messageJson) {
             try{
-                parentEndpoint.openConnection(targetVip, function parentOpenConnectionCallback(e){
-                    try{
-                        var messageString = ReliableMessageSerializer.serialize(messageJson);
-                        parentEndpoint.send(targetVip, messageString);
-                    }catch(error) {
-                        Log.debug(self.vip, "reliable-hub", ["Unable to send message: ", error]);
-                    }
-                });
+                var messageString = ReliableMessageSerializer.serialize(messageJson);
+                parentEndpoint.send(targetVip, messageString);
             }catch(error) {
-                Log.debug(self.vip, "reliable-hub", ["Unable to open connection to send message: ", error]);
+                Log.debug(self.vip, "reliable-hub", ["Unable to send message: ", error]);
             }
         }
+
+        function parentOpenConnection(targetVip) {
+            if(parentEndpoint.isConnected(targetVip)) {
+                return;
+            }
+
+            if(!self.getConnection(targetVip)) {
+                return;
+            }
+
+            parentEndpoint.openConnection(targetVip, function(e) {
+                if(e.status == Global.FAILED) {
+                    parentOpenConnection(targetVip);
+                }
+            });
+        }
+
+        parentEndpoint.onConnectionOpen(function onConnectionOpen(targetVip) {
+            var connection = self.getConnection(targetVip);
+            if(!connection) {
+                return;
+            }
+
+            sendRefreshConnectionMessage(connection);
+        });
+
+        parentEndpoint.onConnectionLost(function onConnectionLost(targetVip) {
+            parentOpenConnection(targetVip);
+        });
+
 
         function sendHandshakeMessage(connection) {
             parentSend(connection.targetVip, {type:    MESSAGE_HANDSHAKE,
@@ -191,7 +226,7 @@ export function ReliableHub(hub) {
 
         function refreshConnection(connection) {
 
-            if(connection.targetVip == self.vip || connection.state == OPENING_CONNECTION) {
+            if(connection.targetVip == self.vip) {
                 return;
             }
 
@@ -223,6 +258,7 @@ export function ReliableHub(hub) {
             if(invalidateConnectionCounter == 0) {
                 Log.verbose(instanceId, "reliable-channel-status", "re-invalidate connection");
                 parentEndpoint.closeConnection(connection.targetVip);
+                parentOpenConnection(connection.targetVip);
             }
 
             Log.verbose(instanceId, "reliable-channel-status", "connection refresh message sent")
@@ -393,12 +429,14 @@ export function ReliableHub(hub) {
             var receivedMessages = connection.receivedMessages;
 
             if(message.messageIndex == connection.firstMessageNumberInReceivedBuffer + 1) {
-                if(self.onMessage) {
-                    self.onMessage({
-                        message: message.payload,
-                        sourceVip: event.sourceVip,
-                        endpoint: self
+                try {
+                    self.onMessage && self.onMessage({
+                                            message: message.payload,
+                                            sourceVip: event.sourceVip,
+                                            endpoint: self
                     });
+                }catch(e) {
+                    Log.error(self.vip, "reliable-hub", ["Error in onMessage handler: ", e]);
                 }
             }else {
                 if(message.messageIndex > connection.firstMessageNumberInReceivedBuffer) {
@@ -421,12 +459,14 @@ export function ReliableHub(hub) {
                 if(!message) break;
 
                 processedMessages++;
-                if(self.onMessage) {
-                    self.onMessage({
+                try {
+                    self.onMessage&& self.onMessage({
                         message: message.payload,
                         sourceVip: event.sourceVip,
                         endpoint: self
                     });
+                }catch(e) {
+                    Log.error(self.vip, "reliable-hub", ["Error in onMessage handler: ", e]);
                 }
             }
 
@@ -487,26 +527,12 @@ export function ReliableHub(hub) {
             handler(event, connection, message);
         }
 
-        self.__doOpenConnection_NextTry = function(connection) {
-
-            setConnectionState(connection, OPENING_CONNECTION);
-
-            parentEndpoint.openConnection(connection.targetVip, function(event) {
-                if(connection.isDestroyed || connection.isConnected) return;
-
-                if(event.status  == Global.FAILED) {
-                    self.__connectionNextTryFailed(connection);
-                    return;
-                }
-
-                resetConnection(connection, event.targetVip, STATE_HANDSHAKING);
-                sendHandshakeMessage(connection);
-            })
+        self.__doOpenConnection = function(connection) {
+            resetConnection(connection, connection.targetVip, STATE_HANDSHAKING);
+            parentOpenConnection(connection.targetVip);
         }
 
-        self.__doOpenConnection_CleanBeforeNextTry = function(connection) {
-            parentEndpoint.closeConnection(connection.targetVip);
-        }
+        self.__doOpenConnectionRetryLoop = function(connection) {}
 
         self.__doSend = function(connection, message) {
             connection.lastSentMessageNumber++;

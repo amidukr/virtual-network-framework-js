@@ -4,9 +4,9 @@ QUnit.module("ReliableHub Handshake Retry");
 ReliableTestUtils.reliableVnfTest("ReliableHub Handshake Retry test", function(assert, argument) {
     var done = assert.async(1);
 
-    argument.reliableHub.setHeartbeatInterval(5);
-    argument.reliableHub.setConnectionInvalidateInterval(15);
-    argument.reliableHub.setConnectionLostTimeout(60);
+    argument.reliableHub.setHeartbeatInterval(30);
+    argument.reliableHub.setConnectionInvalidateInterval(90);
+    argument.reliableHub.setConnectionLostTimeout(360);
 
     var connectionFailedCaptured = false;
 
