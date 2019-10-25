@@ -53,7 +53,7 @@ export function VnfHub(){
                     endpoint: self
                 });
             }catch(e) {
-                Log.error(selfVip, "vnf-hub", "Error in connection callback\n" + e);
+                Log.error(selfVip, ["vnf-hub", "Error in connection callback\n", e]);
             }
         }
 
@@ -65,7 +65,7 @@ export function VnfHub(){
                     endpoint: self
                 });
             }catch(e) {
-                Log.error(selfVip, "vnf-hub", "Error in connection callback\n" + e);
+                Log.error(selfVip, ["vnf-hub", "Error in connection callback\n", e]);
             }
         }
 

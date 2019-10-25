@@ -25,6 +25,7 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: No-Action state", function
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "HEARTBEAT rel1-1 root1-1 0 -1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "MESSAGE rel1-1 0 message-phantom-1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel1-1 root1-1"))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 rel1-1"]))
 
     .then(argument.rootCapture.assertSilence.bind(null, 60))
     .then(argument.reliableCapture.assertSilence.bind(null, 0))
@@ -64,6 +65,7 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: Handshaking state", functi
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "HEARTBEAT rel1-1 root1-1 0 -1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "MESSAGE rel1-1 0 message-phantom-1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel1-1 root1-1"))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 rel1-1"]))
 
     // Phantom: wrong session identifies
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "ACCEPT rel2-1 root1-1"))
@@ -119,6 +121,10 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: Accepting state", function
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel1-1 root2-1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel2-1 root1-1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION  root1-1"))
+
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root2-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 rel2-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 "]))
 
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: ACCEPT root1-1 rel1-1"]))
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: ACCEPT root1-1 rel1-1"]))
@@ -183,6 +189,10 @@ ReliableTestUtils.reliableVnfTest("Phantom Detection: Connected state", function
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel1-1 root2-1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel2-1 root1-1"))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION  root1-1"))
+
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root2-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 rel2-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 "]))
 
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1"]))
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1"]))

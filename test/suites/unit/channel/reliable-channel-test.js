@@ -274,3 +274,102 @@ QUnit.test("[Reliable Hub-2-Reliable Hub]: Receive message from existing peer", 
         .then(endpoint2.destroy)
         .then(done);
 });
+
+
+QUnit.test("[Reliable Hub]: Reliable hub immediate modes - no heartbeats - timeout", function(assert){
+    var done = assert.async(1);
+
+    var reliableHub = new Vnf.ReliableHub(new Vnf.InBrowserHub());
+
+    reliableHub.setHeartbeatInterval(100000);
+    reliableHub.setConnectionInvalidateInterval(100000);
+    reliableHub.setConnectionLostTimeout(100000);
+
+    var endpoint1 = reliableHub.openEndpoint("vip-1");
+    var endpoint2 = reliableHub.openEndpoint("vip-2");
+
+    endpoint1.openConnection("vip-2", function(event) {
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
+
+
+        window.setTimeout(function(){
+                assert.equal(endpoint1.isConnected("vip-2"), true, "Verifying endpoint1 connected to vip-2");
+                assert.equal(endpoint2.isConnected("vip-1"), true, "Verifying endpoint2 connected to vip-1");
+
+                endpoint1.closeConnection("vip-2");
+
+                window.setTimeout(function(){
+
+                    assert.equal(endpoint1.isConnected("vip-2"), false, "Verifying endpoint1 not connected to vip-2");
+                    assert.equal(endpoint2.isConnected("vip-1"), false, "Verifying endpoint2 not connected to vip-1");
+
+                    endpoint1.openConnection("vip-2", function(event) {
+                        assert.equal(event.status, "CONNECTED", "Verifying connection status");
+
+                        window.setTimeout(function(){
+                            assert.equal(endpoint1.isConnected("vip-2"), true, "Verifying endpoint1 connected to vip-2");
+                            assert.equal(endpoint2.isConnected("vip-1"), true, "Verifying endpoint2 connected to vip-1");
+
+                            endpoint1.destroy();
+                            endpoint2.destroy();
+
+                            done();
+                        }, 50);
+                    });
+                }, 50);
+        }, 50);
+    });
+});
+
+QUnit.test("[Reliable Hub]: Reliable hub immediate modes - no heartbeats - callbacks", function(assert){
+    var done = assert.async(1);
+
+    var reliableHub = new Vnf.ReliableHub(new Vnf.InBrowserHub());
+
+    reliableHub.setHeartbeatInterval(100000);
+    reliableHub.setConnectionInvalidateInterval(100000);
+    reliableHub.setConnectionLostTimeout(100000);
+
+    var endpoint1 = reliableHub.openEndpoint("vip-1");
+    var endpoint2 = reliableHub.openEndpoint("vip-2");
+
+    var tesDone = false;
+
+    endpoint1.openConnection("vip-2", function(event) {
+        assert.equal(event.status, "CONNECTED", "Verifying connection status");
+
+
+        endpoint2.openConnection("vip-1", function(event){
+            assert.equal(event.status, "CONNECTED", "Verifying connection status");
+
+            assert.equal(endpoint1.isConnected("vip-2"), true, "Verifying endpoint1 connected to vip-2");
+            assert.equal(endpoint2.isConnected("vip-1"), true, "Verifying endpoint2 connected to vip-1");
+
+            endpoint2.onConnectionLost(function onConnectionLost(){
+                if(tesDone) return;
+
+                assert.equal(endpoint1.isConnected("vip-2"), false, "Verifying endpoint1 not connected to vip-2");
+                assert.equal(endpoint2.isConnected("vip-1"), false, "Verifying endpoint2 not connected to vip-1");
+
+                endpoint1.openConnection("vip-2", function(event) {
+                    assert.equal(event.status, "CONNECTED", "Verifying connection status");
+
+                    endpoint2.openConnection("vip-2", function(event) {
+                         assert.equal(endpoint1.isConnected("vip-2"), true, "Verifying endpoint1 connected to vip-2");
+                         assert.equal(endpoint2.isConnected("vip-1"), true, "Verifying endpoint2 connected to vip-1");
+
+                         tesDone = true;
+
+                         endpoint1.destroy();
+                         endpoint2.destroy();
+
+                         done();
+                    });
+                });
+
+            });
+
+            endpoint1.closeConnection("vip-2");
+        })
+    });
+});

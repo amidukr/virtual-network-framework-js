@@ -21,7 +21,15 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Connect est
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: ACCEPT root1-1 rel1-1"]))
 
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: ACCEPT root1-1 rel1-1"]))
+
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+
 
     .then(function(){
         argument.rootEndpoint.openConnection("reliable-endpoint", function(event){
@@ -65,6 +73,12 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Accept retr
     .then(function(){
         assert.ok(argument.reliableEndpoint.getConnection("root-endpoint") != null, "Reliable connection connecting")
     })
+
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
 
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
 
@@ -157,6 +171,13 @@ ReliableTestUtils.reliableVnfTest("Accept Retries: (Reliable<--Root) Accept retr
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: HANDSHAKE rel1-2"]))
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: HANDSHAKE rel1-2"]))
+
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-2"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-2"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-2"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-2"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-2"]))
+
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
 
     .then(argument.reliableCapture.assertSignals.bind(null, ["openConnection captured"]))

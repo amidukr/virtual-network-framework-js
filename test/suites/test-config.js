@@ -17,8 +17,9 @@ TestingProfiles = {
     vnfWebSocketUrl: "wss://aqueous-crag-1991.herokuapp.com/webbroker/vnf-ws",
 }
 
-QUnit.config.testTimeout   = 27000;
-Timeouts.logCaptureTimeout = 28000;
+Timeouts.logCaptureTimeout = 27000;
+QUnit.config.testTimeout   = 28000;
+
 
 ReplayProxy.startNewReplay();
 new WebSocket(TestingProfiles.vnfWebSocketUrl);

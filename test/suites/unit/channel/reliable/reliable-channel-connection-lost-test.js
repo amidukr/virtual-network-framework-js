@@ -1,51 +1,6 @@
 import {ReliableTestUtils} from "../../../../utils/reliable-test-utils.js";
 
 QUnit.module("ReliableHub Connection Lost");
-ReliableTestUtils.reliableVnfTest("Connection Lost: Close connection by reliable endpoint", function(assert, argument) {
-    var done = assert.async(1);
-
-    argument.reliableHub.setHeartbeatInterval(100);
-    argument.reliableHub.setConnectionInvalidateInterval(500);
-    argument.reliableHub.setConnectionLostTimeout(500);
-
-    Promise.resolve()
-
-    .then(argument.makeConnection)
-
-    .then(argument.reliableEndpoint.closeConnection.bind(null, "root-endpoint"))
-
-    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
-    .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
-
-    // will eventually occur after some timeout
-    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
-
-    .then(argument.destroy)
-    .then(done);
-});
-
-
-ReliableTestUtils.reliableVnfTest("Connection Lost: Close connection by root endpoint", function(assert, argument) {
-    var done = assert.async(1);
-
-    argument.reliableHub.setHeartbeatInterval(100);
-    argument.reliableHub.setConnectionInvalidateInterval(500);
-    argument.reliableHub.setConnectionLostTimeout(500);
-
-    Promise.resolve()
-
-    .then(argument.makeConnection)
-
-    .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel1-1 root1-1"))
-    .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
-
-    // will eventually occur after some timeout
-    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
-
-    .then(argument.destroy)
-    .then(done);
-});
-
 ReliableTestUtils.reliableVnfTest("Connection Lost: openConnection just after closeConnection", function(assert, argument) {
     var done = assert.async(1);
 
@@ -99,6 +54,7 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: HANDSHAKE just after CLOSE-C
 
     .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
 
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-ACCEPT root1-1 rel1-1']))
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: ACCEPT root1-2 rel1-2']))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "HEARTBEAT rel1-2 root1-2 0 -1"))
 
@@ -129,8 +85,6 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: Close connection by reliable
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
     .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
 
-
-
     .then(argument.reliableEndpoint.openConnection.bind(null, "root-endpoint", function(event){
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
     }))
@@ -141,6 +95,9 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: Close connection by reliable
 
 
     .then(argument.reliableEndpoint.closeConnection.bind(null, "root-endpoint"))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-2 rel1-2']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-2 rel1-2']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-2 rel1-2']))
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-2 rel1-2']))
     .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
 
@@ -178,6 +135,9 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: ignore close connection with
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HEARTBEAT root1-1 rel1-1 0 -1']))
 
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1']))
 
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
     .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
@@ -205,6 +165,7 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: send message after connectio
     .then(argument.makeConnection)
 
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel1-1 root1-1"))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 rel1-1"]))
 
     .then(argument.reliableCapture.assertSignals.bind(null, ["from root-endpoint connection lost"]))
 
@@ -230,11 +191,17 @@ ReliableTestUtils.reliableVnfTest("Connection Lost: Reply with CLOSE-CONNECTION 
     Promise.resolve()
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: HANDSHAKE rel1-1"]))
     .then(argument.rootEndpoint.send.bind(null, "reliable-endpoint", "CLOSE-CONNECTION rel1-1 root1-1"))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-ACCEPT root1-1 rel1-1"]))
 
     //HANDSHAKE retry after some delay
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: HANDSHAKE rel1-1"]))
 
     .then(argument.reliableEndpoint.closeConnection.bind(null, "root-endpoint"))
+
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1"]))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1"]))
 
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
     .then(argument.reliableCapture.assertSignals.bind(null, ["openConnection captured"]))

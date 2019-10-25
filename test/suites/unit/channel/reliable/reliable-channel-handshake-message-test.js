@@ -1,4 +1,5 @@
 import {ReliableTestUtils} from "../../../../utils/reliable-test-utils.js";
+import {sleeper} from "../../../../../src/utils/promise-utils.js";
 
 QUnit.module("ReliableHub Handshake");
 ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<--Root) Test handshake accept sequence for reliable endpoint and message send", function(assert, argument) {
@@ -129,6 +130,49 @@ ReliableTestUtils.reliableVnfTest("Handshakes: (Reliable<->Root) Test concurrent
 
     .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message3']))
     .then(argument.reliableCapture.assertSignals.bind(null, ['from root-endpoint: message4']))
+
+    .then(argument.destroy)
+    .then(done);
+});
+
+
+ReliableTestUtils.reliableVnfTest("Handshakes: Test handshake send immediately", function(assert, argument) {
+    var done = assert.async(1);
+
+    argument.reliableHub.setHeartbeatInterval(100000);
+    argument.reliableHub.setConnectionInvalidateInterval(100000);
+    argument.reliableHub.setConnectionLostTimeout(100000);
+
+    argument.reliableEndpoint.openConnection("root-endpoint", function(event){});
+
+    Promise.resolve()
+
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HANDSHAKE rel1-1']))
+    .then(sleeper(500))
+
+    .then(argument.rootCapture.assertSilence.bind(null))
+
+    .then(argument.destroy)
+    .then(done);
+});
+
+ReliableTestUtils.reliableVnfTest("Handshakes: Test handshake immediately after closeConnection", function(assert, argument) {
+    var done = assert.async(1);
+
+    argument.reliableHub.setHeartbeatInterval(100000);
+    argument.reliableHub.setConnectionInvalidateInterval(100000);
+    argument.reliableHub.setConnectionLostTimeout(100000);
+
+    argument.makeConnection()
+    .then(argument.reliableEndpoint.closeConnection.bind(null, "root-endpoint"))
+    .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint: CLOSE-CONNECTION root1-1 rel1-1"]))
+
+    .then(argument.reliableEndpoint.openConnection.bind(null, "root-endpoint", function(event){}))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HANDSHAKE rel1-2']))
+
+    .then(sleeper(500))
+
+    .then(argument.rootCapture.assertSilence.bind(null))
 
     .then(argument.destroy)
     .then(done);

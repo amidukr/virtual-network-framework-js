@@ -38,8 +38,23 @@ ReliableTestUtils.reliableVnfTest("ReliableHub Handshake Retry test", function(a
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HANDSHAKE rel1-1']))
     .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: HANDSHAKE rel1-1']))
 
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
+    .then(argument.rootCapture.assertSignals.bind(null, ['from reliable-endpoint: CLOSE-CONNECTION undefined rel1-1']))
 
     .then(argument.rootCapture.assertSignals.bind(null, ["from reliable-endpoint connection lost"]))
+
     .then(argument.rootCapture.assertSilence.bind(null, 60))
     .then(argument.reliableCapture.assertSilence.bind(null, 0))
 

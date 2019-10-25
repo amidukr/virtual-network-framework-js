@@ -42,6 +42,10 @@ export class ReliableMessageSerializer {
             return 'CLOSE-CONNECTION ' + message.toSid + ' ' + message.fromSid;
         }
 
+        if(message.type == 'CLOSE-ACCEPT') {
+            return 'CLOSE-ACCEPT ' + message.toSid + ' ' + message.fromSid;
+        }
+
         throw new Error("Unexpected type: '" + message.type + "' to serialize");
     }
 
@@ -96,6 +100,16 @@ export class ReliableMessageSerializer {
 
             return {
                 type: 'CLOSE-CONNECTION',
+                toSid:    messageValues[0],
+                fromSid:  messageValues[1]
+            };
+        }
+
+        if(type == 'CLOSE-ACCEPT') {
+            var messageValues = splitToArray(remainString, 2);
+
+            return {
+                type: 'CLOSE-ACCEPT',
                 toSid:    messageValues[0],
                 fromSid:  messageValues[1]
             };

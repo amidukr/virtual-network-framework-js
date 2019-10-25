@@ -10,6 +10,7 @@ import "./channel/reliable-channel-test.js";
 import "./channel/reliable/reliable-channel-message-format-test.js";
 
 import "./channel/reliable/reliable-channel-handshake-test.js";
+import "./channel/reliable/reliable-channel-close-connection-test.js";
 import "./channel/reliable/reliable-channel-handshake-message-test.js";
 import "./channel/reliable/reliable-channel-order-correction-test.js";
 import "./channel/reliable/reliable-channel-gap-correction-test.js";

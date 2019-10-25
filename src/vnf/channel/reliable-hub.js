@@ -11,12 +11,14 @@ var STATE_NO_ACTION   = 'NO-ACTION';
 var STATE_HANDSHAKING = 'HANDSHAKING';
 var STATE_ACCEPTING   = 'ACCEPTING';
 var STATE_CONNECTED   = 'CONNECTED';
+var STATE_CLOSED      = 'CLOSED';
 
-var MESSAGE_HANDSHAKE   = 'HANDSHAKE';
-var MESSAGE_ACCEPT      = 'ACCEPT';
-var MESSAGE_DATA        = 'MESSAGE';
-var MESSAGE_HEARTBEAT   = 'HEARTBEAT';
+var MESSAGE_HANDSHAKE    = 'HANDSHAKE';
+var MESSAGE_ACCEPT       = 'ACCEPT';
+var MESSAGE_DATA         = 'MESSAGE';
+var MESSAGE_HEARTBEAT    = 'HEARTBEAT';
 var MESSAGE_CLOSE_CONNECTION  = 'CLOSE-CONNECTION';
+var MESSAGE_CLOSE_ACCEPT = 'CLOSE-ACCEPT';
 
 
 export function ReliableHub(hub) {
@@ -25,7 +27,7 @@ export function ReliableHub(hub) {
     ProxyHub.call(selfHub, hub);
 
     if(!hub) {
-        throw new Error("Unable to create instnce of ReliableHub, argument 'hub' cannot be null");
+        throw new Error("Unable to create instance of ReliableHub, argument 'hub' cannot be null");
     }
 
     var heartbeatInterval = 1000;
@@ -102,7 +104,7 @@ export function ReliableHub(hub) {
             connection.firstMessageNumberInReceivedBuffer = -1;
             connection.receivedMessages = new CycleBuffer();
 
-            connection.closeConnectionHandled = false;
+            connection.beatCloseConnection = true;
 
             setConnectionState(connection, state);
 
@@ -134,8 +136,16 @@ export function ReliableHub(hub) {
             });
         }
 
+        function parentConnectionClose(targetVip) {
+            parentEndpoint.closeConnection(targetVip);
+        }
+
         parentEndpoint.onConnectionOpen(function onConnectionOpen(targetVip) {
             var connection = self.getConnection(targetVip);
+            if(!connection) {
+                connection = dropParentConnectionQueue[targetVip]
+            }
+
             if(!connection) {
                 return;
             }
@@ -180,7 +190,18 @@ export function ReliableHub(hub) {
                                               fromSid: connection.sessionId})
         }
 
+        function sendCloseAcceptMessage(targetVip, toSid, fromSid) {
+            parentSend(targetVip, {type: MESSAGE_CLOSE_ACCEPT,
+                                   toSid: toSid,
+                                   fromSid: fromSid})
+        }
+
         function sendRefreshConnectionMessage(connection) {
+            if(!parentEndpoint.isConnected(connection.targetVip)) {
+                Log.debug(instanceId, "send-refresh-connection-message", "Unable to send refresh message since parent connection is closed, connection.state = " +  connection.state);
+                return;
+            }
+
             if(connection.state == STATE_CONNECTED) {
                 var gapBegin = connection.firstMessageNumberInReceivedBuffer + 1;
                 var gapEnd   = -1;
@@ -213,6 +234,11 @@ export function ReliableHub(hub) {
 
             if(connection.state == STATE_HANDSHAKING) {
                 sendHandshakeMessage(connection);
+                return;
+            }
+
+            if(connection.state == STATE_CLOSED) {
+                sendCloseConnectionMessage(connection);
                 return;
             }
 
@@ -255,9 +281,9 @@ export function ReliableHub(hub) {
                 }
             }
 
-            if(invalidateConnectionCounter == 0) {
+            if(invalidateConnectionCounter == 0 && connection.state != STATE_NO_ACTION) {
                 Log.verbose(instanceId, "reliable-channel-status", "re-invalidate connection");
-                parentEndpoint.closeConnection(connection.targetVip);
+                parentConnectionClose(connection.targetVip);
                 parentOpenConnection(connection.targetVip);
             }
 
@@ -265,8 +291,37 @@ export function ReliableHub(hub) {
             sendRefreshConnectionMessage(connection);
         }
 
+        function refreshDroppedConnection(droppedConnectionVip) {
+            var connection = dropParentConnectionQueue[droppedConnectionVip];
+
+            connection.dropConnectionCounter--;
+
+            var newConnection = self.getConnection(droppedConnectionVip);
+
+            if(newConnection && newConnection.state != STATE_NO_ACTION) {
+                delete dropParentConnectionQueue[droppedConnectionVip];
+                return;
+            }
+
+            if(connection.beatCloseConnection && parentEndpoint.isConnected(droppedConnectionVip)) {
+                sendCloseConnectionMessage(connection);
+            }
+
+            if(connection.dropConnectionCounter <= 0) {
+                delete dropParentConnectionQueue[droppedConnectionVip];
+
+                if(!newConnection) {
+                    parentConnectionClose(droppedConnectionVip);
+                }
+            }
+        }
+
         function onTimeEvent() {
             timerActive = false;
+            if(self.isDestroyed()) {
+                return;
+            }
+
             var connectionsToDeactivate = [];
 
             var connections = self.getConnections();
@@ -275,19 +330,10 @@ export function ReliableHub(hub) {
                 refreshConnection(connections[i])
             }
 
-            var currentTime = new Date().getTime();
             dropQueueNonEmpty = false;
             for(var droppedConnectionVip in dropParentConnectionQueue ) {
                 dropQueueNonEmpty = true;
-
-                if(self.getConnection(droppedConnectionVip) != null) {
-                    delete dropParentConnectionQueue[droppedConnectionVip];
-                }
-
-                if(currentTime - dropParentConnectionQueue[droppedConnectionVip] > connectionLostTimeout) {
-                    delete dropParentConnectionQueue[droppedConnectionVip];
-                    parentEndpoint.closeConnection(droppedConnectionVip);
-                }
+                refreshDroppedConnection(droppedConnectionVip);
             }
 
             resetTimer();
@@ -303,27 +349,30 @@ export function ReliableHub(hub) {
         }
 
         var allowedMessageStates = {
-            "HANDSHAKE":         {"NO-ACTION": true,  "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": false},
-            "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": true},
-            "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-            "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": true},
-            "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true}
+            "HANDSHAKE":         {"NO-ACTION": true,  "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": false, "CLOSED": false},
+            "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": true,  "CLOSED": false},
+            "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "CLOSE-ACCEPT":      {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false, "CLOSED": true}
         };
 
         var verifyFromSid = {
-            "HANDSHAKE":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-            "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-            "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-            "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false},
-            "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true}
+            "HANDSHAKE":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false, "CLOSED": false},
+            "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "CLOSE-ACCEPT":      {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false, "CLOSED": true}
         };
 
         var verifyToSid = {
-            "HANDSHAKE":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false},
-            "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": true},
-            "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true},
-            "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": true},
-            "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true}
+            "HANDSHAKE":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false, "CLOSED": false},
+            "ACCEPT":            {"NO-ACTION": false, "HANDSHAKING": true,  "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "HEARTBEAT":         {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": true,  "CONNECTED": true,  "CLOSED": false},
+            "MESSAGE":           {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": true,  "CLOSED": false},
+            "CLOSE-CONNECTION":  {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": true,  "CLOSED": false},
+            "CLOSE-ACCEPT":      {"NO-ACTION": false, "HANDSHAKING": false, "ACCEPTING": false, "CONNECTED": false, "CLOSED": true}
         };
 
         function verifyIfPhantom(connection, message) {
@@ -400,7 +449,6 @@ export function ReliableHub(hub) {
                     connection.firstMessageNumberInSendBuffer = message.gapBegin;
                 }
 
-
                 var array = sentMessages.array;
                 for(var i = 0; i < sentMessages.length; i++) {
                     if(message.gapEnd != -1 && message.gapEnd < i + message.gapBegin) {
@@ -476,10 +524,14 @@ export function ReliableHub(hub) {
 
         function handleCloseMessage(event, connection, message) {
             if(connection.state == STATE_CONNECTED) {
-                connection.closeConnectionHandled = true;
+                connection.beatCloseConnection = false;
                 self.closeConnection(connection.targetVip);
                 return;
             }
+        }
+
+        function handleCloseAcceptMessage(event, connection, message) {
+            connection.beatCloseConnection = false;
         }
 
         var handlers = {
@@ -488,7 +540,8 @@ export function ReliableHub(hub) {
             "HEARTBEAT": handleHeartbeatMessage,
             "MESSAGE":   handleDataMessage,
 
-            "CLOSE-CONNECTION": handleCloseMessage
+            "CLOSE-CONNECTION": handleCloseMessage,
+            "CLOSE-ACCEPT": handleCloseAcceptMessage
         }
 
 
@@ -496,7 +549,7 @@ export function ReliableHub(hub) {
             endpointId = value;
         }
 
-        parentEndpoint.onMessage = function(event) {
+        parentEndpoint.onMessage = function handleMessage(event) {
             if(self.isDestroyed()) {
                 Log.verbose("reliable-hub", "ReliableHub: Unable to handle message, because endpoint is destroyed")
             }
@@ -505,9 +558,8 @@ export function ReliableHub(hub) {
 
             var message = ReliableMessageSerializer.deserialize(event.message);
 
-            var connection = self.__lazyNewConnection(event.sourceVip);
-            if(!connection.state) {
-                resetConnection(connection, event.sourceVip, STATE_NO_ACTION);
+            if(message.type == MESSAGE_CLOSE_CONNECTION) {
+                sendCloseAcceptMessage(event.sourceVip, message.fromSid, message.toSid);
             }
 
             var handler = handlers[message.type];
@@ -516,9 +568,19 @@ export function ReliableHub(hub) {
                 throw new Error("ReliableHub: Unknown message type received: " + message.type);
             }
 
+            var connection;
+            if(message.type == MESSAGE_CLOSE_ACCEPT && dropParentConnectionQueue[event.sourceVip]) {
+                connection = dropParentConnectionQueue[event.sourceVip];
+            }else{
+                connection = self.__lazyNewConnection(event.sourceVip);
+                if(!connection.state) {
+                    resetConnection(connection, event.sourceVip, STATE_NO_ACTION);
+                }
+            }
+
             var phantomError = verifyIfPhantom(connection, message);
             if(phantomError) {
-                Log.debug("reliable-hub", ["Phantom detected: " + phantomError,  event, connection])
+                Log.debug("reliable-hub", ["Phantom detected: " + phantomError,  event, connection]);
                 return;
             }
 
@@ -530,6 +592,10 @@ export function ReliableHub(hub) {
         self.__doOpenConnection = function(connection) {
             resetConnection(connection, connection.targetVip, STATE_HANDSHAKING);
             parentOpenConnection(connection.targetVip);
+
+            if(parentEndpoint.isConnected(connection.targetVip)) {
+                sendRefreshConnectionMessage(connection);
+            }
         }
 
         self.__doOpenConnectionRetryLoop = function(connection) {}
@@ -543,12 +609,23 @@ export function ReliableHub(hub) {
 
         var __superDoReleaseConnection = self.__doReleaseConnection;
         self.__doReleaseConnection = function(connection) {
-            if(!connection.closeConnectionHandled && connection.state == STATE_CONNECTED) {
-                sendCloseConnectionMessage(connection);
+            if(connection.state == STATE_NO_ACTION && !dropParentConnectionQueue[connection.targetVip] && !self.getConnection(connection.targetVip)) {
+                parentConnectionClose(connection.targetVip);
             }
 
+            if(connection.state == STATE_NO_ACTION) {
+                setConnectionState(connection, STATE_CLOSED);
+                return;
+            }
+
+            if(connection.beatCloseConnection) {
+                sendCloseConnectionMessage(connection);
+            }
+            setConnectionState(connection, STATE_CLOSED);
+
             dropQueueNonEmpty = true;
-            dropParentConnectionQueue[connection.targetVip] = new Date().getTime();
+            connection.dropConnectionCounter = heartbeatsToDropConnection;
+            dropParentConnectionQueue[connection.targetVip] = connection;
         }
     }
 }
