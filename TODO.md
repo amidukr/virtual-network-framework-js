@@ -6,10 +6,12 @@
 1. Reliable close connection, only one message send, no retries to resend cancel connection. 
 1. Share specification document
    1. algin application according to spec
-        1. rename packages and namings to Neuron-Vnf
+        1. rename packages and namings to amid-ukr-vnf (Document updated to amid-ukr-vnf, library is not required, as in JS it is bundled as one file not a folder )
         1. rename vip to eva
-        1. rename big message to name according to specification document
-        1. Rename store to registry - Update specification and update code (store persistent thing) 
+        1. rename big message to name according to specification document (Marshaller Hub)
+        1. Rename store to registry
+            1. Update specification (DONE)
+            1. update code (store persistent thing)
 1. Remove/Extract VNF System
 
 
