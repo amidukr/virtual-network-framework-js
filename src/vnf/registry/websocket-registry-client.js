@@ -4,11 +4,11 @@ import {VnfSerializer} from "../../utils/vnf-serializer.js";
 
 import {Global} from "../global.js";
 
-export function WebSocketStoreClient(webSocketRpc) {
+export function WebSocketRegistryClient(webSocketRpc) {
 
     webSocketRpc.allocateUsage();
 
-    var webSocketStoreClient = this;
+    var WebSocketRegistryClient = this;
     var storeCache = {}
 
     function putToCache(key, value) {
@@ -39,7 +39,7 @@ export function WebSocketStoreClient(webSocketRpc) {
             var collection = storeCache[collectionName];
 
             for(var entryName in collection) {
-                webSocketStoreClient.createOrUpdate({collection: collectionName, name: entryName}, collection[entryName])
+                WebSocketRegistryClient.createOrUpdate({collection: collectionName, name: entryName}, collection[entryName])
                 .catch((e) => Log.debug("websocket-store-client", "Unable to createOrUpdate cached object on connection open: ", e));
             }
         }

@@ -5,8 +5,8 @@ import {Global} from "./global.js";
 import {WebSocketRpc}     from "./websocket/websocket-rpc.js";
 import {WebSocketFactory} from "./websocket/websocket-facrory.js";
 
-import {InBrowserStore}       from "./store/in-browser-store.js";
-import {WebSocketStoreClient} from "./store/websocket-store-client.js";
+import {InBrowserRegistry}       from "./registry/in-browser-registry.js";
+import {WebSocketRegistryClient} from "./registry/websocket-registry-client.js";
 
 import {InBrowserHub}   from "./channel/in-browser-hub.js";
 import {RtcHub}         from "./channel/rtc-hub.js";
@@ -24,8 +24,8 @@ var Vnf = {
       WebSocketRpc: WebSocketRpc,
       WebSocketFactory: WebSocketFactory,
 
-      InBrowserStore: InBrowserStore,
-      WebSocketStoreClient: WebSocketStoreClient,
+      InBrowserRegistry: InBrowserRegistry,
+      WebSocketRegistryClient: WebSocketRegistryClient,
 
       InBrowserHub: InBrowserHub,
       UnreliableHub: UnreliableHub,

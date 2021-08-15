@@ -7,12 +7,12 @@ function validateKey(key) {
     if(key.name.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in entry name");
 }
 
-export function InBrowserStore() {
+export function InBrowserRegistry() {
     var clients = {};
 
     var collections = {}
 
-    function InBrowserStoreClient(eva) {
+    function InBrowserRegistryClient(eva) {
 
         var ownedKeyLastIndex = 0;
         var ownedKeys     = {};
@@ -142,7 +142,7 @@ export function InBrowserStore() {
             throw new Error("This name already in used");
         }
 
-        clients[eva] = new InBrowserStoreClient(eva);
+        clients[eva] = new InBrowserRegistryClient(eva);
 
         return clients[eva];
     }

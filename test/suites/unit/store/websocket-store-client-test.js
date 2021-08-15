@@ -7,17 +7,17 @@ import {WebSocketRpcTestUtils} from "../../../utils/websocket-rpc-test-utils.js"
 import {Vnf} from "../../../../src/vnf/vnf.js";
 
 function webSocketStoreTest(description, callback) {
-    VnfTestUtils.test("WebSocketStoreClient", description, {}, function(assert, argument){
+    VnfTestUtils.test("WebSocketRegistryClient", description, {}, function(assert, argument){
         WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument);
 
-        argument.storeClient = new Vnf.WebSocketStoreClient(argument.webSocketRpc);
+        argument.storeClient = new Vnf.WebSocketRegistryClient(argument.webSocketRpc);
 
         return callback(assert, argument);
     });
 }
 
 
-QUnit.module("WebSocketStoreClient Tests");
+QUnit.module("WebSocketRegistryClient Tests");
 webSocketStoreTest("Create string data test",  function(assert, argument){
     var done = assert.async(1);
 

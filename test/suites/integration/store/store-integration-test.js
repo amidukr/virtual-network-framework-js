@@ -8,7 +8,7 @@ function storeIntegrationTest(description, callback) {
 
     function inBrowserArgumentFactory() {
 
-        var sharedStore = new Vnf.InBrowserStore();
+        var sharedStore = new Vnf.InBrowserRegistry();
 
         function newInBrowserClient(eva) {
             return sharedStore.connect(eva);
@@ -22,7 +22,7 @@ function storeIntegrationTest(description, callback) {
         var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl);
 
         function newWebSocketClient(eva) {
-            var client = new Vnf.WebSocketStoreClient(new Vnf.WebSocketRpc(eva, webSocketFactory));
+            var client = new Vnf.WebSocketRegistryClient(new Vnf.WebSocketRpc(eva, webSocketFactory));
 
             VnfTestUtils.onTearDown(function(){
                 client.destroy();
