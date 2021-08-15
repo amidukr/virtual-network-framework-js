@@ -7,7 +7,7 @@
 1. Share specification document
    1. algin application according to spec
         1. rename packages and namings to amid-ukr-vnf (Document updated to amid-ukr-vnf, library is not required, as in JS it is bundled as one file not a folder )
-        1. rename vip to eva
+        1. rename eva to eva (Done)
         1. rename big message to name according to specification document (Marshaller Hub) (Done)
         1. Rename store to registry
             1. Update specification (DONE)

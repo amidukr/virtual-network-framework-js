@@ -15,7 +15,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         assert.ok(args.endpointRecipient.closeConnection,  "Verifying closeConnection method");
         assert.ok(args.endpointRecipient.onConnectionLost, "Verifying onConnectionLost method");
         assert.ok(args.endpointRecipient.destroy, "Verifying destroy method");
-        assert.equal(args.endpointRecipient.vip, args.recipientVip, "Verifying vip property");
+        assert.equal(args.endpointRecipient.eva, args.recipientEva, "Verifying eva property");
 
         args.endpointRecipient.destroy();
         args.endpointSender.destroy()
@@ -24,13 +24,13 @@ QUnit.module("Channel Basic Tests", (hooks) => {
     ChannelTestUtils.integrationTest("Open Connection Test", function(assert, args) {
         var done = assert.async(1);
 
-        args.endpointSender.openConnection(args.recipientVip, function(event){
-            Log.verbose(event.endpoint.vip, "connection opened", JSON.stringify(event));
+        args.endpointSender.openConnection(args.recipientEva, function(event){
+            Log.verbose(event.endpoint.eva, "connection opened", JSON.stringify(event));
 
             assert.equal(event.status,    "CONNECTED", "Verifying connection status");
-            assert.equal(event.targetVip, args.recipientVip, "Verifying targetVip");
+            assert.equal(event.targetEva, args.recipientEva, "Verifying targetEva");
             assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
-            assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
+            assert.equal(event.endpoint.eva, args.senderEva, "Verifying endpoint eva");
 
             args.endpointRecipient.destroy();
             args.endpointSender.destroy();
@@ -43,12 +43,12 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointSender.openConnection("non-existent-recipient", function(event){
-            Log.verbose(event.endpoint.vip, "connection opened", JSON.stringify(event));
+            Log.verbose(event.endpoint.eva, "connection opened", JSON.stringify(event));
 
             assert.equal(event.status,   "FAILED", "Verifying connection status");
-            assert.equal(event.targetVip, "non-existent-recipient", "Verifying targetVip");
+            assert.equal(event.targetEva, "non-existent-recipient", "Verifying targetEva");
             assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
-            assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
+            assert.equal(event.endpoint.eva, args.senderEva, "Verifying endpoint eva");
 
             args.endpointRecipient.destroy();
             args.endpointSender.destroy();
@@ -61,14 +61,14 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointRecipient.onMessage = function(event) {
-            Log.verbose(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
+            Log.verbose(event.endpoint.eva, "message-test-handler", JSON.stringify(event));
 
-            assert.ok(args.endpointRecipient.isConnected(event.sourceVip), "Verifying connection established");
+            assert.ok(args.endpointRecipient.isConnected(event.sourceEva), "Verifying connection established");
 
             assert.equal(event.message,   "sent to recipient message", "Verifying message");
-            assert.equal(event.sourceVip, args.senderVip, "Verifying sourceVip");
+            assert.equal(event.sourceEva, args.senderEva, "Verifying sourceEva");
             assert.equal(event.endpoint, args.endpointRecipient, "Verifying endpoint");
-            assert.equal(event.endpoint.vip, args.recipientVip, "Verifying endpoint vip");
+            assert.equal(event.endpoint.eva, args.recipientEva, "Verifying endpoint eva");
 
             args.endpointRecipient.destroy();
             args.endpointSender.destroy();
@@ -76,10 +76,10 @@ QUnit.module("Channel Basic Tests", (hooks) => {
             done();
         };
 
-        args.endpointSender.openConnection(args.recipientVip, function(event){
+        args.endpointSender.openConnection(args.recipientEva, function(event){
             assert.equal(event.status, "CONNECTED", "Verifying connection status");
             if(event.status != "CONNECTED") return;
-            args.endpointSender.send(args.recipientVip, "sent to recipient message");
+            args.endpointSender.send(args.recipientEva, "sent to recipient message");
         });
     });
 
@@ -88,17 +88,17 @@ QUnit.module("Channel Basic Tests", (hooks) => {
         var done = assert.async(1);
 
         args.endpointRecipient.onMessage = function(event) {
-            Log.verbose(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
+            Log.verbose(event.endpoint.eva, "message-test-handler", JSON.stringify(event));
 
-            args.endpointRecipient.send(args.senderVip, "pong to: " + event.message);
+            args.endpointRecipient.send(args.senderEva, "pong to: " + event.message);
         };
 
         args.endpointSender.onMessage = function(event) {
 
             assert.equal(event.message,   "pong to: sent to recipient message", "Verifying message");
-            assert.equal(event.sourceVip, args.recipientVip, "Verifying sourceVip");
+            assert.equal(event.sourceEva, args.recipientEva, "Verifying sourceEva");
             assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
-            assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
+            assert.equal(event.endpoint.eva, args.senderEva, "Verifying endpoint eva");
 
             args.endpointRecipient.destroy();
             args.endpointSender.destroy();
@@ -106,9 +106,9 @@ QUnit.module("Channel Basic Tests", (hooks) => {
             done();
         };
 
-        args.endpointSender.openConnection(args.recipientVip, function(event){
+        args.endpointSender.openConnection(args.recipientEva, function(event){
             assert.equal(event.status, "CONNECTED", "Verifying connection status");
-            args.endpointSender.send(args.recipientVip, "sent to recipient message");
+            args.endpointSender.send(args.recipientEva, "sent to recipient message");
         });
     });
 
@@ -118,7 +118,7 @@ QUnit.module("Channel Basic Tests", (hooks) => {
 
         assert.throws(
             function() {
-                args.endpointSender.send(args.recipientVip, "sent to recipient message");
+                args.endpointSender.send(args.recipientEva, "sent to recipient message");
             },  "Connection to endpoint 'recipient' isn't established");
 
         args.endpointRecipient.destroy();

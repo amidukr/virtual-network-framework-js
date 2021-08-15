@@ -20,19 +20,19 @@ export function ServiceCallService(storeHub) {
             var timerActive = false;
             var callbacksMapEmpty = true;
 
-            for(var vip in callbackMap) {
-                var vipCallbacks = callbackMap[vip];
+            for(var eva in callbackMap) {
+                var evaCallbacks = callbackMap[eva];
 
-                if(Utils.isEmptyObject(vipCallbacks)) {
-                    delete callbackMap[vip];
+                if(Utils.isEmptyObject(evaCallbacks)) {
+                    delete callbackMap[eva];
                     continue;
                 }
 
-                for(var token in vipCallbacks) {
-                    var callbacks = vipCallbacks[token];
+                for(var token in evaCallbacks) {
+                    var callbacks = evaCallbacks[token];
                     callbacks.timeToLive--;
                     if(callbacks.timeToLive == 0) {
-                        delete vipCallbacks[token];
+                        delete evaCallbacks[token];
                         callbacks.reject(Global.REJECTED_BY_TIMEOUT);
                     }
                 }
@@ -53,7 +53,7 @@ export function ServiceCallService(storeHub) {
         }
 
         function sendResult(event, result) {
-            vnfEndpoint.send(event.sourceVip, {
+            vnfEndpoint.send(event.sourceEva, {
                 type:   MESSAGE_TYPE_RESPONSE,
                 token:  event.message.token,
                 result: result
@@ -61,7 +61,7 @@ export function ServiceCallService(storeHub) {
         }
 
         function sendReject(event, reason) {
-            vnfEndpoint.send(event.sourceVip, {
+            vnfEndpoint.send(event.sourceEva, {
                 type:   MESSAGE_TYPE_RESPONSE_FAIL,
                 token:  event.message.token,
                 reason: reason
@@ -80,7 +80,7 @@ export function ServiceCallService(storeHub) {
             .then(handler.bind(null,
                     { message: message.argument,
                       method:  message.method,
-                      sourceVip: event.sourceVip,
+                      sourceEva: event.sourceEva,
                       endpoint: vnfEndpoint }))
             .then(function(value){
                 if(value instanceof Error) {
@@ -95,26 +95,26 @@ export function ServiceCallService(storeHub) {
 
         function handleResponse(event) {
             var message = event.message;
-            var vipCallbacks = callbackMap[event.sourceVip];
-            var callbacks = vipCallbacks && vipCallbacks[message.token];
+            var evaCallbacks = callbackMap[event.sourceEva];
+            var callbacks = evaCallbacks && evaCallbacks[message.token];
             if(callbacks) {
-                delete vipCallbacks[message.token];
+                delete evaCallbacks[message.token];
                 callbacks.resolve(message.result);
             }
         }
 
         function handleResponseFailed(event) {
             var message = event.message;
-            var vipCallbacks = callbackMap[event.sourceVip];
-            var callbacks = vipCallbacks && vipCallbacks[message.token];
+            var evaCallbacks = callbackMap[event.sourceEva];
+            var callbacks = evaCallbacks && evaCallbacks[message.token];
             if(callbacks) {
-                delete vipCallbacks[message.token];
+                delete evaCallbacks[message.token];
                 callbacks.reject(message.reason);
             }
         }
 
-        function vnfPush(vip, method, argument) {
-            vnfEndpoint.send(vip, {
+        function vnfPush(eva, method, argument) {
+            vnfEndpoint.send(eva, {
                type: MESSAGE_TYPE_CALL,
                token: nextTokenId++,
                method: method,
@@ -122,39 +122,39 @@ export function ServiceCallService(storeHub) {
            })
         }
 
-        function vnfCall(vip, method, argument) {
+        function vnfCall(eva, method, argument) {
             return new Promise(function(resolve, reject){
                 var tokenId = nextTokenId;
-                var vipCallbacks = callbackMap[vip];
+                var evaCallbacks = callbackMap[eva];
 
                 if(!timerActive) {
                     timerActive = true;
                     window.setTimeout(onTimerEvent, callTimeout);
                 }
 
-                if(!vipCallbacks) {
-                    vipCallbacks = {}
-                    callbackMap[vip] = vipCallbacks;
+                if(!evaCallbacks) {
+                    evaCallbacks = {}
+                    callbackMap[eva] = evaCallbacks;
                 }
 
-                vipCallbacks[tokenId] = {
+                evaCallbacks[tokenId] = {
                    timeToLive: 2,
                    resolve: resolve,
                    reject: reject
                 }
 
-                vnfPush(vip, method, argument);
+                vnfPush(eva, method, argument);
            })
         }
 
-        function onConnectionLost(targetVip) {
-            var vipCallbacks = callbackMap[targetVip];
+        function onConnectionLost(targetEva) {
+            var evaCallbacks = callbackMap[targetEva];
 
-            if(!vipCallbacks) return;
+            if(!evaCallbacks) return;
 
-            for(var token in vipCallbacks) {
-                vipCallbacks[token].reject(Global.FAILED_DUE_TO_CONNECTION_LOST);
-                delete vipCallbacks[token];
+            for(var token in evaCallbacks) {
+                evaCallbacks[token].reject(Global.FAILED_DUE_TO_CONNECTION_LOST);
+                delete evaCallbacks[token];
             }
         }
 

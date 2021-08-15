@@ -112,10 +112,10 @@ WebSocketChannelTestUtils.webSocketHubTest("openConnection call just after CLOSE
 
     .then(function(){
 
-        argument.webSocketEndpoint.onConnectionLost(function(targetVip){
+        argument.webSocketEndpoint.onConnectionLost(function(targetEva){
             if(testDone) return;
 
-            assert.equal(targetVip, "remote-endpoint", "Verifying connection-lost targetVip argument");
+            assert.equal(targetEva, "remote-endpoint", "Verifying connection-lost targetEva argument");
 
             argument.webSocketEndpoint.openConnection("remote-endpoint", function(event){
                 assert.equal(event.status, "CONNECTED", "Verifying second open-connection status");

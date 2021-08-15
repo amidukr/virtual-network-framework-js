@@ -6,27 +6,27 @@ function RetryMockHub(assert){
 
     VnfHub.call(selfHub);
 
-    selfHub.VnfEndpoint = function RetryMockEndpoint(selfVip) {
+    selfHub.VnfEndpoint = function RetryMockEndpoint(selfEva) {
         var self = this;
-        selfHub.BaseEndPoint.call(this, selfVip);
+        selfHub.BaseEndPoint.call(this, selfEva);
 
         self.capture = new SignalCaptor(assert);
 
         self.__doOpenConnection = function(connection) {
             self.connection = connection;
-            self.capture.signal("__doOpenConnection: " + connection.targetVip);
+            self.capture.signal("__doOpenConnection: " + connection.targetEva);
         }
 
         self.__doOpenConnection_NextTry = function(connection) {
-            self.capture.signal("__doOpenConnection_NextTry: " + connection.targetVip);
+            self.capture.signal("__doOpenConnection_NextTry: " + connection.targetEva);
         }
 
         self.__doOpenConnection_CleanBeforeNextTry = function(connection) {
-            self.capture.signal("__doOpenConnection_CleanBeforeNextTry: " + connection.targetVip);
+            self.capture.signal("__doOpenConnection_CleanBeforeNextTry: " + connection.targetEva);
         }
 
         self.__doReleaseConnection = function(connection) {
-            self.capture.signal("__doReleaseConnection: " + connection.targetVip);
+            self.capture.signal("__doReleaseConnection: " + connection.targetEva);
         }
 
     }

@@ -13,9 +13,9 @@ export function VnfSystem() {
     var endpoints = {}
     var serviceFactories = [];
 
-    function VnfSystemEndpoint(vip) {
+    function VnfSystemEndpoint(eva) {
         var vnfEndpoint = this;
-        vnfEndpoint.vip = vip;
+        vnfEndpoint.eva = eva;
 
         var serviceList = [];
 
@@ -46,7 +46,7 @@ export function VnfSystem() {
                         }
                     }
                 }catch(e) {
-                    Log.error(vip, "VnfSystem", ["Service lookup call failed", e]);
+                    Log.error(eva, "VnfSystem", ["Service lookup call failed", e]);
                 }
             }
 
@@ -55,7 +55,7 @@ export function VnfSystem() {
 
         this.destroy = function() {
             vnfEndpoint.serviceLookupCall("destroy");
-            delete endpoints[vip];
+            delete endpoints[eva];
         }
 
         this.serviceLookupCall("initialize");
@@ -67,11 +67,11 @@ export function VnfSystem() {
         serviceFactories.push(serviceFactory);
     }
 
-    this.openEndpoint = function(vip) {
-        var endpoint = endpoints[vip];
+    this.openEndpoint = function(eva) {
+        var endpoint = endpoints[eva];
         if(!endpoint) {
-            endpoint = new VnfSystemEndpoint(vip);
-            endpoints[vip] = endpoint;
+            endpoint = new VnfSystemEndpoint(eva);
+            endpoints[eva] = endpoint;
         }
         return endpoint;
     }

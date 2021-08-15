@@ -10,8 +10,8 @@ function storeIntegrationTest(description, callback) {
 
         var sharedStore = new Vnf.InBrowserStore();
 
-        function newInBrowserClient(vip) {
-            return sharedStore.connect(vip);
+        function newInBrowserClient(eva) {
+            return sharedStore.connect(eva);
         }
 
         return {newStoreClient: newInBrowserClient};
@@ -21,8 +21,8 @@ function storeIntegrationTest(description, callback) {
     function webSocketArgument() {
         var webSocketFactory = new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl);
 
-        function newWebSocketClient(vip) {
-            var client = new Vnf.WebSocketStoreClient(new Vnf.WebSocketRpc(vip, webSocketFactory));
+        function newWebSocketClient(eva) {
+            var client = new Vnf.WebSocketStoreClient(new Vnf.WebSocketRpc(eva, webSocketFactory));
 
             VnfTestUtils.onTearDown(function(){
                 client.destroy();
@@ -43,13 +43,13 @@ function storeIntegrationTest(description, callback) {
 
 QUnit.module("Store Integration Tests", hooks => {
 
-    var owner1Vip;
-    var owner2Vip;
+    var owner1Eva;
+    var owner2Eva;
     var collection1Name;
     var collection2Name;
     hooks.beforeEach(function beforeEach(){
-        owner1Vip = Random.random6() + "-owner-1";
-        owner2Vip = Random.random6() + "-owner-2";
+        owner1Eva = Random.random6() + "-owner-1";
+        owner2Eva = Random.random6() + "-owner-2";
 
         collection1Name = Random.random6() + "-collection1";
         collection2Name = Random.random6() + "-collection2";
@@ -58,7 +58,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create and get string data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
         .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value"))
@@ -75,7 +75,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create and get json data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
         .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, {"key":"value"}))
@@ -92,7 +92,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create or Update data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
         .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value"))
@@ -107,7 +107,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create and Delete data test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
         .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value"))
@@ -130,7 +130,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Get failed due to entry not found test",    function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
         .then(storeClient.getEntry.bind(null, {collection: collection1Name, name:"entry1"}))
@@ -146,7 +146,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create failed due to entry already exists test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
         .then(storeClient.createEntry.bind(null, {collection: collection1Name, name:"entry1"}, "entry value 1"))
@@ -166,7 +166,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Delete failed due to entry not exists yet test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
         .then(storeClient.deleteEntry.bind(null, {collection: collection1Name, name:"entry1"}))
@@ -181,7 +181,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create-Get-Delete-Get-Create-Get-Delete-Get test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
 
@@ -220,8 +220,8 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create or Update failed due to owner conflict test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient1 = argument.newStoreClient(owner1Vip);
-        var storeClient2 = argument.newStoreClient(owner2Vip);
+        var storeClient1 = argument.newStoreClient(owner1Eva);
+        var storeClient2 = argument.newStoreClient(owner2Eva);
 
         Promise.resolve()
 
@@ -250,8 +250,8 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Delete failed due to owner conflict test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient1 = argument.newStoreClient(owner1Vip);
-        var storeClient2 = argument.newStoreClient(owner2Vip);
+        var storeClient1 = argument.newStoreClient(owner1Eva);
+        var storeClient2 = argument.newStoreClient(owner2Eva);
 
         Promise.resolve()
 
@@ -279,7 +279,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Data List with body test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
 
@@ -307,7 +307,7 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Get non-created collection test", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         Promise.resolve()
 
@@ -324,8 +324,8 @@ QUnit.module("Store Integration Tests", hooks => {
     storeIntegrationTest("Create multiple entries, destroy client, records should disappear", function(assert, argument){
         var done = assert.async(1);
 
-        var storeClient1 = argument.newStoreClient(owner1Vip);
-        var storeClient2 = argument.newStoreClient(owner2Vip);
+        var storeClient1 = argument.newStoreClient(owner1Eva);
+        var storeClient2 = argument.newStoreClient(owner2Eva);
 
         Promise.resolve()
 
@@ -369,7 +369,7 @@ QUnit.module("Store Integration Tests", hooks => {
 
     storeIntegrationTest("Test invalid character handling",  function(assert, argument){
 
-        var storeClient = argument.newStoreClient(owner1Vip);
+        var storeClient = argument.newStoreClient(owner1Eva);
 
         function verifyInvalidEOLArguments(methodName, callback) {
             try{

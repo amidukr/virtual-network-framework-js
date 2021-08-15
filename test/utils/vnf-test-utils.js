@@ -75,7 +75,7 @@ var VnfTestUtils = {
                 if(window.vnfActiveEndpoints.length > 0) {
                     var testName = details && details.name;
 
-                    var vnfActiveEndpointNames = window.vnfActiveEndpoints.map(x => `${x.constructor.name}(${x.vip})`);
+                    var vnfActiveEndpointNames = window.vnfActiveEndpoints.map(x => `${x.constructor.name}(${x.eva})`);
 
                     Log.warn("test", [
                         `Active endpoints left, testName: ${testName}` +
@@ -191,7 +191,7 @@ var VnfTestUtils = {
             if(version) {
                 description += version +": ";
             }
-            description += "from " + event.sourceVip + ": " + message;
+            description += "from " + event.sourceEva + ": " + message;
 
             Log.verbose(instance, "message-test-handler", description);
             captor.signal(description);
@@ -199,9 +199,9 @@ var VnfTestUtils = {
     },
 
     newConnectionLostPrintCallback: function (captor, instance) {
-        return function onConnectionLost(targetVip) {
+        return function onConnectionLost(targetEva) {
 
-            var description = "from " + targetVip + " connection lost";
+            var description = "from " + targetEva + " connection lost";
 
             Log.verbose(instance, "connection-lost-handler", description);
             captor.signal(description);
@@ -211,7 +211,7 @@ var VnfTestUtils = {
     newHeartbeatPrintCallback: function (captor, instance) {
         return function onHeartbeat(event) {
 
-            var description = event.sourceVip + " heartbeat message";
+            var description = event.sourceEva + " heartbeat message";
 
             Log.verbose(instance, "connection-lost-handler", description);
             captor.signal(description);
@@ -219,12 +219,12 @@ var VnfTestUtils = {
     },
 
     onHeartbeatPromise: function(reliableEndpoint) {
-        Log.verbose(reliableEndpoint.vip, "waiting-info", "Waiting for heartbeat");
+        Log.verbose(reliableEndpoint.eva, "waiting-info", "Waiting for heartbeat");
 
         return new Promise(function(r) {
             reliableEndpoint.onHeartbeat = r;
         }).then(function(){
-            Log.verbose(reliableEndpoint.vip, "waiting-info", "Heartbeat triggered");
+            Log.verbose(reliableEndpoint.eva, "waiting-info", "Heartbeat triggered");
         });
     },
 

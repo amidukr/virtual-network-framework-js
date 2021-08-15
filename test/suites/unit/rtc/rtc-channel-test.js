@@ -45,8 +45,8 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc initiate connection test"
 
     rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
     rootEndpoint.onMessage = captureMessage(rootCaptor);
-    rtcEndpoint.onConnectionLost(function(targetVip) {
-        rtcCaptor.signal(`connection to ${targetVip} closed`);
+    rtcEndpoint.onConnectionLost(function(targetEva) {
+        rtcCaptor.signal(`connection to ${targetEva} closed`);
     });
 
     rtcEndpoint.openConnection("root-endpoint", function(event){
@@ -150,8 +150,8 @@ VnfTestUtils.vnfTest({description: "[RtcHub Unit]: rtc accept connection test", 
 
     rtcEndpoint.onMessage  = captureMessage(rtcCaptor)
     rootEndpoint.onMessage = captureMessage(rootCaptor);
-    rtcEndpoint.onConnectionLost(function(targetVip) {
-        rtcCaptor.signal(`connection to ${targetVip} closed`);
+    rtcEndpoint.onConnectionLost(function(targetEva) {
+        rtcCaptor.signal(`connection to ${targetEva} closed`);
     });
 
     var rtcConnection = new RTCPeerConnection(vnfRtcServers);

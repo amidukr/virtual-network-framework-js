@@ -12,7 +12,7 @@ export function InBrowserStore() {
 
     var collections = {}
 
-    function InBrowserStoreClient(vip) {
+    function InBrowserStoreClient(eva) {
 
         var ownedKeyLastIndex = 0;
         var ownedKeys     = {};
@@ -32,7 +32,7 @@ export function InBrowserStore() {
                         return;
                     }
 
-                    if(oldValue.owner != vip) {
+                    if(oldValue.owner != eva) {
                         reject(Global.UPDATE_FAILED_DUE_TO_OWNERSHIP_CHECK);
                         return;
                     }
@@ -40,7 +40,7 @@ export function InBrowserStore() {
 
                 var ownedKeyIndex = ownedKeyLastIndex++;
                 ownedKeys[ownedKeyIndex] = key;
-                collections[key.collection][key.name] = {owner: vip,
+                collections[key.collection][key.name] = {owner: eva,
                                                          value: value,
                                                          ownedKeyIndex: ownedKeyIndex}
 
@@ -56,7 +56,7 @@ export function InBrowserStore() {
                 return Global.DELETE_FAILED_ENTRY_NOT_FOUND;
             }
 
-            if(entry.owner != vip) {
+            if(entry.owner != eva) {
                 return Global.DELETE_FAILED_DUE_TO_OWNERSHIP_CHECK;
             }
 
@@ -129,7 +129,7 @@ export function InBrowserStore() {
         }
 
         this.destroy = function() {
-            delete clients[vip];
+            delete clients[eva];
 
             for(var prop in ownedKeys){
                 removeEntry(ownedKeys[prop]);
@@ -137,13 +137,13 @@ export function InBrowserStore() {
         }
     }
 
-    this.connect = function connect(vip) {
-        if(clients[vip]) {
+    this.connect = function connect(eva) {
+        if(clients[eva]) {
             throw new Error("This name already in used");
         }
 
-        clients[vip] = new InBrowserStoreClient(vip);
+        clients[eva] = new InBrowserStoreClient(eva);
 
-        return clients[vip];
+        return clients[eva];
     }
 };
