@@ -20,7 +20,7 @@ function rtcFactory(){
 }
 
 function bigMessageFactory(){
-    return new Vnf.BigMessageHub(new Vnf.InBrowserHub());
+    return new Vnf.MarshallerHub(new Vnf.InBrowserHub());
 }
 
 function reliableWebSocketFactory() {
@@ -50,7 +50,7 @@ function unreliableFactory() {
 }
 
 function reliableRtcFactory() {
-    return new Vnf.BigMessageHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
+    return new Vnf.MarshallerHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
 }
 
 

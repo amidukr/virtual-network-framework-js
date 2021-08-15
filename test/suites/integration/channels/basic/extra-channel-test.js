@@ -10,10 +10,10 @@ QUnit.module("Channel Extra Tests");
 ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, args) {
     var done = assert.async(1);
 
-    var bigMessageHub = new Vnf.BigMessageHub(args.vnfHub);
+    var MarshallerHub = new Vnf.MarshallerHub(args.vnfHub);
 
-    args.endpointRecipient = bigMessageHub.openEndpoint(args.recipientVip);
-    args.endpointSender = bigMessageHub.openEndpoint(args.senderVip);
+    args.endpointRecipient = MarshallerHub.openEndpoint(args.recipientVip);
+    args.endpointSender = MarshallerHub.openEndpoint(args.senderVip);
 
     args.endpointRecipient.onMessage = function(event) {
         Log.verbose(event.endpoint.vip, "message-test-handler", JSON.stringify(event));

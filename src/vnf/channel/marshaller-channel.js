@@ -6,7 +6,7 @@ import {ProxyHub} from "./base/vnf-proxy-hub.js";
 
 var DEFAULT_FRAGMENT_SIZE = 64*1024;
 
-export function BigMessageHub(parentHub, configuration){
+export function MarshallerHub(parentHub, configuration){
     var selfHub = this;
     ProxyHub.call(selfHub, parentHub);
 

@@ -17,7 +17,7 @@ export class VnfSystemTestUtils {
         function prepareArguments(assert, args) {
             var vnfSystem = new Vnf.System();
 
-            var rootHub  = new Vnf.BigMessageHub(new Vnf.InBrowserHub());
+            var rootHub  = new Vnf.MarshallerHub(new Vnf.InBrowserHub());
 
             vnfSystem.registerService(new Vnf.System.ChannelHubService(rootHub))
             vnfSystem.registerService(new Vnf.System.StoreService(new Vnf.InBrowserStore()))

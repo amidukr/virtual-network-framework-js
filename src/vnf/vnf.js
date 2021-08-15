@@ -10,7 +10,7 @@ import {WebSocketStoreClient} from "./store/websocket-store-client.js";
 
 import {InBrowserHub}   from "./channel/in-browser-hub.js";
 import {RtcHub}         from "./channel/rtc-hub.js";
-import {BigMessageHub}  from "./channel/big-message-channel.js";
+import {MarshallerHub}  from "./channel/marshaller-channel.js";
 import {UnreliableHub}  from "./channel/unreliable-hub.js";
 import {ReliableHub}    from "./channel/reliable-hub.js";
 import {ReliableRtcHub} from "./channel/reliable-rtc-hub.js";
@@ -31,7 +31,7 @@ var Vnf = {
       UnreliableHub: UnreliableHub,
       ReliableHub: ReliableHub,
       RtcHub: RtcHub,
-      BigMessageHub: BigMessageHub,
+      MarshallerHub: MarshallerHub,
       ReliableRtcHub: ReliableRtcHub,
       WebSocketHub: WebSocketHub,
 

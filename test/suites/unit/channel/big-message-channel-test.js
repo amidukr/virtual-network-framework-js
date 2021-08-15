@@ -7,10 +7,10 @@ import {Vnf} from "../../../../src/vnf/vnf.js";
 function bigMessageTest(description, callback) {
     function prepareArguments(assert, args) {
         args.rootHub = new Vnf.InBrowserHub();
-        args.bigMessageHub = new Vnf.BigMessageHub(args.rootHub, {fragmentSize: 5});
+        args.MarshallerHub = new Vnf.MarshallerHub(args.rootHub, {fragmentSize: 5});
 
         args.rootEndpoint = args.rootHub.openEndpoint("root-endpoint");
-        args.bigMessageEndpoint = args.bigMessageHub.openEndpoint("big-message-endpoint");
+        args.bigMessageEndpoint = args.MarshallerHub.openEndpoint("big-message-endpoint");
 
 
         args.rootEndpointCaptor = new SignalCaptor(assert);
@@ -118,7 +118,7 @@ bigMessageTest("Receive object message test", function(assert, argument){
 bigMessageTest("End-to-end-test", function(assert, argument){
     var done = assert.async(1);
 
-    var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
+    var endpointBigSender = argument.MarshallerHub.openEndpoint("big-sender");
 
     endpointBigSender.openConnection("big-message-endpoint", function(event){
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
@@ -141,7 +141,7 @@ bigMessageTest("End-to-end-test", function(assert, argument){
 bigMessageTest("Object End-to-end-test", function(assert, argument){
     var done = assert.async(1);
 
-    var endpointBigSender = argument.bigMessageHub.openEndpoint("big-sender");
+    var endpointBigSender = argument.MarshallerHub.openEndpoint("big-sender");
 
     endpointBigSender.openConnection("big-message-endpoint", function(event){
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
