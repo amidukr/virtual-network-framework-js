@@ -8,10 +8,10 @@ function registryIntegrationTest(description, callback) {
 
     function inBrowserArgumentFactory() {
 
-        var sharedStore = new Vnf.InBrowserRegistry();
+        var sharedRegistry = new Vnf.InBrowserRegistry();
 
         function newInBrowserClient(eva) {
-            return sharedStore.connect(eva);
+            return sharedRegistry.connect(eva);
         }
 
         return {newRegistryClient: newInBrowserClient};

@@ -3,8 +3,8 @@ import {Utils} from "../../utils/utils.js";
 import {Global}  from "../global.js";
 
 function validateKey(key) {
-    if(key.collection.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in collection name");
-    if(key.name.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in entry name");
+    if(key.collection.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in collection name");
+    if(key.name.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in entry name");
 }
 
 export function InBrowserRegistry() {
@@ -96,7 +96,7 @@ export function InBrowserRegistry() {
         }
 
         this.getEntriesWithBody = function(collection) {
-            if(collection.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in collection name");
+            if(collection.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in collection name");
 
             return new Promise(function(resolve){
                 var collectionSet = collections[collection];

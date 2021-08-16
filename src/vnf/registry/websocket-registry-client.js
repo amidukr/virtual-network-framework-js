@@ -9,47 +9,47 @@ export function WebSocketRegistryClient(webSocketRpc) {
     webSocketRpc.allocateUsage();
 
     var WebSocketRegistryClient = this;
-    var storeCache = {}
+    var registryCache = {}
 
     function putToCache(key, value) {
-        var collection = storeCache[key.collection];
+        var collection = registryCache[key.collection];
 
         if(!collection) {
             collection= {}
-            storeCache[key.collection] = collection;
+            registryCache[key.collection] = collection;
         }
 
         collection[key.name] = value;
     }
 
     function deleteFromCache(key) {
-        var collection = storeCache[key.collection];
+        var collection = registryCache[key.collection];
 
         if(!collection) return;
 
         delete collection[key.name];
 
         if(Utils.isEmptyObject(collection)) {
-            delete storeCache[key.collection];
+            delete registryCache[key.collection];
         }
     }
 
     webSocketRpc.onConnectionOpen(function rpcOnConnectionOpenCallback(){
-        for(var collectionName in storeCache) {
-            var collection = storeCache[collectionName];
+        for(var collectionName in registryCache) {
+            var collection = registryCache[collectionName];
 
             for(var entryName in collection) {
                 WebSocketRegistryClient.createOrUpdate({collection: collectionName, name: entryName}, collection[entryName])
-                .catch((e) => Log.debug("websocket-store-client", "Unable to createOrUpdate cached object on connection open: ", e));
+                .catch((e) => Log.debug("websocket-registry-client", "Unable to createOrUpdate cached object on connection open: ", e));
             }
         }
 
-        storeCache = {}
+        registryCache = {}
     })
 
     function validateKey(key) {
-        if(key.collection.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in collection name");
-        if(key.name.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in entry name");
+        if(key.collection.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in collection name");
+        if(key.name.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in entry name");
     }
 
     this.createEntry = function(key, value) {
@@ -108,7 +108,7 @@ export function WebSocketRegistryClient(webSocketRpc) {
                 index = eolCharacterIndex + entryValueLength + 2;
 
                 if(spaceCharacterIndex == -1 || eolCharacterIndex == -1 || isNaN(entryValueLength)) {
-                    throw new Error("WebSocketStore Malformed response for getEntriesWithBody from server, response: " + message);
+                    throw new Error("WebSocketRegistry Malformed response for getEntriesWithBody from server, response: " + message);
                 }
 
                 result[entryName] = VnfSerializer.deserializeValue(entryValue);

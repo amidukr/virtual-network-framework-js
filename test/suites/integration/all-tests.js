@@ -9,5 +9,5 @@ import "./channels/basic/reopen-channel-connection-test.js";
 import "./channels/special/reliable-rtc-connection-lost-integration-test.js";
 import "./channels/special/web-socket-channel-test.js";
 
-// Store test suite
+// Registry test suite
 import "./registry/registry-integration-test.js";
