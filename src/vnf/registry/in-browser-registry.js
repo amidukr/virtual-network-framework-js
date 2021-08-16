@@ -3,16 +3,16 @@ import {Utils} from "../../utils/utils.js";
 import {Global}  from "../global.js";
 
 function validateKey(key) {
-    if(key.collection.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in collection name");
-    if(key.name.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in entry name");
+    if(key.collection.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in collection name");
+    if(key.name.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in entry name");
 }
 
-export function InBrowserStore() {
+export function InBrowserRegistry() {
     var clients = {};
 
     var collections = {}
 
-    function InBrowserStoreClient(vip) {
+    function InBrowserRegistryClient(eva) {
 
         var ownedKeyLastIndex = 0;
         var ownedKeys     = {};
@@ -32,7 +32,7 @@ export function InBrowserStore() {
                         return;
                     }
 
-                    if(oldValue.owner != vip) {
+                    if(oldValue.owner != eva) {
                         reject(Global.UPDATE_FAILED_DUE_TO_OWNERSHIP_CHECK);
                         return;
                     }
@@ -40,7 +40,7 @@ export function InBrowserStore() {
 
                 var ownedKeyIndex = ownedKeyLastIndex++;
                 ownedKeys[ownedKeyIndex] = key;
-                collections[key.collection][key.name] = {owner: vip,
+                collections[key.collection][key.name] = {owner: eva,
                                                          value: value,
                                                          ownedKeyIndex: ownedKeyIndex}
 
@@ -56,7 +56,7 @@ export function InBrowserStore() {
                 return Global.DELETE_FAILED_ENTRY_NOT_FOUND;
             }
 
-            if(entry.owner != vip) {
+            if(entry.owner != eva) {
                 return Global.DELETE_FAILED_DUE_TO_OWNERSHIP_CHECK;
             }
 
@@ -96,7 +96,7 @@ export function InBrowserStore() {
         }
 
         this.getEntriesWithBody = function(collection) {
-            if(collection.indexOf("\n") != -1) throw new Error("WebSocketStore EOL character isn't supported in collection name");
+            if(collection.indexOf("\n") != -1) throw new Error("WebSocketRegistry EOL character isn't supported in collection name");
 
             return new Promise(function(resolve){
                 var collectionSet = collections[collection];
@@ -129,7 +129,7 @@ export function InBrowserStore() {
         }
 
         this.destroy = function() {
-            delete clients[vip];
+            delete clients[eva];
 
             for(var prop in ownedKeys){
                 removeEntry(ownedKeys[prop]);
@@ -137,13 +137,13 @@ export function InBrowserStore() {
         }
     }
 
-    this.connect = function connect(vip) {
-        if(clients[vip]) {
+    this.connect = function connect(eva) {
+        if(clients[eva]) {
             throw new Error("This name already in used");
         }
 
-        clients[vip] = new InBrowserStoreClient(vip);
+        clients[eva] = new InBrowserRegistryClient(eva);
 
-        return clients[vip];
+        return clients[eva];
     }
 };

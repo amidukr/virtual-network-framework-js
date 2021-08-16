@@ -23,11 +23,11 @@ export function ProxyHub(parentHub){
         parentHub.setOpenConnectionRetries(value);
     }
 
-    selfHub.ProxyEndpoint = function ProxyEndpoint(selfVip) {
+    selfHub.ProxyEndpoint = function ProxyEndpoint(selfEva) {
         var self = this;
-        selfHub.BaseEndPoint.call(this, selfVip);
+        selfHub.BaseEndPoint.call(this, selfEva);
 
-        self.parentEndpoint = parentHub.openEndpoint(selfVip);
+        self.parentEndpoint = parentHub.openEndpoint(selfEva);
 
         self.onDestroy(function selfOnDestroyCallback(){
             if(self.parentEndpoint) {
@@ -37,7 +37,7 @@ export function ProxyHub(parentHub){
 
         self.__doReleaseConnection = function(connection) {
             if(self.parentEndpoint) {
-                self.parentEndpoint.closeConnection(connection.targetVip);
+                self.parentEndpoint.closeConnection(connection.targetEva);
             }
         };
     }

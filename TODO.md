@@ -2,21 +2,17 @@
 
 
 # Todo List
+1. Apply library for quantum game
 
-1. Reliable close connection, only one message send, no retries to resend cancel connection. 
-1. Share specification document
-   1. algin application according to spec
-        1. rename packages and namings to amid-ukr-vnf (Document updated to amid-ukr-vnf, library is not required, as in JS it is bundled as one file not a folder )
-        1. rename vip to eva
-        1. rename big message to name according to specification document (Marshaller Hub)
-        1. Rename store to registry
-            1. Update specification (DONE)
-            1. update code (store persistent thing)
+
+# Future tasks/On-Hold
+1. Upgrade node to 16 in travis
 1. Remove/Extract VNF System
-
-
-# On-Hold
+1. Reliable close connection, only one message send, no retries to resend cancel connection.
 1. Migrate to Jasmine test framework 
+1. Use sinon.js for mocking instead of custom
+   1. mock timer
+1. Split into smaller libraries 
 
 # Done
 1. Split src and test
@@ -42,3 +38,11 @@
 1. Review LOG.warn and LOG.error
     1. Error should be only of library used it in wrong way, internal error should be just warnings
 1. For timer and promise wrap exception into try/catch to run integration tests smoothly
+1. Share specification document
+   1. algin application according to spec
+        1. rename packages and namings to amid-ukr-vnf (Document updated to amid-ukr-vnf, library is not required, as in JS it is bundled as one file not a folder )
+        1. rename eva to eva (Done)
+        1. rename big message to name according to specification document (Marshaller Hub) (Done)
+        1. Rename store to registry
+            1. Update specification 
+            1. update code (store persistent thing)

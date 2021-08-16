@@ -256,15 +256,15 @@ export function RtcHub(signalingHub){
 
     selfHub.setEstablishConnectionTimeout(1500);
 
-    selfHub.VnfEndpoint = function RTCEndpoint(selfVip) {
+    selfHub.VnfEndpoint = function RTCEndpoint(selfEva) {
         var self = this;
-        selfHub.ProxyEndpoint.call(self, selfVip);
+        selfHub.ProxyEndpoint.call(self, selfEva);
 
         var signalingEndpoint = self.parentEndpoint;
 
         function createVnfRtcConnection(connection) {
             var connectionIndex = connectionNextId++;
-            var vnfRtcConnection = new VnfRtcConnection(connectionIndex + ": " + selfVip + "->" + connection.targetVip )
+            var vnfRtcConnection = new VnfRtcConnection(connectionIndex + ": " + selfEva + "->" + connection.targetEva )
 
             vnfRtcConnection.onChannelOpened(function() {
                 if(self.isDestroyed()) {
@@ -284,11 +284,11 @@ export function RtcHub(signalingHub){
                 try {
                     self.onMessage && self.onMessage({
                         message: message,
-                        sourceVip: connection.targetVip,
+                        sourceEva: connection.targetEva,
                         endpoint:  self
                     });
                 }catch(e) {
-                    Log.error("rtc[" + selfVip + "->" + event.sourceVip + "]", "web-rtc", ["Error in onMessage handler ", e]);
+                    Log.error("rtc[" + selfEva + "->" + event.sourceEva + "]", "web-rtc", ["Error in onMessage handler ", e]);
                 }
             })
 
@@ -302,16 +302,16 @@ export function RtcHub(signalingHub){
         signalingEndpoint.onMessage = function(event) {
             var message = JSON.parse(event.message);
             if(message.type == "rtc-connection") {
-                Log.verbose("rtc[" + selfVip + "->" + event.sourceVip + "]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
+                Log.verbose("rtc[" + selfEva + "->" + event.sourceEva + "]", "webrtc-connecting", "handling-signal-message: " + JSON.stringify(event));
 
-                var targetVip = event.sourceVip;
+                var targetEva = event.sourceEva;
 
-                var connection = self.__lazyNewConnection(targetVip);
+                var connection = self.__lazyNewConnection(targetEva);
                 var existentVnfRtcConnection = connection.vnfRtcConnection;
 
                 if(message.requestForNewConnection) {
                     if(existentVnfRtcConnection && existentVnfRtcConnection.isCaller && message.connectionCreateDate < existentVnfRtcConnection.createDate) {
-                        Log.verbose("rtc[" + selfVip + "->...]", "webrtc-connecting", "ignore-action/connection-expired:" + JSON.stringify(event));
+                        Log.verbose("rtc[" + selfEva + "->...]", "webrtc-connecting", "ignore-action/connection-expired:" + JSON.stringify(event));
                         return;
                     }
 
@@ -323,9 +323,9 @@ export function RtcHub(signalingHub){
                                         connectionCreateDate: connection.vnfRtcConnection.createDate};
 
                         try{
-                            signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                            signalingEndpoint.send(connection.targetEva, JSON.stringify(message));
                         }catch(e) {
-                            Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send accept message via signaling endpoint", e]);
+                            Log.debug("rtc[" + selfEva + "]", "web-rtc", ["Unable to send accept message via signaling endpoint", e]);
                         }
                     });
 
@@ -341,7 +341,7 @@ export function RtcHub(signalingHub){
         }
 
         self.__doOpenConnection_NextTry = function(connection) {
-            signalingEndpoint.openConnection(connection.targetVip, function(event) {
+            signalingEndpoint.openConnection(connection.targetEva, function(event) {
                 if(connection.isConnected || connection.isDestroyed) {
                     return;
                 }
@@ -359,9 +359,9 @@ export function RtcHub(signalingHub){
                                     ice: ice,
                                     connectionCreateDate: connection.vnfRtcConnection.createDate};
                     try {
-                        signalingEndpoint.send(connection.targetVip, JSON.stringify(message));
+                        signalingEndpoint.send(connection.targetEva, JSON.stringify(message));
                     }catch(e) {
-                        Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send handshake message via signaling endpoint", e]);
+                        Log.debug("rtc[" + selfEva + "]", "web-rtc", ["Unable to send handshake message via signaling endpoint", e]);
                     }
                 });
             })
@@ -380,8 +380,8 @@ export function RtcHub(signalingHub){
             __superDoReleaseConnection(connection);
         }
 
-        self.getRtcConnection = function(vip) {
-            return self.getConnection(vip).vnfRtcConnection.getRtcConnection();
+        self.getRtcConnection = function(eva) {
+            return self.getConnection(eva).vnfRtcConnection.getRtcConnection();
         }
 
         self.__doSend = function(connection, message) {
@@ -389,10 +389,10 @@ export function RtcHub(signalingHub){
                 connection.vnfRtcConnection.send(message);
             }catch(e) {
                 if(!connection.isConnected && !connection.isDestroyed()) {
-                    Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send message via RTC"]);
+                    Log.debug("rtc[" + selfEva + "]", "web-rtc", ["Unable to send message via RTC"]);
                 }
 
-                Log.debug("rtc[" + selfVip + "]", "web-rtc", ["Unable to send message via RTC", e]);
+                Log.debug("rtc[" + selfEva + "]", "web-rtc", ["Unable to send message via RTC", e]);
            }
         }
     };

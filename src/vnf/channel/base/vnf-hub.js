@@ -27,7 +27,7 @@ export function VnfHub(){
         openConnectionRetries = value;
     }
 
-    selfHub.BaseEndPoint = function BaseEndPoint(selfVip) {
+    selfHub.BaseEndPoint = function BaseEndPoint(selfEva) {
         var self = this;
         var destroyListeners = new Observable();
         var connectionOpenListeners = new Observable();
@@ -40,32 +40,32 @@ export function VnfHub(){
 
         window.vnfActiveEndpoints.push(self);
 
-        self.vip = selfVip;
+        self.eva = selfEva;
 
         self.onMessage = null;
         var destroyed = false;
 
-        function notifyConnectionSuccess(targetVip, callback) {
+        function notifyConnectionSuccess(targetEva, callback) {
             try{
                 callback({
                     status: Global.CONNECTED,
-                    targetVip: targetVip,
+                    targetEva: targetEva,
                     endpoint: self
                 });
             }catch(e) {
-                Log.error(selfVip, ["vnf-hub", "Error in connection callback\n", e]);
+                Log.error(selfEva, ["vnf-hub", "Error in connection callback\n", e]);
             }
         }
 
-        function notifyConnectionFailed(targetVip, callback) {
+        function notifyConnectionFailed(targetEva, callback) {
             try{
                 callback({
                     status: Global.FAILED,
-                    targetVip: targetVip,
+                    targetEva: targetEva,
                     endpoint: self
                 });
             }catch(e) {
-                Log.error(selfVip, ["vnf-hub", "Error in connection callback\n", e]);
+                Log.error(selfEva, ["vnf-hub", "Error in connection callback\n", e]);
             }
         }
 
@@ -73,8 +73,8 @@ export function VnfHub(){
             if(connection.isDestroyed) return;
             connection.isDestroyed = true;
 
-            if(connections[connection.targetVip] == connection) {
-                delete connections[connection.targetVip];
+            if(connections[connection.targetEva] == connection) {
+                delete connections[connection.targetEva];
                 connectionsArray = null;
 
                 var __doReleaseConnection = self.__doReleaseConnection;
@@ -83,12 +83,12 @@ export function VnfHub(){
                 }
 
                 if(connection.isConnected) {
-                    connectionLostListeners.fire(connection.targetVip);
+                    connectionLostListeners.fire(connection.targetEva);
                 }
             }
 
             if(!connection.isConnected && connection.callback) {
-                notifyConnectionFailed(connection.targetVip, connection.callback);
+                notifyConnectionFailed(connection.targetEva, connection.callback);
                 connection.callback = null;
             }
 
@@ -99,34 +99,34 @@ export function VnfHub(){
             anyTypeSupported = value;
         }
 
-        self.isConnected = function isConnected(targetVip) {
-            var connection = connections[targetVip];
+        self.isConnected = function isConnected(targetEva) {
+            var connection = connections[targetEva];
             return connection != null && connection.isConnected;
         }
 
         self.getConnections = function() {
             if(connectionsArray == null) {
                 connectionsArray = [];
-                for(var vip in connections) {
-                    connectionsArray.push(connections[vip]);
+                for(var eva in connections) {
+                    connectionsArray.push(connections[eva]);
                 }
             }
 
             return connectionsArray;
         }
 
-        self.getConnection = function(targetVip) {
-            return connections[targetVip];
+        self.getConnection = function(targetEva) {
+            return connections[targetEva];
         }
 
-        self.__lazyNewConnection = function(targetVip) {
-            var connection = connections[targetVip];
+        self.__lazyNewConnection = function(targetEva) {
+            var connection = connections[targetEva];
             if(!connection) {
                 connection = {isConnected: false,
                               destroyed: false,
                               openConnectionRetriesLeft: 0,
-                              targetVip: targetVip};
-                connections[targetVip] = connection;
+                              targetEva: targetEva};
+                connections[targetEva] = connection;
 
                 connectionsArray = null;
             }
@@ -134,8 +134,8 @@ export function VnfHub(){
             return connection;
         }
 
-        self.__acceptConnection = function(targetVip) {
-            var connection = self.__lazyNewConnection(targetVip);
+        self.__acceptConnection = function(targetEva) {
+            var connection = self.__lazyNewConnection(targetEva);
 
             if(connection.isDestroyed || connection.isConnected) {
                 return;
@@ -152,12 +152,12 @@ export function VnfHub(){
 
             connection.isConnected = true;
 
-            connectionOpenListeners.fire(connection.targetVip);
+            connectionOpenListeners.fire(connection.targetEva);
 
             var callback = connection.callback;
             connection.callback = null;
             if(callback) {
-                notifyConnectionSuccess(connection.targetVip, callback);
+                notifyConnectionSuccess(connection.targetEva, callback);
             }
         }
 
@@ -197,7 +197,7 @@ export function VnfHub(){
             }
 
             if(connection.isConnected) {
-                self.closeConnection(connection.targetVip);
+                self.closeConnection(connection.targetEva);
             }else{
                 self.__connectionNextTryFailed(connection);
             }
@@ -212,25 +212,25 @@ export function VnfHub(){
             connection.retryTimeoutToken = window.setTimeout(self.__connectionNextTryFailed.bind(self, connection), establishConnectionTimeout);
         }
 
-        self.openConnection = function openConnection(targetVip, callback) {
-            if(typeof targetVip != "string")   throw new Error("Wrong first argument type, targetVip as string is expected");
+        self.openConnection = function openConnection(targetEva, callback) {
+            if(typeof targetEva != "string")   throw new Error("Wrong first argument type, targetEva as string is expected");
             if(typeof callback  != "function") throw new Error("Wrong second argument type, callback as function is expected");
 
             if(self.isDestroyed()) {
                 throw new Error("Endpoint is destroyed");
             }
 
-            if(self.isConnected(targetVip)) {
-                notifyConnectionSuccess(targetVip, callback);
+            if(self.isConnected(targetEva)) {
+                notifyConnectionSuccess(targetEva, callback);
                 return;
             }
 
-            var isNewConnection = connections[targetVip] == null;
-            var connection = self.__lazyNewConnection(targetVip);
+            var isNewConnection = connections[targetEva] == null;
+            var connection = self.__lazyNewConnection(targetEva);
             connection.callback = callback;
 
             if(isNewConnection) {
-                if(targetVip == selfVip) {
+                if(targetEva == selfEva) {
                     window.setTimeout(self.__connectionOpened.bind(null, connection), 0)
                 }else{
                     connection.openConnectionRetriesLeft = openConnectionRetries;
@@ -240,23 +240,23 @@ export function VnfHub(){
             }
         }
 
-        self.send = function(targetVip, message) {
-            if(typeof targetVip != "string")
-                throw new Error("Wrong first argument type, targetVip as string is expected");
+        self.send = function(targetEva, message) {
+            if(typeof targetEva != "string")
+                throw new Error("Wrong first argument type, targetEva as string is expected");
             if(!anyTypeSupported && typeof message   != "string")
                 throw new Error("Wrong second argument type, message - only string is supported");
 
             if(self.isDestroyed()) throw new Error("Endpoint is destroyed");
 
-            var connection = connections[targetVip];
+            var connection = connections[targetEva];
             if(!connection || !connection.isConnected) {
-                throw new Error("Connection to endpoint '" + targetVip + "' isn't established");
+                throw new Error("Connection to endpoint '" + targetEva + "' isn't established");
             }
 
-            if(targetVip == selfVip) {
+            if(targetEva == selfEva) {
                 window.setTimeout(function(){
                     try{
-                        self.onMessage && self.onMessage({sourceVip: selfVip, message: message, endpoint: self});
+                        self.onMessage && self.onMessage({sourceEva: selfEva, message: message, endpoint: self});
                     }catch(e) {
                         Log.error("vnf-hub", ["Error in onMessage handler: ", e]);
                     }
@@ -268,10 +268,10 @@ export function VnfHub(){
         }
 
 
-        self.closeConnection = function(targetVip) {
-            if(typeof targetVip != "string")   throw new Error("Wrong first argument type, targetVip as string is expected");
+        self.closeConnection = function(targetEva) {
+            if(typeof targetEva != "string")   throw new Error("Wrong first argument type, targetEva as string is expected");
 
-            var connection = connections[targetVip];
+            var connection = connections[targetEva];
             if(!connection) {
                 return;
             }
@@ -292,15 +292,15 @@ export function VnfHub(){
             if(destroyed) return;
             destroyed = true;
 
-            for(var targetVip in connections){
+            for(var targetEva in connections){
                 try{
-                    self.closeConnection(targetVip);
+                    self.closeConnection(targetEva);
                 }catch(e){
-                    Log.error(selfVip, "vnf-hub", ["Error closing connection", e]);
+                    Log.error(selfEva, "vnf-hub", ["Error closing connection", e]);
                 }
             }
 
-            delete hub[selfVip];
+            delete hub[selfEva];
 
             destroyListeners.fire();
 
@@ -308,15 +308,15 @@ export function VnfHub(){
         }
     }
 
-    selfHub.getEndPoint = function(vip) {
-       return hub[vip];
+    selfHub.getEndPoint = function(eva) {
+       return hub[eva];
     }
 
-    selfHub.openEndpoint = function openEndpoint(vip) {
-       var endpoint = hub[vip];
+    selfHub.openEndpoint = function openEndpoint(eva) {
+       var endpoint = hub[eva];
        if(!endpoint) {
-            endpoint = new selfHub.VnfEndpoint(vip);
-            hub[vip] = endpoint;
+            endpoint = new selfHub.VnfEndpoint(eva);
+            hub[eva] = endpoint;
        }
 
        return endpoint;

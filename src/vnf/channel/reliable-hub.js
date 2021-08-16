@@ -74,9 +74,9 @@ export function ReliableHub(hub) {
         updateHeartbeatCounters();
     }
 
-    selfHub.VnfEndpoint = function ReliableEndpoint(vip) {
+    selfHub.VnfEndpoint = function ReliableEndpoint(eva) {
         var self = this;
-        selfHub.ProxyEndpoint.call(self, vip);
+        selfHub.ProxyEndpoint.call(self, eva);
 
         var parentEndpoint = self.parentEndpoint;
         var endpointId = Random.random6();
@@ -87,8 +87,8 @@ export function ReliableHub(hub) {
         var dropQueueNonEmpty = false;
         var dropParentConnectionQueue = {}
 
-        function resetConnection(connection, targetVip, state) {
-            connection.targetVip = targetVip;
+        function resetConnection(connection, targetEva, state) {
+            connection.targetEva = targetEva;
             connection.sessionIndex = nextSessionIndex++;
             connection.sessionId = endpointId + "-" + connection.sessionIndex;
 
@@ -111,39 +111,39 @@ export function ReliableHub(hub) {
             resetTimer();
         }
 
-        function parentSend(targetVip, messageJson) {
+        function parentSend(targetEva, messageJson) {
             try{
                 var messageString = ReliableMessageSerializer.serialize(messageJson);
-                parentEndpoint.send(targetVip, messageString);
+                parentEndpoint.send(targetEva, messageString);
             }catch(error) {
-                Log.debug(self.vip, "reliable-hub", ["Unable to send message: ", error]);
+                Log.debug(self.eva, "reliable-hub", ["Unable to send message: ", error]);
             }
         }
 
-        function parentOpenConnection(targetVip) {
-            if(parentEndpoint.isConnected(targetVip)) {
+        function parentOpenConnection(targetEva) {
+            if(parentEndpoint.isConnected(targetEva)) {
                 return;
             }
 
-            if(!self.getConnection(targetVip)) {
+            if(!self.getConnection(targetEva)) {
                 return;
             }
 
-            parentEndpoint.openConnection(targetVip, function(e) {
+            parentEndpoint.openConnection(targetEva, function(e) {
                 if(e.status == Global.FAILED) {
-                    parentOpenConnection(targetVip);
+                    parentOpenConnection(targetEva);
                 }
             });
         }
 
-        function parentConnectionClose(targetVip) {
-            parentEndpoint.closeConnection(targetVip);
+        function parentConnectionClose(targetEva) {
+            parentEndpoint.closeConnection(targetEva);
         }
 
-        parentEndpoint.onConnectionOpen(function onConnectionOpen(targetVip) {
-            var connection = self.getConnection(targetVip);
+        parentEndpoint.onConnectionOpen(function onConnectionOpen(targetEva) {
+            var connection = self.getConnection(targetEva);
             if(!connection) {
-                connection = dropParentConnectionQueue[targetVip]
+                connection = dropParentConnectionQueue[targetEva]
             }
 
             if(!connection) {
@@ -153,24 +153,24 @@ export function ReliableHub(hub) {
             sendRefreshConnectionMessage(connection);
         });
 
-        parentEndpoint.onConnectionLost(function onConnectionLost(targetVip) {
-            parentOpenConnection(targetVip);
+        parentEndpoint.onConnectionLost(function onConnectionLost(targetEva) {
+            parentOpenConnection(targetEva);
         });
 
 
         function sendHandshakeMessage(connection) {
-            parentSend(connection.targetVip, {type:    MESSAGE_HANDSHAKE,
+            parentSend(connection.targetEva, {type:    MESSAGE_HANDSHAKE,
                                               fromSid: connection.sessionId});
         }
 
         function sendAcceptMessage(connection) {
-            parentSend(connection.targetVip, {type:      MESSAGE_ACCEPT,
+            parentSend(connection.targetEva, {type:      MESSAGE_ACCEPT,
                                               fromSid:   connection.sessionId,
                                               toSid:     connection.remoteSessionId});
         }
 
         function sendHeartbeatMessage(connection, gapBegin, gapEnd) {
-            parentSend(connection.targetVip, {type:      MESSAGE_HEARTBEAT,
+            parentSend(connection.targetEva, {type:      MESSAGE_HEARTBEAT,
                                               fromSid:   connection.sessionId,
                                               toSid:     connection.remoteSessionId,
                                               gapBegin:  gapBegin,
@@ -178,26 +178,26 @@ export function ReliableHub(hub) {
         }
 
         function sendDataMessage(connection, messageIndex, message) {
-            parentSend(connection.targetVip, {type: MESSAGE_DATA,
+            parentSend(connection.targetEva, {type: MESSAGE_DATA,
                                               toSid: connection.remoteSessionId,
                                               messageIndex: messageIndex,
                                               payload: message})
         }
 
         function sendCloseConnectionMessage(connection) {
-            parentSend(connection.targetVip, {type: MESSAGE_CLOSE_CONNECTION,
+            parentSend(connection.targetEva, {type: MESSAGE_CLOSE_CONNECTION,
                                               toSid: connection.remoteSessionId,
                                               fromSid: connection.sessionId})
         }
 
-        function sendCloseAcceptMessage(targetVip, toSid, fromSid) {
-            parentSend(targetVip, {type: MESSAGE_CLOSE_ACCEPT,
+        function sendCloseAcceptMessage(targetEva, toSid, fromSid) {
+            parentSend(targetEva, {type: MESSAGE_CLOSE_ACCEPT,
                                    toSid: toSid,
                                    fromSid: fromSid})
         }
 
         function sendRefreshConnectionMessage(connection) {
-            if(!parentEndpoint.isConnected(connection.targetVip)) {
+            if(!parentEndpoint.isConnected(connection.targetEva)) {
                 Log.debug(instanceId, "send-refresh-connection-message", "Unable to send refresh message since parent connection is closed, connection.state = " +  connection.state);
                 return;
             }
@@ -246,13 +246,13 @@ export function ReliableHub(hub) {
                   return;
             }
 
-            var instanceId = "reliable[" + endpointId + ":" + vip + "->" + connection.targetVip + "]";
+            var instanceId = "reliable[" + endpointId + ":" + eva + "->" + connection.targetEva + "]";
             Log.error(instanceId, "send-refresh-connection-message", "Unexpected connection state: '" + connection.state + "'");
         }
 
         function refreshConnection(connection) {
 
-            if(connection.targetVip == self.vip) {
+            if(connection.targetEva == self.eva) {
                 return;
             }
 
@@ -260,7 +260,7 @@ export function ReliableHub(hub) {
 
             var invalidateConnectionCounter = connection.silenceCounter % heartbeatsToInvalidate;
 
-            var instanceId = "reliable[" + endpointId + ":" + vip + "->" + connection.targetVip + "]";
+            var instanceId = "reliable[" + endpointId + ":" + eva + "->" + connection.targetEva + "]";
 
             Log.verbose(instanceId, "reliable-channel-status",
               "connection-invalidate: " + invalidateConnectionCounter + "/" + heartbeatsToInvalidate + "; "
@@ -272,46 +272,46 @@ export function ReliableHub(hub) {
                 if(connection.state == STATE_ACCEPTING && connection.callback != null) {
                     Log.verbose(instanceId, "reliable-channel-status", "fallback to handshake state");
 
-                    resetConnection(connection, connection.targetVip, STATE_HANDSHAKING)
+                    resetConnection(connection, connection.targetEva, STATE_HANDSHAKING)
                 }else{
                     Log.verbose(instanceId, "reliable-channel-status", "connection lost");
 
-                    self.closeConnection(connection.targetVip);
+                    self.closeConnection(connection.targetEva);
                     return;
                 }
             }
 
             if(invalidateConnectionCounter == 0 && connection.state != STATE_NO_ACTION) {
                 Log.verbose(instanceId, "reliable-channel-status", "re-invalidate connection");
-                parentConnectionClose(connection.targetVip);
-                parentOpenConnection(connection.targetVip);
+                parentConnectionClose(connection.targetEva);
+                parentOpenConnection(connection.targetEva);
             }
 
             Log.verbose(instanceId, "reliable-channel-status", "connection refresh message sent")
             sendRefreshConnectionMessage(connection);
         }
 
-        function refreshDroppedConnection(droppedConnectionVip) {
-            var connection = dropParentConnectionQueue[droppedConnectionVip];
+        function refreshDroppedConnection(droppedConnectionEva) {
+            var connection = dropParentConnectionQueue[droppedConnectionEva];
 
             connection.dropConnectionCounter--;
 
-            var newConnection = self.getConnection(droppedConnectionVip);
+            var newConnection = self.getConnection(droppedConnectionEva);
 
             if(newConnection && newConnection.state != STATE_NO_ACTION) {
-                delete dropParentConnectionQueue[droppedConnectionVip];
+                delete dropParentConnectionQueue[droppedConnectionEva];
                 return;
             }
 
-            if(connection.beatCloseConnection && parentEndpoint.isConnected(droppedConnectionVip)) {
+            if(connection.beatCloseConnection && parentEndpoint.isConnected(droppedConnectionEva)) {
                 sendCloseConnectionMessage(connection);
             }
 
             if(connection.dropConnectionCounter <= 0) {
-                delete dropParentConnectionQueue[droppedConnectionVip];
+                delete dropParentConnectionQueue[droppedConnectionEva];
 
                 if(!newConnection) {
-                    parentConnectionClose(droppedConnectionVip);
+                    parentConnectionClose(droppedConnectionEva);
                 }
             }
         }
@@ -331,9 +331,9 @@ export function ReliableHub(hub) {
             }
 
             dropQueueNonEmpty = false;
-            for(var droppedConnectionVip in dropParentConnectionQueue ) {
+            for(var droppedConnectionEva in dropParentConnectionQueue ) {
                 dropQueueNonEmpty = true;
-                refreshDroppedConnection(droppedConnectionVip);
+                refreshDroppedConnection(droppedConnectionEva);
             }
 
             resetTimer();
@@ -398,7 +398,7 @@ export function ReliableHub(hub) {
         }
 
         function setConnectionState(connection, newState) {
-            var instanceId = "reliable[" + endpointId + ":" + vip + "->" + connection.targetVip + "]";
+            var instanceId = "reliable[" + endpointId + ":" + eva + "->" + connection.targetEva + "]";
 
             connection.state = newState;
 
@@ -480,11 +480,11 @@ export function ReliableHub(hub) {
                 try {
                     self.onMessage && self.onMessage({
                                             message: message.payload,
-                                            sourceVip: event.sourceVip,
+                                            sourceEva: event.sourceEva,
                                             endpoint: self
                     });
                 }catch(e) {
-                    Log.error(self.vip, "reliable-hub", ["Error in onMessage handler: ", e]);
+                    Log.error(self.eva, "reliable-hub", ["Error in onMessage handler: ", e]);
                 }
             }else {
                 if(message.messageIndex > connection.firstMessageNumberInReceivedBuffer) {
@@ -510,11 +510,11 @@ export function ReliableHub(hub) {
                 try {
                     self.onMessage&& self.onMessage({
                         message: message.payload,
-                        sourceVip: event.sourceVip,
+                        sourceEva: event.sourceEva,
                         endpoint: self
                     });
                 }catch(e) {
-                    Log.error(self.vip, "reliable-hub", ["Error in onMessage handler: ", e]);
+                    Log.error(self.eva, "reliable-hub", ["Error in onMessage handler: ", e]);
                 }
             }
 
@@ -525,7 +525,7 @@ export function ReliableHub(hub) {
         function handleCloseMessage(event, connection, message) {
             if(connection.state == STATE_CONNECTED) {
                 connection.beatCloseConnection = false;
-                self.closeConnection(connection.targetVip);
+                self.closeConnection(connection.targetEva);
                 return;
             }
         }
@@ -554,12 +554,12 @@ export function ReliableHub(hub) {
                 Log.verbose("reliable-hub", "ReliableHub: Unable to handle message, because endpoint is destroyed")
             }
 
-            //Log.verbose(self.vip, "reliable-hub", "onMessage: " + JSON.stringify(event));
+            //Log.verbose(self.eva, "reliable-hub", "onMessage: " + JSON.stringify(event));
 
             var message = ReliableMessageSerializer.deserialize(event.message);
 
             if(message.type == MESSAGE_CLOSE_CONNECTION) {
-                sendCloseAcceptMessage(event.sourceVip, message.fromSid, message.toSid);
+                sendCloseAcceptMessage(event.sourceEva, message.fromSid, message.toSid);
             }
 
             var handler = handlers[message.type];
@@ -569,12 +569,12 @@ export function ReliableHub(hub) {
             }
 
             var connection;
-            if(message.type == MESSAGE_CLOSE_ACCEPT && dropParentConnectionQueue[event.sourceVip]) {
-                connection = dropParentConnectionQueue[event.sourceVip];
+            if(message.type == MESSAGE_CLOSE_ACCEPT && dropParentConnectionQueue[event.sourceEva]) {
+                connection = dropParentConnectionQueue[event.sourceEva];
             }else{
-                connection = self.__lazyNewConnection(event.sourceVip);
+                connection = self.__lazyNewConnection(event.sourceEva);
                 if(!connection.state) {
-                    resetConnection(connection, event.sourceVip, STATE_NO_ACTION);
+                    resetConnection(connection, event.sourceEva, STATE_NO_ACTION);
                 }
             }
 
@@ -590,10 +590,10 @@ export function ReliableHub(hub) {
         }
 
         self.__doOpenConnection = function(connection) {
-            resetConnection(connection, connection.targetVip, STATE_HANDSHAKING);
-            parentOpenConnection(connection.targetVip);
+            resetConnection(connection, connection.targetEva, STATE_HANDSHAKING);
+            parentOpenConnection(connection.targetEva);
 
-            if(parentEndpoint.isConnected(connection.targetVip)) {
+            if(parentEndpoint.isConnected(connection.targetEva)) {
                 sendRefreshConnectionMessage(connection);
             }
         }
@@ -609,8 +609,8 @@ export function ReliableHub(hub) {
 
         var __superDoReleaseConnection = self.__doReleaseConnection;
         self.__doReleaseConnection = function(connection) {
-            if(connection.state == STATE_NO_ACTION && !dropParentConnectionQueue[connection.targetVip] && !self.getConnection(connection.targetVip)) {
-                parentConnectionClose(connection.targetVip);
+            if(connection.state == STATE_NO_ACTION && !dropParentConnectionQueue[connection.targetEva] && !self.getConnection(connection.targetEva)) {
+                parentConnectionClose(connection.targetEva);
             }
 
             if(connection.state == STATE_NO_ACTION) {
@@ -625,7 +625,7 @@ export function ReliableHub(hub) {
 
             dropQueueNonEmpty = true;
             connection.dropConnectionCounter = heartbeatsToDropConnection;
-            dropParentConnectionQueue[connection.targetVip] = connection;
+            dropParentConnectionQueue[connection.targetEva] = connection;
         }
     }
 }

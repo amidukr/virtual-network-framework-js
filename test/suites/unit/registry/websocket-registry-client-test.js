@@ -6,19 +6,19 @@ import {WebSocketRpcTestUtils} from "../../../utils/websocket-rpc-test-utils.js"
 
 import {Vnf} from "../../../../src/vnf/vnf.js";
 
-function webSocketStoreTest(description, callback) {
-    VnfTestUtils.test("WebSocketStoreClient", description, {}, function(assert, argument){
+function webSocketRegistryTest(description, callback) {
+    VnfTestUtils.test("WebSocketRegistryClient", description, {}, function(assert, argument){
         WebSocketRpcTestUtils.setupWebSocketRpcMocks(assert, argument);
 
-        argument.storeClient = new Vnf.WebSocketStoreClient(argument.webSocketRpc);
+        argument.registryClient = new Vnf.WebSocketRegistryClient(argument.webSocketRpc);
 
         return callback(assert, argument);
     });
 }
 
 
-QUnit.module("WebSocketStoreClient Tests");
-webSocketStoreTest("Create string data test",  function(assert, argument){
+QUnit.module("WebSocketRegistryClient Tests");
+webSocketRegistryTest("Create string data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -26,14 +26,14 @@ webSocketStoreTest("Create string data test",  function(assert, argument){
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-ENTRY\ncollection1\nentry1\nSentry\n value"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-ENTRY\noperation-status"))
 
-    argument.storeClient.createEntry({collection: "collection1", name: "entry1"}, "entry\n value")
+    argument.registryClient.createEntry({collection: "collection1", name: "entry1"}, "entry\n value")
     .then(function(status) {
         assert.equal(status, "operation-status", "asserting status");
     })
     .then(done);
 });
 
-webSocketStoreTest("Create or update string data test",  function(assert, argument){
+webSocketRegistryTest("Create or update string data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -41,14 +41,14 @@ webSocketStoreTest("Create or update string data test",  function(assert, argume
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry\n value"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-OR-UPDATE-ENTRY\noperation-status"))
 
-    argument.storeClient.createOrUpdate({collection: "collection1", name: "entry1"}, "entry\n value")
+    argument.registryClient.createOrUpdate({collection: "collection1", name: "entry1"}, "entry\n value")
     .then(function(status) {
         assert.equal(status, "operation-status", "asserting status");
     })
     .then(done)
 });
 
-webSocketStoreTest("Get string entry value data test",  function(assert, argument){
+webSocketRegistryTest("Get string entry value data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -56,7 +56,7 @@ webSocketStoreTest("Get string entry value data test",  function(assert, argumen
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRY\ncollection1\nentry1"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 GET-ENTRY\nSentry-value"))
 
-    argument.storeClient.getEntry({collection: "collection1", name: "entry1"})
+    argument.registryClient.getEntry({collection: "collection1", name: "entry1"})
     .then(function(entryValue) {
         assert.equal(entryValue, "entry-value", "asserting value");
     })
@@ -64,7 +64,7 @@ webSocketStoreTest("Get string entry value data test",  function(assert, argumen
 });
 
 
-webSocketStoreTest("Create json data test",  function(assert, argument){
+webSocketRegistryTest("Create json data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -72,14 +72,14 @@ webSocketStoreTest("Create json data test",  function(assert, argument){
     .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 CREATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-ENTRY\noperation-status"))
 
-    argument.storeClient.createEntry({collection: "collection1", name: "entry1"}, {"json":"value"})
+    argument.registryClient.createEntry({collection: "collection1", name: "entry1"}, {"json":"value"})
     .then(function(status) {
         assert.equal(status, "operation-status", "asserting status");
     })
     .then(done)
 });
 
-webSocketStoreTest("Create or update json data test",  function(assert, argument){
+webSocketRegistryTest("Create or update json data test",  function(assert, argument){
     var done = assert.async(1);
 
 
@@ -88,14 +88,14 @@ webSocketStoreTest("Create or update json data test",  function(assert, argument
     .then(argument.webSocketCaptor.assertSignals.bind(null, ['message: 0 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nJ{"json":"value"}']))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 CREATE-OR-UPDATE-ENTRY\noperation-status"))
 
-    argument.storeClient.createOrUpdate({collection: "collection1", name: "entry1"}, {"json":"value"})
+    argument.registryClient.createOrUpdate({collection: "collection1", name: "entry1"}, {"json":"value"})
     .then(function(status) {
         assert.equal(status, "operation-status", "asserting status");
     })
     .then(done)
 });
 
-webSocketStoreTest("Get json entry value data test",  function(assert, argument){
+webSocketRegistryTest("Get json entry value data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -103,14 +103,14 @@ webSocketStoreTest("Get json entry value data test",  function(assert, argument)
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRY\ncollection1\nentry1"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '0 GET-ENTRY\nJ{"json":"value"}'))
 
-    argument.storeClient.getEntry({collection: "collection1", name: "entry1"})
+    argument.registryClient.getEntry({collection: "collection1", name: "entry1"})
     .then(function(entryValue) {
         assert.deepEqual(entryValue, {"json":"value"}, "asserting value");
     })
     .then(done)
 });
 
-webSocketStoreTest("Get entries with body data test",  function(assert, argument){
+webSocketRegistryTest("Get entries with body data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -120,14 +120,14 @@ webSocketStoreTest("Get entries with body data test",  function(assert, argument
 
 
 
-    argument.storeClient.getEntriesWithBody("collection1")
+    argument.registryClient.getEntriesWithBody("collection1")
     .then(function(entryValue) {
         assert.deepEqual(entryValue, {key1:"12345",key2:"ABCDEF",key3:"abc\ndef",key4:{"a":"b"}}, "asserting value");
     })
     .then(done)
 });
 
-webSocketStoreTest("Delete entry data test",  function(assert, argument){
+webSocketRegistryTest("Delete entry data test",  function(assert, argument){
     var done = assert.async(1);
 
 
@@ -136,14 +136,14 @@ webSocketStoreTest("Delete entry data test",  function(assert, argument){
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 DELETE-ENTRY\ncollection1\nentry1"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "0 DELETE-ENTRY\noperation-status"))
 
-    argument.storeClient.deleteEntry({collection: "collection1", name: "entry1"})
+    argument.registryClient.deleteEntry({collection: "collection1", name: "entry1"})
     .then(function(status) {
         assert.equal(status, "operation-status", "asserting status");
     })
     .then(done)
 });
 
-webSocketStoreTest("Fail on Create data test",  function(assert, argument){
+webSocketRegistryTest("Fail on Create data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -151,7 +151,7 @@ webSocketStoreTest("Fail on Create data test",  function(assert, argument){
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-ENTRY\ncollection1\nentry1\nSentry value"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 CREATE-ENTRY\nfail-status"))
 
-    argument.storeClient.createEntry({collection: "collection1", name: "entry1"}, "entry value")
+    argument.registryClient.createEntry({collection: "collection1", name: "entry1"}, "entry value")
     .then(function(){
         assert.notOk(true, "successful execution should fail");
     }, function(reason){
@@ -160,7 +160,7 @@ webSocketStoreTest("Fail on Create data test",  function(assert, argument){
     .then(done)
 });
 
-webSocketStoreTest("Fail on Create or update data test",  function(assert, argument){
+webSocketRegistryTest("Fail on Create or update data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -168,7 +168,7 @@ webSocketStoreTest("Fail on Create or update data test",  function(assert, argum
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry value"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 CREATE-OR-UPDATE-ENTRY\nfail-status"))
 
-    argument.storeClient.createOrUpdate({collection: "collection1", name: "entry1"}, "entry value")
+    argument.registryClient.createOrUpdate({collection: "collection1", name: "entry1"}, "entry value")
     .then(function(){
         assert.notOk(true, "successful execution should fail");
     }, function(reason){
@@ -177,7 +177,7 @@ webSocketStoreTest("Fail on Create or update data test",  function(assert, argum
     .then(done)
 });
 
-webSocketStoreTest("Fail on Get entry data test",  function(assert, argument){
+webSocketRegistryTest("Fail on Get entry data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -185,7 +185,7 @@ webSocketStoreTest("Fail on Get entry data test",  function(assert, argument){
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRY\ncollection1\nentry1"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 GET-ENTRY\nfail-status"))
 
-    argument.storeClient.getEntry({collection: "collection1", name: "entry1"})
+    argument.registryClient.getEntry({collection: "collection1", name: "entry1"})
     .then(function(){
         assert.notOk(true, "successful execution should fail");
     }, function(reason){
@@ -194,7 +194,7 @@ webSocketStoreTest("Fail on Get entry data test",  function(assert, argument){
     .then(done)
 });
 
-webSocketStoreTest("Fail on Get entries with body data test",  function(assert, argument){
+webSocketRegistryTest("Fail on Get entries with body data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -204,7 +204,7 @@ webSocketStoreTest("Fail on Get entries with body data test",  function(assert, 
 
 
 
-    argument.storeClient.getEntriesWithBody("collection1")
+    argument.registryClient.getEntriesWithBody("collection1")
     .then(function(){
         assert.notOk(true, "successful execution should fail");
     }, function(reason){
@@ -213,7 +213,7 @@ webSocketStoreTest("Fail on Get entries with body data test",  function(assert, 
     .then(done)
 });
 
-webSocketStoreTest("Fail on Delete entry data test",  function(assert, argument){
+webSocketRegistryTest("Fail on Delete entry data test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -221,7 +221,7 @@ webSocketStoreTest("Fail on Delete entry data test",  function(assert, argument)
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 DELETE-ENTRY\ncollection1\nentry1"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "CALL_ERROR\n0 DELETE-ENTRY\nfail-status"))
 
-    argument.storeClient.deleteEntry({collection: "collection1", name: "entry1"})
+    argument.registryClient.deleteEntry({collection: "collection1", name: "entry1"})
     .then(function(){
         assert.notOk(true, "successful execution should fail");
     }, function(reason){
@@ -230,7 +230,7 @@ webSocketStoreTest("Fail on Delete entry data test",  function(assert, argument)
     .then(done)
 });
 
-webSocketStoreTest("Get entries with body data malformed response test",  function(assert, argument){
+webSocketRegistryTest("Get entries with body data malformed response test",  function(assert, argument){
     var done = assert.async(1);
 
     Promise.resolve()
@@ -238,7 +238,7 @@ webSocketStoreTest("Get entries with body data malformed response test",  functi
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 0 GET-ENTRIES-WITH-BODY\ncollection1"]))
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, '0 GET-ENTRIES-WITH-BODY\n6key1S12345'))
 
-    argument.storeClient.getEntriesWithBody("collection1")
+    argument.registryClient.getEntriesWithBody("collection1")
     .then(function(entryValue) {
         assert.notOk(true, "successful execution should fail");
     }, function(error){
@@ -247,10 +247,10 @@ webSocketStoreTest("Get entries with body data malformed response test",  functi
     .then(done)
 });
 
-webSocketStoreTest("Restore store data after re-connect",  function(assert, argument){
+webSocketRegistryTest("Restore registry data after re-connect",  function(assert, argument){
     var done = assert.async(1);
 
-    // Emulating Ok response to store data into cache
+    // Emulating Ok response to register data into cache
     Promise.resolve()
     .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 1))
 
@@ -282,27 +282,27 @@ webSocketStoreTest("Restore store data after re-connect",  function(assert, argu
     .then(argument.mockWebSocketFactory.fireOnmessage.bind(null, "9 DELETE-ENTRY\nOK"))
 
 
-    // Initializing store cache with data
+    // Initializing registry cache with data
     Promise.resolve()
-    .then(argument.storeClient.createEntry.bind(null, {collection: "collection1", name: "entry1"}, "entry\n value - 1"))
-    .then(argument.storeClient.createOrUpdate.bind(null, {collection: "collection1", name: "entry2"}, "entry\n value - 2"))
-    .then(argument.storeClient.createEntry.bind(null, {collection: "collection1", name: "entry3"}, "entry\n value - 3"))
+    .then(argument.registryClient.createEntry.bind(null, {collection: "collection1", name: "entry1"}, "entry\n value - 1"))
+    .then(argument.registryClient.createOrUpdate.bind(null, {collection: "collection1", name: "entry2"}, "entry\n value - 2"))
+    .then(argument.registryClient.createEntry.bind(null, {collection: "collection1", name: "entry3"}, "entry\n value - 3"))
 
-    .then(argument.storeClient.createEntry.bind(null, {collection: "collection2", name: "entry1"}, "entry\n value - 4"))
-    .then(argument.storeClient.createEntry.bind(null, {collection: "collection2", name: "entry2"}, "entry\n value - 5"))
+    .then(argument.registryClient.createEntry.bind(null, {collection: "collection2", name: "entry1"}, "entry\n value - 4"))
+    .then(argument.registryClient.createEntry.bind(null, {collection: "collection2", name: "entry2"}, "entry\n value - 5"))
 
-    .then(argument.storeClient.createEntry.bind(null, {collection: "collection3", name: "entry1"}, "entry\n value - 6"))
+    .then(argument.registryClient.createEntry.bind(null, {collection: "collection3", name: "entry1"}, "entry\n value - 6"))
 
-    .then(argument.storeClient.createEntry.bind(null, {collection: "collection4", name: "entry1"}, "entry\n value - 7"))
+    .then(argument.registryClient.createEntry.bind(null, {collection: "collection4", name: "entry1"}, "entry\n value - 7"))
 
-    .then(argument.storeClient.deleteEntry.bind(null, {collection: "collection1", name: "entry3"}))
-    .then(argument.storeClient.deleteEntry.bind(null, {collection: "collection3", name: "entry1"}))
+    .then(argument.registryClient.deleteEntry.bind(null, {collection: "collection1", name: "entry3"}))
+    .then(argument.registryClient.deleteEntry.bind(null, {collection: "collection3", name: "entry1"}))
 
     // reconnect sequence
     .then(argument.mockWebSocketFactory.fireOnclose.bind(null))
     .then(WebSocketRpcTestUtils.doLogin.bind(null, argument, 10))
 
-    // verifying if client reinitialize store with data from cache
+    // verifying if client reinitialize registry with data from cache
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 11 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry1\nSentry\n value - 1"]))
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 12 CREATE-OR-UPDATE-ENTRY\ncollection1\nentry2\nSentry\n value - 2"]))
     .then(argument.webSocketCaptor.assertSignals.bind(null, ["message: 13 CREATE-OR-UPDATE-ENTRY\ncollection2\nentry1\nSentry\n value - 4"]))
@@ -328,9 +328,9 @@ webSocketStoreTest("Restore store data after re-connect",  function(assert, argu
     .then(done);
 });
 
-webSocketStoreTest("Test invalid character handling",  function(assert, argument){
+webSocketRegistryTest("Test invalid character handling",  function(assert, argument){
 
-    var storeClient = argument.storeClient;
+    var registryClient = argument.registryClient;
 
     function verifyInvalidEOLArguments(methodName, callback) {
         try{
@@ -341,17 +341,17 @@ webSocketStoreTest("Test invalid character handling",  function(assert, argument
         }
     }
 
-    verifyInvalidEOLArguments("createEntry", storeClient.createEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}, "entry value"));
-    verifyInvalidEOLArguments("createEntry", storeClient.createEntry.bind(null, {collection: "collection name", name: "entry\nname"}, "entry value"));
+    verifyInvalidEOLArguments("createEntry", registryClient.createEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}, "entry value"));
+    verifyInvalidEOLArguments("createEntry", registryClient.createEntry.bind(null, {collection: "collection name", name: "entry\nname"}, "entry value"));
 
-    verifyInvalidEOLArguments("createOrUpdate", storeClient.createOrUpdate.bind(null, {collection: "bad\ncollection name", name: "entry name"}, "entry value"));
-    verifyInvalidEOLArguments("createOrUpdate", storeClient.createOrUpdate.bind(null, {collection: "collection name", name: "entry\nname"}, "entry value"));
+    verifyInvalidEOLArguments("createOrUpdate", registryClient.createOrUpdate.bind(null, {collection: "bad\ncollection name", name: "entry name"}, "entry value"));
+    verifyInvalidEOLArguments("createOrUpdate", registryClient.createOrUpdate.bind(null, {collection: "collection name", name: "entry\nname"}, "entry value"));
 
-    verifyInvalidEOLArguments("getEntry", storeClient.getEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}));
-    verifyInvalidEOLArguments("getEntry", storeClient.getEntry.bind(null, {collection: "collection name", name: "entry\nname"}));
+    verifyInvalidEOLArguments("getEntry", registryClient.getEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}));
+    verifyInvalidEOLArguments("getEntry", registryClient.getEntry.bind(null, {collection: "collection name", name: "entry\nname"}));
 
-    verifyInvalidEOLArguments("getEntriesWithBody", storeClient.getEntriesWithBody.bind(null, "bad\ncollection name"));
+    verifyInvalidEOLArguments("getEntriesWithBody", registryClient.getEntriesWithBody.bind(null, "bad\ncollection name"));
 
-    verifyInvalidEOLArguments("deleteEntry", storeClient.deleteEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}));
-    verifyInvalidEOLArguments("deleteEntry", storeClient.deleteEntry.bind(null, {collection: "collection name", name: "entry\nname"}));
+    verifyInvalidEOLArguments("deleteEntry", registryClient.deleteEntry.bind(null, {collection: "bad\ncollection name", name: "entry name"}));
+    verifyInvalidEOLArguments("deleteEntry", registryClient.deleteEntry.bind(null, {collection: "collection name", name: "entry\nname"}));
 });

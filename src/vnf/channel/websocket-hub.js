@@ -27,11 +27,11 @@ export function WebSocketHub(webSocketFactory){
         rpcLoginRecreateInterval = value;
     }
 
-    selfHub.VnfEndpoint = function WebSocketEndpoint(selfVip) {
+    selfHub.VnfEndpoint = function WebSocketEndpoint(selfEva) {
         var self = this;
-        selfHub.BaseEndPoint.call(this, selfVip);
+        selfHub.BaseEndPoint.call(this, selfEva);
 
-        var webSocketRpc = new WebSocketRpc(selfVip, webSocketFactory);
+        var webSocketRpc = new WebSocketRpc(selfEva, webSocketFactory);
         webSocketRpc.allocateUsage();
 
         if(rpcBusyTimerInterval != null) webSocketRpc.setBusyTimerInterval(rpcBusyTimerInterval);
@@ -39,7 +39,7 @@ export function WebSocketHub(webSocketFactory){
         if(rpcLoginRecreateInterval != null) webSocketRpc.setLoginRecreateInterval(rpcLoginRecreateInterval);
 
         self.__doOpenConnection_NextTry = function(connection) {
-            connection.rpcInvokeFuture = webSocketRpc.invokeFuture("SEND_TO_ENDPOINT",  connection.targetVip + "\nHANDSHAKE", {retryResend: true});
+            connection.rpcInvokeFuture = webSocketRpc.invokeFuture("SEND_TO_ENDPOINT",  connection.targetEva + "\nHANDSHAKE", {retryResend: true});
 
             connection.rpcInvokeFuture.promise.then(function(e) {
                 if(e.data) {
@@ -63,35 +63,35 @@ export function WebSocketHub(webSocketFactory){
             self.__doOpenConnection_CleanBeforeNextTry(connection);
 
             if(!connection.handlingCloseEvent) {
-                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nCLOSE-CONNECTION", {retryResend: true})
+                webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetEva + "\nCLOSE-CONNECTION", {retryResend: true})
                 .catch((e) => Log.debug("websocket-hub", "SEND_TO_ENDPOINT CLOSE-CONNECTION not delivered: " + e));
             }
         };
 
-        function handleHandshakeMessage(sourceVip, messageType, body) {
+        function handleHandshakeMessage(sourceEva, messageType, body) {
             if(self.isDestroyed()) return;
 
-            webSocketRpc.invoke("SEND_TO_ENDPOINT",  sourceVip + "\nACCEPT", {retryResend: true})
+            webSocketRpc.invoke("SEND_TO_ENDPOINT",  sourceEva + "\nACCEPT", {retryResend: true})
             .catch((e) => Log.debug("websocket-hub", "SEND_TO_ENDPOINT ACCEPT not delivered: " + e));
 
-            self.__acceptConnection(sourceVip);
+            self.__acceptConnection(sourceEva);
         }
 
-        function handleAcceptMessage(sourceVip, messageType, body) {
-            var  connection  = self.getConnection(sourceVip);
+        function handleAcceptMessage(sourceEva, messageType, body) {
+            var  connection  = self.getConnection(sourceEva);
 
             if(!connection) return;
 
             self.__connectionOpened(connection);
         }
 
-        function handleMessage(sourceVip, messageType, body) {
-            if(!self.isConnected(sourceVip)) {
+        function handleMessage(sourceEva, messageType, body) {
+            if(!self.isConnected(sourceEva)) {
                 return false;
             }
 
             try{
-                self.onMessage && self.onMessage({sourceVip: sourceVip,
+                self.onMessage && self.onMessage({sourceEva: sourceEva,
                                                   message:   body,
                                                   endpoint:  self});
             }catch(e) {
@@ -99,10 +99,10 @@ export function WebSocketHub(webSocketFactory){
             }
         }
 
-        function handleCloseConnection(sourceVip, messageType, body) {
-            var connection = self.getConnection(sourceVip);
+        function handleCloseConnection(sourceEva, messageType, body) {
+            var connection = self.getConnection(sourceEva);
             if(connection) connection.handlingCloseEvent = true;
-            self.closeConnection(sourceVip);
+            self.closeConnection(sourceEva);
         }
 
         var messageHandlers = {
@@ -121,12 +121,12 @@ export function WebSocketHub(webSocketFactory){
 
             var endOfLine = message.indexOf("\n");
 
-            var sourceVip;
+            var sourceEva;
             if(endOfLine == -1) {
                 Log.debug("WebSocketHub: Malformed message retrieved. EOL character is required after endpoint\n" + message);
                 return;
             }
-            var sourceVip = message.substr(0, endOfLine);
+            var sourceEva = message.substr(0, endOfLine);
 
             var beginOfLine = endOfLine + 1;
             endOfLine = message.indexOf("\n", beginOfLine);
@@ -146,14 +146,14 @@ export function WebSocketHub(webSocketFactory){
                 throw new Error("WebSocketHub: Unexpected message type: '" + messageType + "'");
             }
 
-            handler(sourceVip, messageType, body);
+            handler(sourceEva, messageType, body);
         })
 
         self.__doSend = function(connection, message) {
-            webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetVip + "\nMESSAGE\n" + message, {retryResend: true})
+            webSocketRpc.invoke("SEND_TO_ENDPOINT",  connection.targetEva + "\nMESSAGE\n" + message, {retryResend: true})
             .then(function(event){
                 if(event.data == Global.SEND_TO_ENDPOINT_RECIPIENT_ENDPOINT_CANNOT_BE_FOUND) {
-                    self.closeConnection(connection.targetVip);
+                    self.closeConnection(connection.targetEva);
                 }
             })
             .catch((e) => Log.debug("websocket-hub", "SEND_TO_ENDPOINT MESSAGE not delivered: " + e));

@@ -32,8 +32,8 @@ export function VnfCoreService() {
                     return storeClient;
                 }
 
-                parentEndpoint.onConnectionLost(function(targetVip){
-                    vnfEndpoint.serviceLookupCall("onConnectionLost", targetVip)
+                parentEndpoint.onConnectionLost(function(targetEva){
+                    vnfEndpoint.serviceLookupCall("onConnectionLost", targetEva)
                 });
             },
 

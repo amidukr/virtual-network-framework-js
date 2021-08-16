@@ -6,31 +6,31 @@ import {ProxyHub} from "./base/vnf-proxy-hub.js";
 
 var DEFAULT_FRAGMENT_SIZE = 64*1024;
 
-export function BigMessageHub(parentHub, configuration){
+export function MarshallerHub(parentHub, configuration){
     var selfHub = this;
     ProxyHub.call(selfHub, parentHub);
 
     configuration = configuration || {}
     var fragmentSize = configuration.fragmentSize || DEFAULT_FRAGMENT_SIZE;
 
-    selfHub.VnfEndpoint = function BigMessageEndpoint(selfVip) {
+    selfHub.VnfEndpoint = function BigMessageEndpoint(selfEva) {
         var self = this;
-        selfHub.ProxyEndpoint.call(self, selfVip);
+        selfHub.ProxyEndpoint.call(self, selfEva);
 
         var parentEndpoint = self.parentEndpoint;
 
         self.setAnyTypeSupported(true);
 
-        parentEndpoint.onConnectionOpen(function(targetVip){
-            self.__acceptConnection(targetVip);
+        parentEndpoint.onConnectionOpen(function(targetEva){
+            self.__acceptConnection(targetEva);
         })
 
-        parentEndpoint.onConnectionLost(function(targetVip){
-            self.closeConnection(targetVip);
+        parentEndpoint.onConnectionLost(function(targetEva){
+            self.closeConnection(targetEva);
         });
 
         parentEndpoint.onMessage = function(event) {
-            var connection = self.__lazyNewConnection(event.sourceVip);
+            var connection = self.__lazyNewConnection(event.sourceEva);
 
             var message = event.message;
 
@@ -58,10 +58,10 @@ export function BigMessageHub(parentHub, configuration){
                 var onMessage = self.onMessage;
                 try {
                     onMessage && onMessage({message: message,
-                                            sourceVip: event.sourceVip,
+                                            sourceEva: event.sourceEva,
                                             endpoint: self});
                 }catch(e) {
-                    Log.error(selfVip, "big-message", ["Error in onMessage handler: ", e]);
+                    Log.error(selfEva, "big-message", ["Error in onMessage handler: ", e]);
                 }
 
                 connection.messageFragment = null;
@@ -70,7 +70,7 @@ export function BigMessageHub(parentHub, configuration){
         }
 
         self.__doOpenConnection = function(connection) {
-            parentEndpoint.openConnection(connection.targetVip, function(event) {
+            parentEndpoint.openConnection(connection.targetEva, function(event) {
                 if(event.status == Global.FAILED) {
                     self.__connectionOpenFailed(connection);
                 }else{
@@ -102,7 +102,7 @@ export function BigMessageHub(parentHub, configuration){
             while(position < msgLen) {
                 var msgChunk = messageData.substr(position, fragmentSize);
                 var fragment = position == 0 ? messageType + lenDigit + msgLen +  msgChunk : msgChunk;
-                parentEndpoint.send(connection.targetVip, fragment);
+                parentEndpoint.send(connection.targetEva, fragment);
                 position += msgChunk.length;
             }
         }

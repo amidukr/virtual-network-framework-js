@@ -80,9 +80,9 @@ vfnSystemUnitTest("Provider side test: Service call test",  function(assert, arg
             "test-method": function(event) {
                 assert.equal(event.message,      "test-method-argument-" + i++, "asserting event message");
                 assert.equal(event.method,       "test-method",                 "asserting event method");
-                assert.equal(event.sourceVip,    "root-endpoint",               "asserting event sourceVip");
+                assert.equal(event.sourceEva,    "root-endpoint",               "asserting event sourceEva");
                 assert.equal(event.endpoint,     endpoint,                      "asserting event endpoint");
-                assert.equal(event.endpoint.vip, "vnf-endpoint",                "asserting event endpoint vip");
+                assert.equal(event.endpoint.eva, "vnf-endpoint",                "asserting event endpoint eva");
 
                 return event.message + "-echo";
             }
@@ -206,8 +206,8 @@ vfnSystemUnitTest("onConnectionLost test",  function(assert, argument){
             }
         }
 
-        this.onConnectionLost = function(targetVip) {
-            captor.signal("connection-lost: " + targetVip);
+        this.onConnectionLost = function(targetEva) {
+            captor.signal("connection-lost: " + targetEva);
         };
     }
 

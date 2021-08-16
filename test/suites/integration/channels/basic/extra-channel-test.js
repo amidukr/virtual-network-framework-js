@@ -10,13 +10,13 @@ QUnit.module("Channel Extra Tests");
 ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, args) {
     var done = assert.async(1);
 
-    var bigMessageHub = new Vnf.BigMessageHub(args.vnfHub);
+    var MarshallerHub = new Vnf.MarshallerHub(args.vnfHub);
 
-    args.endpointRecipient = bigMessageHub.openEndpoint(args.recipientVip);
-    args.endpointSender = bigMessageHub.openEndpoint(args.senderVip);
+    args.endpointRecipient = MarshallerHub.openEndpoint(args.recipientEva);
+    args.endpointSender = MarshallerHub.openEndpoint(args.senderEva);
 
     args.endpointRecipient.onMessage = function(event) {
-        Log.verbose(event.endpoint.vip, "message-test-handler", JSON.stringify(event));
+        Log.verbose(event.endpoint.eva, "message-test-handler", JSON.stringify(event));
 
         assert.equal(event.message.value1,       "object-value-1", "Verifying message value1");
         assert.equal(event.message.sub.value2,   "object-sub-value-2", "Verifying message value2");
@@ -27,9 +27,9 @@ ChannelTestUtils.integrationTest("Channel Send Object Test", function(assert, ar
         done();
     };
 
-    args.endpointSender.openConnection(args.recipientVip, function(event){
+    args.endpointSender.openConnection(args.recipientEva, function(event){
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
-        args.endpointSender.send(args.recipientVip, {value1: "object-value-1", sub:{value2: "object-sub-value-2"}});
+        args.endpointSender.send(args.recipientEva, {value1: "object-value-1", sub:{value2: "object-sub-value-2"}});
     });
 });
 
@@ -38,17 +38,17 @@ ChannelTestUtils.integrationTest("Channel Loopback Test", function(assert, args)
 
     var done = assert.async(1);
 
-    args.endpointSender.openConnection(args.senderVip, function(event){
+    args.endpointSender.openConnection(args.senderEva, function(event){
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
-        assert.equal(event.targetVip, args.senderVip, "Verifying targetVip");
+        assert.equal(event.targetEva, args.senderEva, "Verifying targetEva");
         assert.equal(event.endpoint, args.endpointSender, "Verifying endpoint");
-        assert.equal(event.endpoint.vip, args.senderVip, "Verifying endpoint vip");
+        assert.equal(event.endpoint.eva, args.senderEva, "Verifying endpoint eva");
 
-        args.endpointSender.send(args.senderVip, "message-sender-to-self");
+        args.endpointSender.send(args.senderEva, "message-sender-to-self");
     });
 
     Promise.resolve()
-    .then(args.senderCaptor.assertSignals.bind(null, [`from ${args.senderVip}: message-sender-to-self`]))
+    .then(args.senderCaptor.assertSignals.bind(null, [`from ${args.senderEva}: message-sender-to-self`]))
 
     .then(args.endpointRecipient.destroy)
     .then(args.endpointSender.destroy)
@@ -63,13 +63,13 @@ ChannelTestUtils.integrationTest("Multiple/Loopback Channels Send Test", functio
 
     var vnfHub = args.hubFactory();
 
-    var vip1 = Random.random6() + "-vip-1";
-    var vip2 = Random.random6() + "-vip-2";
-    var vip3 = Random.random6() + "-vip-3";
+    var eva1 = Random.random6() + "-eva-1";
+    var eva2 = Random.random6() + "-eva-2";
+    var eva3 = Random.random6() + "-eva-3";
 
-    var endpoint1 = vnfHub.openEndpoint(vip1);
-    var endpoint2 = vnfHub.openEndpoint(vip2);
-    var endpoint3 = vnfHub.openEndpoint(vip3);
+    var endpoint1 = vnfHub.openEndpoint(eva1);
+    var endpoint2 = vnfHub.openEndpoint(eva2);
+    var endpoint3 = vnfHub.openEndpoint(eva3);
 
     var capture1 = new SignalCaptor(assert);
     var capture2 = new SignalCaptor(assert);
@@ -77,43 +77,43 @@ ChannelTestUtils.integrationTest("Multiple/Loopback Channels Send Test", functio
 
     var doneCaptor = new SignalCaptor(assert);
 
-    endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, vip1);
-    endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, vip2);
-    endpoint3.onMessage = VnfTestUtils.newPrintCallback(capture3, vip3);
+    endpoint1.onMessage = VnfTestUtils.newPrintCallback(capture1, eva1);
+    endpoint2.onMessage = VnfTestUtils.newPrintCallback(capture2, eva2);
+    endpoint3.onMessage = VnfTestUtils.newPrintCallback(capture3, eva3);
 
-    function sendMessage(endpoint, targetVip, message) {
-        endpoint.openConnection(targetVip, function(event){
+    function sendMessage(endpoint, targetEva, message) {
+        endpoint.openConnection(targetEva, function(event){
             assert.equal(event.status, "CONNECTED", "Verifying connection status");
-            endpoint.send(targetVip, message);
+            endpoint.send(targetEva, message);
         })
     }
 
-    sendMessage(endpoint1, vip2, "message-from-vip1-to-vip2");
-    sendMessage(endpoint1, vip3, "message-from-vip1-to-vip3");
+    sendMessage(endpoint1, eva2, "message-from-eva1-to-eva2");
+    sendMessage(endpoint1, eva3, "message-from-eva1-to-eva3");
 
-    sendMessage(endpoint2, vip1, "message-from-vip2-to-vip1");
-    endpoint2.openConnection(vip3, function(event){
+    sendMessage(endpoint2, eva1, "message-from-eva2-to-eva1");
+    endpoint2.openConnection(eva3, function(event){
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
-        endpoint2.send(vip3, "1st-message-from-vip2-to-vip3");
-        endpoint2.send(vip3, "2nd-message-from-vip2-to-vip3");
+        endpoint2.send(eva3, "1st-message-from-eva2-to-eva3");
+        endpoint2.send(eva3, "2nd-message-from-eva2-to-eva3");
     })
 
-    sendMessage(endpoint3, vip1, "message-from-vip3-to-vip1");
-    sendMessage(endpoint3, vip2, "message-from-vip3-to-vip2");
-    sendMessage(endpoint3, vip3, "message-from-vip3-to-vip3");
+    sendMessage(endpoint3, eva1, "message-from-eva3-to-eva1");
+    sendMessage(endpoint3, eva2, "message-from-eva3-to-eva2");
+    sendMessage(endpoint3, eva3, "message-from-eva3-to-eva3");
 
-    capture1.assertSignalsUnordered([`from ${vip2}: message-from-vip2-to-vip1`,
-                                 `from ${vip3}: message-from-vip3-to-vip1`])
+    capture1.assertSignalsUnordered([`from ${eva2}: message-from-eva2-to-eva1`,
+                                 `from ${eva3}: message-from-eva3-to-eva1`])
              .then(doneCaptor.signal.bind(null, "done-1"));
 
-    capture2.assertSignalsUnordered([`from ${vip1}: message-from-vip1-to-vip2`,
-                                 `from ${vip3}: message-from-vip3-to-vip2`])
+    capture2.assertSignalsUnordered([`from ${eva1}: message-from-eva1-to-eva2`,
+                                 `from ${eva3}: message-from-eva3-to-eva2`])
             .then(doneCaptor.signal.bind(null, "done-2"));
 
-    capture3.assertSignalsUnordered([`from ${vip1}: message-from-vip1-to-vip3`,
-                                 `from ${vip2}: 1st-message-from-vip2-to-vip3`,
-                                 `from ${vip2}: 2nd-message-from-vip2-to-vip3`,
-                                 `from ${vip3}: message-from-vip3-to-vip3`])
+    capture3.assertSignalsUnordered([`from ${eva1}: message-from-eva1-to-eva3`,
+                                 `from ${eva2}: 1st-message-from-eva2-to-eva3`,
+                                 `from ${eva2}: 2nd-message-from-eva2-to-eva3`,
+                                 `from ${eva3}: message-from-eva3-to-eva3`])
             .then(doneCaptor.signal.bind(null, "done-3"));
 
     doneCaptor.assertSignalsUnordered(["done-1", "done-2", "done-3"])
@@ -147,7 +147,7 @@ ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, ar
 
     var index = 0;
     args.endpointRecipient.onMessage = function(event) {
-        Log.verbose(args.recipientVip, "message-test-handler", event.message.substr(0, 100) + "\n.......");
+        Log.verbose(args.recipientEva, "message-test-handler", event.message.substr(0, 100) + "\n.......");
         assert.deepEqual(event.message, bigMessage[index++],  "Asserting captured logs");
 
         if(index == bigMessage.length) {
@@ -159,11 +159,11 @@ ChannelTestUtils.integrationTest("Channel Big Message Test", function(assert, ar
         }
     };
 
-    args.endpointSender.openConnection(args.recipientVip, function(event){
+    args.endpointSender.openConnection(args.recipientEva, function(event){
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
 
         for(var i = 0; i < bigMessage.length; i++) {
-            args.endpointSender.send(args.recipientVip, bigMessage[i]);
+            args.endpointSender.send(args.recipientEva, bigMessage[i]);
         }
     });
 });

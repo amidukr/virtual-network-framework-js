@@ -13,9 +13,9 @@ export function InBrowserHub(){
         immediateSend = value;
     }
 
-    selfHub.VnfEndpoint = function InBrowserEndpoint(selfVip) {
+    selfHub.VnfEndpoint = function InBrowserEndpoint(selfEva) {
         var self = this;
-        selfHub.BaseEndPoint.call(this, selfVip);
+        selfHub.BaseEndPoint.call(this, selfEva);
 
         self.__doOpenConnection_NextTry = function(connection) {
             window.setTimeout(function __doOpenConnectionTimerCallback(){
@@ -23,15 +23,15 @@ export function InBrowserHub(){
                     return;
                 }
 
-                var remoteEndpoint = selfHub.getEndPoint(connection.targetVip);
+                var remoteEndpoint = selfHub.getEndPoint(connection.targetEva);
 
                 if(remoteEndpoint) {
 
                     connection.remoteEndpoint = remoteEndpoint;
 
-                    var remoteConnection = remoteEndpoint.__lazyNewConnection(selfVip);
+                    var remoteConnection = remoteEndpoint.__lazyNewConnection(selfEva);
                     remoteConnection.remoteEndpoint = self;
-                    remoteEndpoint.__acceptConnection(selfVip);
+                    remoteEndpoint.__acceptConnection(selfEva);
 
                     self.__connectionOpened(connection);
                 }else{
@@ -45,16 +45,16 @@ export function InBrowserHub(){
 
             if(!remoteEndpoint)  return;
             if(remoteEndpoint.isDestroyed()) return;
-            var remoteConnection = remoteEndpoint.getConnection(selfVip);
+            var remoteConnection = remoteEndpoint.getConnection(selfEva);
 
             if(!remoteConnection || remoteConnection.remoteEndpoint != self) return;
 
             var onMessage = remoteEndpoint.onMessage;
 
             try{
-                onMessage && onMessage({sourceVip: selfVip, message: message, endpoint: remoteEndpoint});
+                onMessage && onMessage({sourceEva: selfEva, message: message, endpoint: remoteEndpoint});
             }catch(e) {
-                Log.error(selfVip, "in-browser-message", ["Error in onMessage handler: ", e]);
+                Log.error(selfEva, "in-browser-message", ["Error in onMessage handler: ", e]);
             }
         }
 
@@ -68,8 +68,8 @@ export function InBrowserHub(){
 
         self.__doReleaseConnection = function(connection) {
              var remoteEndpoint = connection.remoteEndpoint;
-             if(remoteEndpoint && remoteEndpoint.isConnected(selfVip)) {
-                window.setTimeout(remoteEndpoint.closeConnection.bind(null, selfVip), 0);
+             if(remoteEndpoint && remoteEndpoint.isConnected(selfEva)) {
+                window.setTimeout(remoteEndpoint.closeConnection.bind(null, selfEva), 0);
              }
         }
     }

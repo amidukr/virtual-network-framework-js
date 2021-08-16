@@ -9,10 +9,10 @@ QUnit.module("Channel Open Connection Tests");
 ChannelTestUtils.integrationTest("Open connection in open connection", function(assert, args) {
      var done = assert.async(1);
 
-     args.endpointSender.openConnection(args.recipientVip, function(event){
+     args.endpointSender.openConnection(args.recipientEva, function(event){
          assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
-         args.endpointSender.openConnection(args.recipientVip, function(event){
+         args.endpointSender.openConnection(args.recipientEva, function(event){
              assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
              args.endpointRecipient.destroy();
@@ -35,7 +35,7 @@ ChannelTestUtils.integrationTest("Recipient is not immediately available", funct
     hub.setOpenConnectionRetries(100);
 
     args.endpointRecipient.destroy();
-    args.endpointSender.openConnection(args.recipientVip, function(event) {
+    args.endpointSender.openConnection(args.recipientEva, function(event) {
         assert.equal(event.status, "CONNECTED", "Verifying connection status");
         assert.equal(recipientCreated, true, "Verifying recipient created after some delay");
         connected = true;
@@ -48,21 +48,21 @@ ChannelTestUtils.integrationTest("Recipient is not immediately available", funct
 
     window.setTimeout(function() {
         assert.equal(connected, false, "Verifying not yet connected after some delay");
-        args.endpointRecipient = args.vnfHub.openEndpoint(args.recipientVip)
+        args.endpointRecipient = args.vnfHub.openEndpoint(args.recipientEva)
         recipientCreated = true;
     }, 300);
 });
 
 ChannelTestUtils.integrationTest("Close connection immediately after open", function(assert, args) {
     var done = assert.async(1);
-    args.endpointSender.openConnection(args.recipientVip, function(event) {
+    args.endpointSender.openConnection(args.recipientEva, function(event) {
         assert.equal(event.status, "FAILED", "Verifying openConnection status");
     });
 
     if(["InBrowser", "Big Message Factory", "Unreliable"].indexOf(args.channelName) != -1) {
-        args.endpointSender.closeConnection(args.recipientVip);
+        args.endpointSender.closeConnection(args.recipientEva);
     }else{
-        window.setTimeout(args.endpointSender.closeConnection.bind(null, args.recipientVip), 10);
+        window.setTimeout(args.endpointSender.closeConnection.bind(null, args.recipientEva), 10);
     }
 
     args.endpointRecipient.onConnectionOpen(function() {
@@ -75,10 +75,10 @@ ChannelTestUtils.integrationTest("Close connection immediately after open", func
 ChannelTestUtils.integrationTest("Recipient open connection in Sender open connection callback", function(assert, args) {
      var done = assert.async(1);
 
-     args.endpointSender.openConnection(args.recipientVip, function(event){
+     args.endpointSender.openConnection(args.recipientEva, function(event){
          assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
-         args.endpointRecipient.openConnection(args.senderVip, function(event){
+         args.endpointRecipient.openConnection(args.senderEva, function(event){
              assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
              args.endpointRecipient.destroy();
@@ -92,11 +92,11 @@ ChannelTestUtils.integrationTest("Recipient open connection in Sender open conne
 ChannelTestUtils.integrationTest("Open connection in on message", function(assert, args) {
     var done = assert.async(1);
 
-    args.endpointSender.openConnection(args.recipientVip, function(event){
+    args.endpointSender.openConnection(args.recipientEva, function(event){
          assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
         args.endpointRecipient.onMessage = function(event) {
-            args.endpointRecipient.openConnection(args.senderVip, function(event){
+            args.endpointRecipient.openConnection(args.senderEva, function(event){
                 assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
                 args.endpointRecipient.destroy();
@@ -106,7 +106,7 @@ ChannelTestUtils.integrationTest("Open connection in on message", function(asser
             })
         };
 
-        args.endpointSender.send(args.recipientVip, "message-to-recipient");
+        args.endpointSender.send(args.recipientEva, "message-to-recipient");
     });
 });
 
@@ -115,12 +115,12 @@ ChannelTestUtils.integrationTest("Concurrent open connection", function(assert, 
 
     var doneCaptor = new SignalCaptor(assert);
 
-    args.endpointSender.openConnection(args.recipientVip, function(event){
+    args.endpointSender.openConnection(args.recipientEva, function(event){
         assert.equal(event.status,    "CONNECTED", "Verifying connection status");
         doneCaptor.signal("done-1");
     });
 
-    args.endpointRecipient.openConnection(args.senderVip, function(event){
+    args.endpointRecipient.openConnection(args.senderEva, function(event){
         assert.equal(event.status,    "CONNECTED", "Verifying connection status");
         doneCaptor.signal("done-2");
     });
@@ -136,30 +136,30 @@ ChannelTestUtils.integrationTest("Only last connection callback should fired", f
 
         var doneCaptor = new SignalCaptor(assert);
 
-        args.endpointSender.openConnection(args.recipientVip, function(event){
+        args.endpointSender.openConnection(args.recipientEva, function(event){
             assert.notOk(true, "First callback should be ignored");
         });
 
-        args.endpointSender.openConnection(args.recipientVip, function(event){
+        args.endpointSender.openConnection(args.recipientEva, function(event){
             assert.notOk(true, "Second callback should be ignored");
         });
 
-        args.endpointSender.openConnection(args.recipientVip, function(event){
+        args.endpointSender.openConnection(args.recipientEva, function(event){
             assert.equal(event.status,    "CONNECTED", "Verifying connection status");
 
             // when connection establish all callback should be fired immediately
 
-            args.endpointSender.openConnection(args.recipientVip, function(event){
+            args.endpointSender.openConnection(args.recipientEva, function(event){
                 assert.equal(event.status,    "CONNECTED", "Verifying connection status");
                 doneCaptor.signal("done-1");
             });
 
-            args.endpointSender.openConnection(args.recipientVip, function(event){
+            args.endpointSender.openConnection(args.recipientEva, function(event){
                 assert.equal(event.status,    "CONNECTED", "Verifying connection status");
                 doneCaptor.signal("done-2");
             });
 
-            args.endpointSender.openConnection(args.recipientVip, function(event){
+            args.endpointSender.openConnection(args.recipientEva, function(event){
                 assert.equal(event.status,    "CONNECTED", "Verifying connection status");
                 doneCaptor.signal("done-3");
             });

@@ -11,17 +11,17 @@ export function UnreliableHub(hub) {
 
     var blockedChannels = {};
 
-    selfHub.VnfEndpoint = function UnreliableEndpoint(selfVip) {
+    selfHub.VnfEndpoint = function UnreliableEndpoint(selfEva) {
         var self = this;
-        selfHub.ProxyEndpoint.call(self, selfVip);
+        selfHub.ProxyEndpoint.call(self, selfEva);
 
         self.parentEndpoint.onMessage = function(event) {
-            self.__acceptConnection(event.sourceVip)
+            self.__acceptConnection(event.sourceEva)
 
             try{
                 self.onMessage && self.onMessage({
                     message:   event.message,
-                    sourceVip: event.sourceVip,
+                    sourceEva: event.sourceEva,
                     endpoint:   self
                 });
             }catch(e) {
@@ -30,7 +30,7 @@ export function UnreliableHub(hub) {
         }
 
         self.__doOpenConnection = function(connection) {
-            self.parentEndpoint.openConnection(connection.targetVip, function(event) {
+            self.parentEndpoint.openConnection(connection.targetEva, function(event) {
                 if(event.status  == Global.FAILED) {
                     self.__connectionOpenFailed(connection);
                 }else{
@@ -40,29 +40,29 @@ export function UnreliableHub(hub) {
         }
 
         self.__doSend = function(connection, message) {
-            if(blockedChannels[self.vip] && blockedChannels[self.vip][connection.targetVip]) {
+            if(blockedChannels[self.eva] && blockedChannels[self.eva][connection.targetEva]) {
                 return;
             }
 
-            self.parentEndpoint.send(connection.targetVip, message);
+            self.parentEndpoint.send(connection.targetEva, message);
         }
 
-        self.parentEndpoint.onConnectionLost(function(targetVip){
-            self.closeConnection(targetVip);
+        self.parentEndpoint.onConnectionLost(function(targetEva){
+            self.closeConnection(targetEva);
         });
     }
 
-    selfHub.blockChannel = function(fromVip1, toVip2) {
-        if(!blockedChannels[fromVip1]){
-            blockedChannels[fromVip1] = {};
+    selfHub.blockChannel = function(fromEva1, toEva2) {
+        if(!blockedChannels[fromEva1]){
+            blockedChannels[fromEva1] = {};
         }
 
-        blockedChannels[fromVip1][toVip2] = true;
+        blockedChannels[fromEva1][toEva2] = true;
     }
 
-    selfHub.unblockChannel = function(fromVip1, toVip2) {
-        if(blockedChannels[fromVip1]){
-            blockedChannels[fromVip1][toVip2] = false;
+    selfHub.unblockChannel = function(fromEva1, toEva2) {
+        if(blockedChannels[fromEva1]){
+            blockedChannels[fromEva1][toEva2] = false;
         }
     }
 }

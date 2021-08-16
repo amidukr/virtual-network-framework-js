@@ -20,7 +20,7 @@ function rtcFactory(){
 }
 
 function bigMessageFactory(){
-    return new Vnf.BigMessageHub(new Vnf.InBrowserHub());
+    return new Vnf.MarshallerHub(new Vnf.InBrowserHub());
 }
 
 function reliableWebSocketFactory() {
@@ -50,7 +50,7 @@ function unreliableFactory() {
 }
 
 function reliableRtcFactory() {
-    return new Vnf.BigMessageHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
+    return new Vnf.MarshallerHub(new Vnf.ReliableRtcHub(new Vnf.InBrowserHub()));
 }
 
 
@@ -58,10 +58,10 @@ function integrationChannelTest(channelName, description, callback) {
     VnfTestUtils.test(["Channel Integration Tests", channelName], description,    {hubFactory: ChannelTestUtils.hubFactories[channelName]}, function(assert, args){
         args.vnfHub = args.hubFactory();
         args.channelName = channelName;
-        args.recipientVip = Random.random6() + "-recipient";
-        args.senderVip = Random.random6() + "-sender";
-        args.endpointRecipient = args.vnfHub.openEndpoint(args.recipientVip);
-        args.endpointSender = args.vnfHub.openEndpoint(args.senderVip);
+        args.recipientEva = Random.random6() + "-recipient";
+        args.senderEva = Random.random6() + "-sender";
+        args.endpointRecipient = args.vnfHub.openEndpoint(args.recipientEva);
+        args.endpointSender = args.vnfHub.openEndpoint(args.senderEva);
 
         args.recipientCaptor = new SignalCaptor(assert);
         args.senderCaptor    = new SignalCaptor(assert);
