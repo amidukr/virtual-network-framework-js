@@ -1,6 +1,6 @@
 {
   "name": "virtual-network-framework",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Virtual Network Framework",
   "main": "src/my-module.js",
   "scripts": {
