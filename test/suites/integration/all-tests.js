@@ -10,4 +10,4 @@ import "./channels/special/reliable-rtc-connection-lost-integration-test.js";
 import "./channels/special/web-socket-channel-test.js";
 
 // Store test suite
-import "./store/store-integration-test.js";
+import "./registry/registry-integration-test.js";

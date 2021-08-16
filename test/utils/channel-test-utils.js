@@ -28,7 +28,7 @@ function reliableWebSocketFactory() {
 }
 
 function webSocketFactory() {
-    var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory("wss://<server-host-name>/webbroker/vnf-ws"));
+    var hub = new Vnf.WebSocketHub(new Vnf.WebSocketFactory(TestingProfiles.vnfWebSocketUrl));
 
     hub.setEstablishConnectionTimeout(1500);
     hub.setRetryConnectAfterDelay(400);

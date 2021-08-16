@@ -27,8 +27,8 @@ import "./channel/big-message-channel-test.js";
 import "./channel/websocket/websocket-channel-test.js";
 import "./channel/websocket/websocket-connection-reuse-test.js";
 
-// Web Socket Store client
-import "./store/websocket-store-client-test.js";
+// Web Socket Registry client
+import "./registry/websocket-registry-client-test.js";
 
 // VNF System Test
 //import "./system/vnf-system-test.js";
