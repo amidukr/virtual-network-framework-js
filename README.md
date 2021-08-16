@@ -9,6 +9,8 @@ It has two essential parts:
 - VNF Channel
 - VNF Registry
 
+# Specification
+
 For more details please refer to VNF speicification:
 [VNF Specification](./docs/amid-ukr-vnf.pdf)
 
