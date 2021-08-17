@@ -1,12 +1,13 @@
 {
-  "name": "virtual-network-framework",
+  "name": "@amid.ukr/virtual-network-framework",
   "version": "0.2.1",
   "description": "Virtual Network Framework",
-  "main": "src/my-module.js",
+  "main": "dist/main.js",
   "scripts": {
-    "test": "npx karma start --single-run",
-    "codecov": "npx codecov",
-    "start": "npx http-server"
+    "test": "karma start --single-run",
+    "codecov": "codecov",
+    "start": "http-server",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -17,28 +18,28 @@
     "js",
     "javascript"
   ],
-  "author": "Dmytro Brazhnyk",
+  "author": "Dmytro Brazhnyk <amid.ukr@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/amidukr/virtual-network-framework-js/issues"
   },
   "homepage": "https://github.com/amidukr/virtual-network-framework-js#readme",
-  "dependencies": {
+  "devDependencies": {
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
     "codecov": "^3.6.1",
     "http-server": "^13.0.0",
     "karma": "^6.3.4",
     "karma-babel-preprocessor": "^8.0.1",
+    "karma-chrome-launcher": "^3.1.0",
     "karma-commonjs": "^1.0.0",
     "karma-coverage": "^2.0.1",
     "karma-failed-reporter": "0.0.3",
-    "karma-spec-reporter": "0.0.32",
-    "qunit": "^2.9.2"
-  },
-  "devDependencies": {
-    "karma-chrome-launcher": "^3.1.0",
     "karma-firefox-launcher": "^1.2.0",
-    "karma-qunit": "^4.0.0"
+    "karma-qunit": "^4.0.0",
+    "karma-spec-reporter": "0.0.32",
+    "qunit": "^2.9.2",
+    "webpack": "^5.50.0",
+    "webpack-cli": "^4.8.0"
   }
 }
