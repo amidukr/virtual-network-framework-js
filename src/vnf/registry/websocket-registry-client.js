@@ -68,7 +68,7 @@ export function WebSocketRegistryClient(webSocketRpc) {
     this.createOrUpdate = function(key, value) {
         validateKey(key);
 
-        return webSocketRpc.invoke("CREATE-OR-UPDATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value))
+        return webSocketRpc.invoke("CREATE-OR-UPDATE-ENTRY", key.collection + "\n" + key.name + "\n" + VnfSerializer.serializeValue(value),{retryResend: true})
         .then(function(evt) {
             if(evt.data == Global.OK) {
                 putToCache(key, value);
@@ -81,7 +81,7 @@ export function WebSocketRegistryClient(webSocketRpc) {
     this.getEntry = function(key, value) {
         validateKey(key);
 
-        return webSocketRpc.invoke("GET-ENTRY", key.collection + "\n" + key.name)
+        return webSocketRpc.invoke("GET-ENTRY", key.collection + "\n" + key.name, {retryResend: true})
         .then(function(evt) {
             return VnfSerializer.deserializeValue(evt.data);
         });
@@ -90,7 +90,7 @@ export function WebSocketRegistryClient(webSocketRpc) {
     this.getEntriesWithBody = function(collection) {
         if(collection.indexOf("\n") != -1) throw new Error("EOL character isn't supported in collection name");
 
-        return webSocketRpc.invoke("GET-ENTRIES-WITH-BODY", collection)
+        return webSocketRpc.invoke("GET-ENTRIES-WITH-BODY", collection, {retryResend: true})
         .then(function(evt){
             var result = {};
 
@@ -121,7 +121,7 @@ export function WebSocketRegistryClient(webSocketRpc) {
     this.deleteEntry = function(key) {
         validateKey(key);
 
-        return webSocketRpc.invoke("DELETE-ENTRY", key.collection + "\n" + key.name)
+        return webSocketRpc.invoke("DELETE-ENTRY", key.collection + "\n" + key.name, {retryResend: true})
         .then(function(evt) {
             if(evt.data == Global.OK) {
                 deleteFromCache(key);

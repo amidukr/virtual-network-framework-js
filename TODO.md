@@ -2,7 +2,8 @@
 
 
 # Todo List
-1. Apply library for quantum game
+1. Fix, library mode shouldn't generate VNF.VNF.InBrowser
+2. Timeouts.iceSendTimeout - doesn't works by default
 
 
 # Future tasks/On-Hold
@@ -46,3 +47,4 @@
         1. Rename store to registry
             1. Update specification 
             1. update code (store persistent thing)
+1. Registry: most of the command can do with retry

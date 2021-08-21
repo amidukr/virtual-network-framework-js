@@ -130,7 +130,7 @@ const endpoint2 = vnfHub.openEndpoint("endpoint2-name")
 ```js
 // Creating in browser hub of endpoints
 const webSocketFactory = new Vnf.WebSocketFactory("wss://<server-host-name>/webbroker/vnf-ws")
-const vnfHub = new Vnf.MarshallerHub(new Vnf.ReliableRtcHub((webSocketFactory)));
+const vnfHub = new Vnf.MarshallerHub(new Vnf.ReliableRtcHub(new Vnf.WebSocketHub(webSocketFactory)));
 
 // Creating endpoint in hub
 const endpoint1 = vnfHub.openEndpoint("endpoint1-name")
@@ -182,7 +182,9 @@ const registryClient = new Vnf.WebSocketRegistryClient(new Vnf.WebSocketRpc(eva,
 
 ```
 
-### WebSocketRegistry and WebScoketHub
+# VNF Channel and Registry examples
+
+## WebSocketRegistry and WebScoketHub
 ```js
 const webSocketFactory = new Vnf.WebSocketFactory("wss://<server-host-name>/webbroker/vnf-ws")
 const vnfHub = new Vnf.WebSocketHub(webSocketFactory);
@@ -190,6 +192,24 @@ const vnfHub = new Vnf.WebSocketHub(webSocketFactory);
 // Creating endpoint in hub
 const endpoint1 = vnfHub.openEndpoint("endpoint1-name")
 const registryClient = new Vnf.WebSocketRegistryClient(endpoint1.getWebSocketRpc())
+
+// Rest part the same as InBrowserRegistry
+...
+
+```
+
+### WebSocketRegistry and RtcHub
+```js
+// Creating in browser hub of endpoints
+const webSocketFactory = new Vnf.WebSocketFactory("wss://<server-host-name>/webbroker/vnf-ws")
+const webSocketHub = new Vnf.WebSocketHub(webSocketFactory)
+const vnfHub = new Vnf.MarshallerHub(new Vnf.ReliableRtcHub(webSocketHub));
+
+// Creating endpoint in hub
+const endpoint1 = vnfHub.openEndpoint("endpoint1-name")
+const webSocketRpc = webSocketHub.openEndpoint("endpoint1-name").getWebSocketRpc()
+
+const registryClient = new Vnf.WebSocketRegistryClient(webSocketRpc)
 
 // Rest part the same as InBrowserRegistry
 ...
